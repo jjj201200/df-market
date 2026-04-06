@@ -3,6 +3,7 @@
   "description": "Real-time Claude Code token usage reporter. Auto-starts a local web server showing per-request token stats with interactive charts.",
   "version": "1.0.0",
   "author": {
-    "name": "df2025"
+    "name": "jjj201200",
+    "email": "jjj201200@gmail.com"
   }
 }

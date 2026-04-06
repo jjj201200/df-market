@@ -16,7 +16,7 @@ Add to your `~/.claude/settings.json`:
     "token-reporter-market": {
       "source": {
         "source": "github",
-        "repo": "df2025/token-reporter"
+        "repo": "jjj201200/token-reporter"
       }
     }
   }
