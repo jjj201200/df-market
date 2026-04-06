@@ -1,0 +1,9 @@
+{
+  "name": "token-reporter",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "description": "Real-time Claude Code token usage reporter",
+  "engines": {
+    "node": ">=18"
+  }
+}
