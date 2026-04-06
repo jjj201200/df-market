@@ -3,7 +3,7 @@ name: auto-launch-off
 description: Disable auto-launch of token-reporter on session start
 ---
 
-将 `autoStart` 设为 `false`，阻止 token-reporter 在 Claude Code 启动时自动运行。
+Set `autoStart` to `false` to prevent token-reporter from starting automatically when Claude Code launches.
 
 ```bash
 node -e "

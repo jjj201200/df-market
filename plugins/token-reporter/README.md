@@ -31,13 +31,13 @@ Then install via Claude Code:
 
 ## Commands
 
-| Command                           | Description                      |
-| --------------------------------- | -------------------------------- |
-| `/token-reporter:start`           | 启动服务器（如已运行则跳过）     |
-| `/token-reporter:stop`            | 停止服务器并清理进程             |
-| `/token-reporter:status`          | 查看服务状态、端口、会话数等信息 |
-| `/token-reporter:auto-launch-on`  | 开启 Claude Code 启动时自动运行  |
-| `/token-reporter:auto-launch-off` | 关闭 Claude Code 启动时自动运行  |
+| Command                           | Description                                       |
+| --------------------------------- | ------------------------------------------------- |
+| `/token-reporter:start`           | Start the server (skip if already running)        |
+| `/token-reporter:stop`            | Stop the server and clean up the process          |
+| `/token-reporter:status`          | Show server status, port, session count, and more |
+| `/token-reporter:auto-launch-on`  | Enable auto-start when Claude Code launches       |
+| `/token-reporter:auto-launch-off` | Disable auto-start when Claude Code launches      |
 
 ## Usage
 

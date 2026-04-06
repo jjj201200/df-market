@@ -49,32 +49,32 @@ async function test(name, fn) {
 }
 
 async function main() {
-  console.log("\n[hooks 冒烟测试]");
+  console.log("\n[hooks smoke tests]");
 
-  await test("session-end.js: 无服务时以 exit 0 退出（幂等）", async () => {
+  await test("session-end.js: exits 0 when no server running (idempotent)", async () => {
     const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "tr-hooks-"));
     const r = await run("session-end.js", { dataDir });
     assert.strictEqual(
       r.code,
       0,
-      `exit code 应为 0，实际: ${r.code}\nstderr: ${r.stderr}`,
+      `expected exit code 0, got: ${r.code}\nstderr: ${r.stderr}`,
     );
     fs.rmSync(dataDir, { recursive: true });
   });
 
-  await test("post-tool-use.js: 服务未运行时以 exit 0 静默退出", async () => {
+  await test("post-tool-use.js: exits 0 silently when server is not running", async () => {
     const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "tr-hooks-"));
     const stdin = JSON.stringify({ session_id: "test", tool_name: "Bash" });
     const r = await run("post-tool-use.js", { dataDir, stdin });
     assert.strictEqual(
       r.code,
       0,
-      `exit code 应为 0，实际: ${r.code}\nstderr: ${r.stderr}`,
+      `expected exit code 0, got: ${r.code}\nstderr: ${r.stderr}`,
     );
     fs.rmSync(dataDir, { recursive: true });
   });
 
-  await test("session-start.js: autoStart=false 时以 exit 0 退出", async () => {
+  await test("session-start.js: exits 0 when autoStart=false", async () => {
     const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "tr-hooks-"));
     fs.writeFileSync(
       path.join(dataDir, "config.json"),
@@ -88,13 +88,13 @@ async function main() {
     assert.strictEqual(
       r.code,
       0,
-      `exit code 应为 0，实际: ${r.code}\nstderr: ${r.stderr}`,
+      `expected exit code 0, got: ${r.code}\nstderr: ${r.stderr}`,
     );
     assert.strictEqual(fs.existsSync(path.join(dataDir, "server.pid")), false);
     fs.rmSync(dataDir, { recursive: true });
   });
 
-  await test("session-start.js: autoStart=true 时启动服务，产生 server.pid", async () => {
+  await test("session-start.js: starts server and creates server.pid when autoStart=true", async () => {
     const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "tr-hooks-"));
     fs.writeFileSync(
       path.join(dataDir, "config.json"),
@@ -108,14 +108,14 @@ async function main() {
     assert.strictEqual(
       r.code,
       0,
-      `exit code 应为 0，实际: ${r.code}\nstderr: ${r.stderr}`,
+      `expected exit code 0, got: ${r.code}\nstderr: ${r.stderr}`,
     );
     assert.strictEqual(
       fs.existsSync(path.join(dataDir, "server.pid")),
       true,
-      "server.pid 应存在",
+      "server.pid should exist",
     );
-    // 清理：停止服务
+    // Cleanup: stop the server
     const pid = parseInt(
       fs.readFileSync(path.join(dataDir, "server.pid"), "utf8").trim(),
     );
@@ -126,7 +126,7 @@ async function main() {
     fs.rmSync(dataDir, { recursive: true });
   });
 
-  console.log(`\n结果: ${passed} 通过, ${failed} 失败`);
+  console.log(`\nResults: ${passed} passed, ${failed} failed`);
   if (failed > 0) process.exit(1);
 }
 

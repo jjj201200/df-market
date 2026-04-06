@@ -3,7 +3,7 @@ name: status
 description: Show the current status of the token-reporter server
 ---
 
-查询 token-reporter 服务器当前状态。
+Show current status of the token-reporter server.
 
 ```bash
 node -e "
@@ -57,11 +57,11 @@ node -e "
   console.log(DIM + '  ───────────────────────────────' + R);
   console.log('  ' + BOLD + 'Commands' + R);
   console.log(DIM + '  ───────────────────────────────' + R);
-  console.log('  ' + CYAN + '/token-reporter:start' + R + '           启动服务');
-  console.log('  ' + CYAN + '/token-reporter:stop' + R + '            停止服务');
-  console.log('  ' + CYAN + '/token-reporter:status' + R + '          查看状态');
-  console.log('  ' + CYAN + '/token-reporter:auto-launch-on' + R + '  开启自动启动');
-  console.log('  ' + CYAN + '/token-reporter:auto-launch-off' + R + ' 关闭自动启动');
+  console.log('  ' + CYAN + '/token-reporter:start' + R + '           Start server');
+  console.log('  ' + CYAN + '/token-reporter:stop' + R + '            Stop server');
+  console.log('  ' + CYAN + '/token-reporter:status' + R + '          Show status');
+  console.log('  ' + CYAN + '/token-reporter:auto-launch-on' + R + '  Enable auto-launch');
+  console.log('  ' + CYAN + '/token-reporter:auto-launch-off' + R + ' Disable auto-launch');
   console.log('');
 "
 ```

@@ -32,14 +32,14 @@ async function main() {
   await test("1.0.0 === 1.0.0", async () => {
     assert.strictEqual(semverCompare("1.0.0", "1.0.0"), 0);
   });
-  await test("undefined 视为 0.0.0", async () => {
+  await test("undefined is treated as 0.0.0", async () => {
     assert.strictEqual(semverCompare(undefined, "1.0.0"), -1);
   });
 
   // ── migrate ──────────────────────────────────────
   console.log("\n[migrate]");
 
-  await test("lastVersion === pluginVersion → 跳过所有迁移", async () => {
+  await test("lastVersion === pluginVersion → skip all migrations", async () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "tr-test-"));
     const configPath = path.join(tmpDir, "config.json");
     const config = { port: 3737, autoStart: true, lastVersion: "1.0.0" };
@@ -58,7 +58,7 @@ async function main() {
     fs.rmSync(tmpDir, { recursive: true });
   });
 
-  await test("lastVersion 未定义 → 视为 0.0.0，执行迁移", async () => {
+  await test("lastVersion undefined → treated as 0.0.0, run migrations", async () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "tr-test-"));
     const configPath = path.join(tmpDir, "config.json");
     const config = { port: 3737, autoStart: true };
@@ -77,7 +77,7 @@ async function main() {
     fs.rmSync(tmpDir, { recursive: true });
   });
 
-  await test("迁移函数抛错 → 记录错误但 config.lastVersion 仍然更新", async () => {
+  await test("migration fn throws → logs error but config.lastVersion still updated", async () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "tr-test-"));
     const configPath = path.join(tmpDir, "config.json");
     const config = { port: 3737, autoStart: true };
@@ -105,8 +105,8 @@ async function main() {
     }
   });
 
-  // ── 结果 ────────────────────────────────────────
-  console.log(`\n结果: ${passed} 通过, ${failed} 失败`);
+  // ── results ────────────────────────────────────────
+  console.log(`\nResults: ${passed} passed, ${failed} failed`);
   if (failed > 0) process.exit(1);
 }
 

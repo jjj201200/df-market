@@ -4,7 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const os = require("os");
 
-// 路径从环境变量读取（由 session-start.js 注入），回退到旧路径兼容独立运行
+// Paths are injected via env vars by session-start.js; fall back to defaults for standalone use
 const PLUGIN_ROOT =
   process.env.TOKEN_REPORTER_PLUGIN_ROOT ||
   path.join(os.homedir(), ".claude", "token-reporter");
@@ -137,7 +137,7 @@ server.on("error", (e) => {
   throw e;
 });
 
-// 退出时清理 PID 和 lock
+// Clean up PID and lock files on exit
 process.on("exit", () => {
   try {
     fs.unlinkSync(PID_PATH);

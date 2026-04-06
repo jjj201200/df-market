@@ -2,7 +2,7 @@
 const fs = require("fs");
 
 /**
- * 语义版本比较：返回 -1/0/1
+ * Semantic version comparison: returns -1/0/1
  * @param {string} a
  * @param {string} b
  */
@@ -17,27 +17,27 @@ function semverCompare(a, b) {
 }
 
 /**
- * 迁移表：key 为触发该迁移所需的最低 lastVersion（即"从这个版本之后需要运行"）
- * 格式：[fromVersion, migrateFn]
- * fromVersion: 若 lastVersion < fromVersion，则执行该迁移
+ * Migration table: key is the minimum lastVersion that triggers this migration
+ * Format: [fromVersion, migrateFn]
+ * fromVersion: migration runs when lastVersion < fromVersion
  *
- * 示例（v1.0.0 → v1.1.0 时添加新字段）:
+ * Example (adding a new field in v1.0.0 → v1.1.0):
  * ['1.1.0', async (config, dataDir) => {
  *   if (config.newField === undefined) config.newField = 'default';
  * }],
  */
 const MIGRATIONS = [
-  // v1.0.0 无迁移内容，框架就绪
+  // v1.0.0: no migrations, framework ready
 ];
 
 /**
- * 执行版本迁移
+ * Run version migrations
  * @param {object} opts
- * @param {string} opts.lastVersion - config.json 中记录的上次版本，无则视为 '0.0.0'
- * @param {string} opts.pluginVersion - 当前插件版本（plugin.json 中的 version）
- * @param {object} opts.config - 已解析的 config 对象（会被就地修改）
- * @param {string} opts.dataDir - 数据目录路径
- * @param {string} opts.configPath - config.json 完整路径（迁移完成后写回）
+ * @param {string} opts.lastVersion - last version recorded in config.json; treated as '0.0.0' if absent
+ * @param {string} opts.pluginVersion - current plugin version from plugin.json
+ * @param {object} opts.config - parsed config object (mutated in place)
+ * @param {string} opts.dataDir - data directory path
+ * @param {string} opts.configPath - full path to config.json (written back after migration)
  */
 async function migrate({
   lastVersion,
@@ -48,10 +48,10 @@ async function migrate({
 }) {
   const from = lastVersion || "0.0.0";
 
-  // 已是最新版本，跳过
+  // Already at latest version, skip
   if (semverCompare(from, pluginVersion) >= 0) return;
 
-  // 按版本顺序执行所有需要的迁移
+  // Run all pending migrations in version order
   const pending = MIGRATIONS.filter(([ver]) => semverCompare(from, ver) < 0);
   pending.sort((a, b) => semverCompare(a[0], b[0]));
 
@@ -60,14 +60,14 @@ async function migrate({
       await migrateFn(config, dataDir);
       console.error(`[token-reporter] migrated to ${ver}`);
     } catch (e) {
-      // 迁移失败：记录错误，不阻断启动
+      // Migration failed: log error but do not block startup
       console.error(
         `[token-reporter] migration to ${ver} failed: ${e.message}`,
       );
     }
   }
 
-  // 写回 config（包含 lastVersion 更新）
+  // Write back config with updated lastVersion
   config.lastVersion = pluginVersion;
   try {
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2));

@@ -48,9 +48,9 @@ function makeLockFns(lockPath, pidPath) {
 }
 
 async function main() {
-  console.log("\n[单实例文件锁]");
+  console.log("\n[Single-instance file lock]");
 
-  await test("首次获取锁成功", async () => {
+  await test("acquire lock succeeds on first attempt", async () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "tr-lock-"));
     const lockPath = path.join(tmpDir, "server.lock");
     const { acquireLock } = makeLockFns(lockPath, "");
@@ -58,7 +58,7 @@ async function main() {
     fs.rmSync(tmpDir, { recursive: true });
   });
 
-  await test("锁已存在时再次获取返回 false", async () => {
+  await test("returns false when lock already exists", async () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "tr-lock-"));
     const lockPath = path.join(tmpDir, "server.lock");
     const { acquireLock } = makeLockFns(lockPath, "");
@@ -67,7 +67,7 @@ async function main() {
     fs.rmSync(tmpDir, { recursive: true });
   });
 
-  await test("清理残留锁后可重新获取", async () => {
+  await test("re-acquire succeeds after cleaning up stale lock", async () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "tr-lock-"));
     const lockPath = path.join(tmpDir, "server.lock");
     const pidPath = path.join(tmpDir, "server.pid");
@@ -80,17 +80,17 @@ async function main() {
     fs.rmSync(tmpDir, { recursive: true });
   });
 
-  await test("isProcessAlive 对当前进程返回 true", async () => {
+  await test("isProcessAlive returns true for current process", async () => {
     const { isProcessAlive } = makeLockFns("", "");
     assert.strictEqual(isProcessAlive(process.pid), true);
   });
 
-  await test("isProcessAlive 对不存在的 PID 返回 false", async () => {
+  await test("isProcessAlive returns false for non-existent PID", async () => {
     const { isProcessAlive } = makeLockFns("", "");
     assert.strictEqual(isProcessAlive(99999999), false);
   });
 
-  console.log(`\n结果: ${passed} 通过, ${failed} 失败`);
+  console.log(`\nResults: ${passed} passed, ${failed} failed`);
   if (failed > 0) process.exit(1);
 }
 

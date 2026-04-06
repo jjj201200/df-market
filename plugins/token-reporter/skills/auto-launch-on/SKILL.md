@@ -3,7 +3,7 @@ name: auto-launch-on
 description: Enable auto-launch of token-reporter on session start
 ---
 
-将 `autoStart` 设为 `true`，下次 Claude Code 启动时自动运行 token-reporter。
+Set `autoStart` to `true` so token-reporter starts automatically the next time Claude Code launches.
 
 ```bash
 node -e "

@@ -3,7 +3,7 @@ name: start
 description: Start the token-reporter server
 ---
 
-启动 token-reporter 服务器（如已运行则跳过），并输出访问地址。
+Start the token-reporter server (skip if already running) and print the access URL.
 
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/hooks/session-start.js" && \
