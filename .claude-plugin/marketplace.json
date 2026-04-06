@@ -1,0 +1,26 @@
+{
+  "name": "token-reporter-market",
+  "owner": {
+    "name": "jjj201200",
+    "email": "jjj201200@gmail.com"
+  },
+  "metadata": {
+    "description": "Token Reporter Plugin Marketplace",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "token-reporter",
+      "source": "./plugins/token-reporter",
+      "description": "Real-time Claude Code token usage reporter. Auto-starts a local web server showing per-request token stats with interactive charts.",
+      "version": "1.0.0",
+      "author": {
+        "name": "jjj201200",
+        "email": "jjj201200@gmail.com"
+      },
+      "homepage": "https://github.com/jjj201200/token-reporter",
+      "repository": "https://github.com/jjj201200/token-reporter",
+      "keywords": ["token", "reporting", "monitoring"]
+    }
+  ]
+}
