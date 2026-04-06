@@ -1,5 +1,5 @@
 ---
-name: token-reporter:stop
+name: stop
 description: Stop the token-reporter server
 ---
 

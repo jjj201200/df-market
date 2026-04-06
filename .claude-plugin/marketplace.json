@@ -13,7 +13,7 @@
       "name": "token-reporter",
       "source": "./plugins/token-reporter",
       "description": "Real-time Claude Code token usage reporter. Auto-starts a local web server showing per-request token stats with interactive charts.",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "author": {
         "name": "jjj201200",
         "email": "jjj201200@gmail.com"

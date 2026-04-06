@@ -1,5 +1,5 @@
 ---
-name: token-reporter:start
+name: start
 description: Start the token-reporter server
 ---
 

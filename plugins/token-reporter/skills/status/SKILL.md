@@ -1,5 +1,5 @@
 ---
-name: token-reporter:status
+name: status
 description: Show the current status of the token-reporter server
 ---
 
