@@ -1,11 +1,11 @@
 {
-  "name": "token-reporter-market",
+  "name": "df-market",
   "owner": {
     "name": "jjj201200",
     "email": "jjj201200@gmail.com"
   },
   "metadata": {
-    "description": "Token Reporter Plugin Marketplace",
+    "description": "df's Claude Code plugins marketplace",
     "version": "1.0.0"
   },
   "plugins": [

@@ -13,7 +13,7 @@ Add to your `~/.claude/settings.json`:
 ```json
 {
   "extraKnownMarketplaces": {
-    "token-reporter-market": {
+    "df-market": {
       "source": {
         "source": "github",
         "repo": "jjj201200/token-reporter"
@@ -26,7 +26,7 @@ Add to your `~/.claude/settings.json`:
 Then install via Claude Code:
 
 ```
-/plugin install token-reporter@token-reporter-market
+/plugin install token-reporter@df-market
 ```
 
 ## Usage

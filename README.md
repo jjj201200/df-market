@@ -1,6 +1,6 @@
-# Token Reporter — Claude Code Plugin Marketplace
+# df-market — Claude Code Plugin Marketplace
 
-Real-time Claude Code token usage reporter plugin.
+df's personal Claude Code plugins marketplace.
 
 ## Installation
 
@@ -9,7 +9,7 @@ Add to your `~/.claude/settings.json`:
 ```json
 {
   "extraKnownMarketplaces": {
-    "token-reporter-market": {
+    "df-market": {
       "source": {
         "source": "github",
         "repo": "jjj201200/token-reporter"
@@ -19,10 +19,10 @@ Add to your `~/.claude/settings.json`:
 }
 ```
 
-Then install via Claude Code:
+Then install plugins via Claude Code:
 
 ```
-/plugin install token-reporter@token-reporter-market
+/plugin install token-reporter@df-market
 ```
 
 ## Prerequisites
