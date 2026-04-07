@@ -1,0 +1,43 @@
+#!/usr/bin/env node
+/**
+ * Token Reporter Auto-Launch Off CLI
+ * Disables auto-launch on session start
+ */
+
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+
+const DATA_DIR = process.env.TOKEN_REPORTER_DATA_DIR || path.join(os.homedir(), '.claude', 'token-reporter');
+const CONFIG_PATH = path.join(DATA_DIR, 'config.json');
+
+const DEFAULT_CONFIG = { port: 3737, autoStart: true, lastVersion: '0.0.0' };
+
+function readJSON(p, fallback) {
+  try {
+    return JSON.parse(fs.readFileSync(p, 'utf8'));
+  } catch {
+    return fallback;
+  }
+}
+
+function main() {
+  // Ensure data directory exists
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+
+  // Read or create config
+  let config = readJSON(CONFIG_PATH, null);
+  if (!config) {
+    config = { ...DEFAULT_CONFIG };
+  }
+
+  // Disable auto-start
+  config.autoStart = false;
+
+  // Write config
+  fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
+
+  console.log('Auto-launch disabled. Token Reporter will not start automatically.');
+}
+
+main();

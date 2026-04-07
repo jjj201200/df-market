@@ -19,7 +19,23 @@ const { parseSession, listSessions } = require(
 const CONFIG_PATH = path.join(DATA_DIR, "config.json");
 const PID_PATH = path.join(DATA_DIR, "server.pid");
 const LOCK_PATH = path.join(DATA_DIR, "server.lock");
-const HTML_PATH = path.join(PLUGIN_ROOT, "src", "report.html");
+const SRC_DIR = path.join(PLUGIN_ROOT, "src");
+
+const MIME = {
+  ".html": "text/html; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
+  ".js": "application/javascript; charset=utf-8",
+};
+
+function serveStatic(res, filePath) {
+  if (!fs.existsSync(filePath)) {
+    res.writeHead(404).end("not found");
+    return;
+  }
+  const ext = path.extname(filePath);
+  res.writeHead(200, { "Content-Type": MIME[ext] || "application/octet-stream" });
+  fs.createReadStream(filePath).pipe(res);
+}
 
 function loadConfig() {
   try {
@@ -78,6 +94,7 @@ async function handleRequest(req, res) {
         sessions.map((s) => ({
           sessionId: s.sessionId,
           slug: s.slug,
+          customTitle: s.customTitle,
           gitBranch: s.gitBranch,
           mtime: s.mtime,
           filePath: s.filePath,
@@ -105,13 +122,20 @@ async function handleRequest(req, res) {
   }
 
   if (url.pathname === "/" || url.pathname === "/index.html") {
-    if (!fs.existsSync(HTML_PATH)) {
-      res.writeHead(404).end("report.html not found");
-      return;
-    }
-    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-    fs.createReadStream(HTML_PATH).pipe(res);
+    serveStatic(res, path.join(SRC_DIR, "report.html"));
     return;
+  }
+
+  // Serve static assets only from src/css/ and src/js/
+  if (url.pathname.startsWith("/css/") || url.pathname.startsWith("/js/")) {
+    const ext = path.extname(url.pathname);
+    if (MIME[ext]) {
+      const filePath = path.resolve(path.join(SRC_DIR, url.pathname));
+      if (filePath.startsWith(path.resolve(SRC_DIR) + path.sep)) {
+        serveStatic(res, filePath);
+        return;
+      }
+    }
   }
 
   res.writeHead(404).end("not found");

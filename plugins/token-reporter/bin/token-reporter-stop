@@ -1,0 +1,76 @@
+#!/usr/bin/env node
+/**
+ * Token Reporter Stop CLI
+ * Stops the token-reporter server
+ */
+
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+
+const DATA_DIR = process.env.TOKEN_REPORTER_DATA_DIR || path.join(os.homedir(), '.claude', 'token-reporter');
+const PID_PATH = path.join(DATA_DIR, 'server.pid');
+const LOCK_PATH = path.join(DATA_DIR, 'server.lock');
+
+function readJSON(p, fallback) {
+  try {
+    return JSON.parse(fs.readFileSync(p, 'utf8'));
+  } catch {
+    return fallback;
+  }
+}
+
+function isProcessAlive(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function main() {
+  const pid = readJSON(PID_PATH, null);
+
+  if (!pid || !isProcessAlive(pid)) {
+    // Clean up stale files
+    try { fs.unlinkSync(PID_PATH); } catch {}
+    try { fs.unlinkSync(LOCK_PATH); } catch {}
+    console.log('Token Reporter is not running.');
+    return;
+  }
+
+  // Send SIGTERM for graceful shutdown
+  try {
+    process.kill(pid, 'SIGTERM');
+  } catch (e) {
+    console.error(`Error stopping server: ${e.message}`);
+    process.exit(1);
+  }
+
+  // Wait up to 3 seconds for graceful shutdown
+  for (let i = 0; i < 3; i++) {
+    await new Promise(r => setTimeout(r, 1000));
+    if (!isProcessAlive(pid)) {
+      break;
+    }
+  }
+
+  // Force kill if still running
+  if (isProcessAlive(pid)) {
+    try {
+      process.kill(pid, 'SIGKILL');
+    } catch {}
+  }
+
+  // Clean up files
+  try { fs.unlinkSync(PID_PATH); } catch {}
+  try { fs.unlinkSync(LOCK_PATH); } catch {}
+
+  console.log('Token Reporter stopped.');
+}
+
+main().catch(e => {
+  console.error(`Error: ${e.message}`);
+  process.exit(1);
+});

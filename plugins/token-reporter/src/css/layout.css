@@ -1,0 +1,26 @@
+/* ── Sticky chart area ── */
+.sticky-chart {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 16px 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+}
+
+/* ── Conversation content area ── */
+.conv-scroll {
+  padding: 14px 16px 40px;
+  flex: 1;
+}
+.section-label {
+  font-size: 12px;
+  color: var(--blue);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}

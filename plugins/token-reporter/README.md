@@ -29,15 +29,17 @@ Then install via Claude Code:
 /plugin install token-reporter@df-market
 ```
 
-## Commands
+## CLI Commands
 
-| Command                           | Description                                       |
-| --------------------------------- | ------------------------------------------------- |
-| `/token-reporter:start`           | Start the server (skip if already running)        |
-| `/token-reporter:stop`            | Stop the server and clean up the process          |
-| `/token-reporter:status`          | Show server status, port, session count, and more |
-| `/token-reporter:auto-launch-on`  | Enable auto-start when Claude Code launches       |
-| `/token-reporter:auto-launch-off` | Disable auto-start when Claude Code launches      |
+After installation, the following commands are available in your PATH:
+
+| Command                          | Description                                       |
+| -------------------------------- | ------------------------------------------------- |
+| `token-reporter-start`           | Start the server (skip if already running)        |
+| `token-reporter-stop`            | Stop the server and clean up the process          |
+| `token-reporter-status`          | Show server status, port, session count, and more |
+| `token-reporter-auto-launch-on`  | Enable auto-start when Claude Code launches       |
+| `token-reporter-auto-launch-off` | Disable auto-start when Claude Code launches      |
 
 ## Usage
 

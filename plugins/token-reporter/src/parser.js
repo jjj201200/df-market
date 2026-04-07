@@ -61,6 +61,7 @@ function listSessions() {
           sessions.set(sessionId, {
             sessionId,
             slug: meta.slug || sessionId,
+            customTitle: meta.customTitle || "",
             gitBranch: meta.gitBranch || "",
             projectDir: path.basename(dir),
             filePath: fp,
@@ -86,10 +87,22 @@ function listSessions() {
 function readFirstLineMeta(filePath) {
   try {
     const content = fs.readFileSync(filePath, "utf8");
-    const firstLine = content.split("\n").find((l) => l.trim());
-    if (!firstLine) return {};
-    const obj = JSON.parse(firstLine);
-    return { slug: obj.slug, gitBranch: obj.gitBranch };
+    const lines = content.split("\n");
+    let slug = "";
+    let gitBranch = "";
+    let customTitle = "";
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      try {
+        const obj = JSON.parse(line);
+        if (!slug && obj.slug) slug = obj.slug;
+        if (!gitBranch && obj.gitBranch) gitBranch = obj.gitBranch;
+        if (obj.type === "custom-title" && obj.customTitle) {
+          customTitle = obj.customTitle;
+        }
+      } catch {}
+    }
+    return { slug, gitBranch, customTitle };
   } catch {
     return {};
   }
@@ -123,7 +136,7 @@ async function parseSession(filePath) {
 
   // Build index by uuid
   const byUuid = new Map();
-  for (const l of lines) byUuid.set(l.uuid, l);
+  for (const l of lines) if (l.uuid) byUuid.set(l.uuid, l);
 
   // Collect tool_results: key = toolUseId, value = { content, isError, userRecord }
   const toolResults = new Map();
@@ -137,7 +150,12 @@ async function parseSession(filePath) {
           content:
             typeof c.content === "string"
               ? c.content
-              : JSON.stringify(c.content ?? ""),
+              : Array.isArray(c.content)
+                ? c.content
+                    .filter((b) => b.type === "text")
+                    .map((b) => b.text || "")
+                    .join("\n")
+                : JSON.stringify(c.content ?? ""),
           isError: !!c.is_error,
           userRecord: rec,
         });
@@ -145,7 +163,54 @@ async function parseSession(filePath) {
     }
   }
 
-  // Process only assistant messages (contain actual token usage)
+  // Collect system events (commands, compact boundaries, etc.)
+  const systemEvents = [];
+  for (const rec of lines) {
+    if (rec.type !== "system") continue;
+    if (rec.subtype === "local_command") {
+      // Parse command name and output from XML-like content
+      const content = rec.content || "";
+      const cmdMatch = content.match(/<command-name>([^<]+)<\/command-name>/);
+      const msgMatch = content.match(/<command-message>([^<]*)<\/command-message>/);
+      const stdoutMatch = content.match(
+        /<local-command-stdout>([\s\S]*?)<\/local-command-stdout>/,
+      );
+      if (cmdMatch) {
+        systemEvents.push({
+          type: "command",
+          command: cmdMatch[1],
+          message: msgMatch?.[1] || "",
+          timestamp: rec.timestamp,
+          time: rec.timestamp
+            ? new Date(rec.timestamp).toLocaleTimeString(undefined, {
+                hour12: false,
+              })
+            : "",
+        });
+      } else if (stdoutMatch) {
+        // Command output — attach to previous command event if timestamps match
+        const prev = systemEvents[systemEvents.length - 1];
+        if (prev && prev.type === "command") {
+          prev.output = stdoutMatch[1];
+        }
+      }
+    } else if (rec.subtype === "compact_boundary") {
+      const meta = rec.compactMetadata || {};
+      systemEvents.push({
+        type: "compact",
+        trigger: meta.trigger || "auto",
+        preTokens: meta.preTokens || 0,
+        timestamp: rec.timestamp,
+        time: rec.timestamp
+          ? new Date(rec.timestamp).toLocaleTimeString(undefined, {
+              hour12: false,
+            })
+          : "",
+      });
+    }
+  }
+
+  // Process assistant messages (contain actual token usage)
   const turns = [];
   let turnIndex = 0;
 
@@ -212,10 +277,11 @@ async function parseSession(filePath) {
       };
     });
 
-    // Find the corresponding user message (parentUuid points to the assistant record)
-    const parentRec = byUuid.get(rec.parentUuid);
+    // Find the corresponding user message by walking up the parentUuid chain.
+    // Some records (e.g. "attachment") sit between the assistant and its user record.
+    const parentRec = findParentUser(rec, byUuid);
     let userText = "";
-    if (parentRec?.type === "user") {
+    if (parentRec) {
       const userContent = parentRec.message?.content;
       if (Array.isArray(userContent)) {
         userText = userContent
@@ -251,7 +317,7 @@ async function parseSession(filePath) {
     });
   }
 
-  return { sessionId, slug, gitBranch, turns };
+  return { sessionId, slug, gitBranch, turns, systemEvents };
 }
 
 /** Map tool name to CSS class */
@@ -306,6 +372,20 @@ function buildParamsSummary(toolName, input) {
   // Default: use the first string value
   const first = Object.values(input).find((v) => typeof v === "string");
   return first || JSON.stringify(input).slice(0, 80);
+}
+
+/**
+ * Walk up the parentUuid chain to find the nearest ancestor with type === "user".
+ * Needed because some record types (e.g. "attachment") can sit between an
+ * assistant record and its actual user parent.
+ */
+function findParentUser(rec, byUuid) {
+  let cur = byUuid.get(rec.parentUuid);
+  while (cur) {
+    if (cur.type === "user") return cur;
+    cur = byUuid.get(cur.parentUuid);
+  }
+  return null;
 }
 
 module.exports = { parseSession, listSessions, findJSONLPath };

@@ -1,0 +1,91 @@
+#!/usr/bin/env node
+/**
+ * Token Reporter Start CLI
+ * Starts the token-reporter server
+ */
+
+const { spawn } = require('child_process');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+
+const PLUGIN_ROOT = process.env.CLAUDE_PLUGIN_ROOT ||
+  path.join(os.homedir(), '.claude', 'plugins', 'marketplaces', 'df-market', 'plugins', 'token-reporter');
+const DATA_DIR = process.env.TOKEN_REPORTER_DATA_DIR || path.join(os.homedir(), '.claude', 'token-reporter');
+const CONFIG_PATH = path.join(DATA_DIR, 'config.json');
+const PID_PATH = path.join(DATA_DIR, 'server.pid');
+const SERVER_PATH = path.join(PLUGIN_ROOT, 'src', 'server.js');
+
+function readJSON(p, fallback) {
+  try {
+    return JSON.parse(fs.readFileSync(p, 'utf8'));
+  } catch {
+    return fallback;
+  }
+}
+
+function isProcessAlive(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function main() {
+  // Ensure data directories exist
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.mkdirSync(path.join(DATA_DIR, 'sessions'), { recursive: true });
+
+  // Check if already running
+  const existingPid = readJSON(PID_PATH, null);
+  if (existingPid && isProcessAlive(existingPid)) {
+    const config = readJSON(CONFIG_PATH, { port: 3737 });
+    console.log(`Token Reporter already running at http://localhost:${config.port}`);
+    return;
+  }
+
+  // Clean up stale PID file
+  try {
+    fs.unlinkSync(PID_PATH);
+  } catch {}
+
+  // Check if server.js exists
+  if (!fs.existsSync(SERVER_PATH)) {
+    console.error(`Error: Server script not found at ${SERVER_PATH}`);
+    console.error('Please ensure the plugin is properly installed.');
+    process.exit(1);
+  }
+
+  // Spawn server process
+  const child = spawn(process.execPath, [SERVER_PATH], {
+    detached: true,
+    stdio: 'ignore',
+    env: {
+      ...process.env,
+      TOKEN_REPORTER_PLUGIN_ROOT: PLUGIN_ROOT,
+      TOKEN_REPORTER_DATA_DIR: DATA_DIR,
+    },
+  });
+
+  child.unref();
+
+  // Wait for server to start (up to 3 seconds)
+  for (let i = 0; i < 30; i++) {
+    await new Promise(r => setTimeout(r, 100));
+    if (fs.existsSync(PID_PATH)) {
+      const config = readJSON(CONFIG_PATH, { port: 3737 });
+      console.log(`Token Reporter started at http://localhost:${config.port}`);
+      return;
+    }
+  }
+
+  console.error('Error: Server failed to start within 3 seconds.');
+  process.exit(1);
+}
+
+main().catch(e => {
+  console.error(`Error: ${e.message}`);
+  process.exit(1);
+});
