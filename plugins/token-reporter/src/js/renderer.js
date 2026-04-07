@@ -1,7 +1,86 @@
-import { dims, setHovered } from "./state.js";
+import { dims, setHovered, LIMITS } from "./state.js";
 import { escHtml, fmtF, fmtDur, fmtBytes, parseDur, parseSize, fmt } from "./utils.js";
 import { drawMainChart } from "./chart.js";
 import { initScrollSync } from "./interactions.js";
+
+/**
+ * Format reset time from timestamp
+ */
+function fmtResetTime(timestamp) {
+  if (!timestamp) return "";
+  const now = Date.now() / 1000;
+  const diff = timestamp - now;
+  if (diff <= 0) return "即将重置";
+  const hours = Math.floor(diff / 3600);
+  const mins = Math.floor((diff % 3600) / 60);
+  if (hours > 24) {
+    const days = Math.floor(hours / 24);
+    return `${days}天${hours % 24}小时后重置`;
+  }
+  return `${hours}小时${mins}分钟后重置`;
+}
+
+/**
+ * Render three-column limits display
+ */
+export function renderLimits(sessionId) {
+  const limits = LIMITS.get(sessionId);
+  if (!limits) return "";
+
+  const ctx = limits.contextWindow || limits.context_window || {};
+  const rate = limits.rateLimits || limits.rate_limits || {};
+  const fiveHour = rate?.five_hour || {};
+  const sevenDay = rate?.seven_day || {};
+
+  // Helper to build progress bar
+  const buildBar = (pct) => {
+    const width = Math.min(100, Math.max(0, pct || 0));
+    const color = width > 90 ? "#f85149" : width > 70 ? "#d29922" : "#3fb950";
+    return `<div class="limit-bar"><div class="limit-fill" style="width:${width}%;background:${color}"></div></div>`;
+  };
+
+  const ctxPct = ctx.used_percentage || 0;
+  const fivePct = fiveHour.used_percentage || 0;
+  const sevenPct = sevenDay.used_percentage || 0;
+
+  // Calculate actual usage in context window
+  const currentUsage = ctx.current_usage || {};
+  const ctxUsed = (currentUsage.input_tokens || 0) + (currentUsage.output_tokens || 0) +
+                  (currentUsage.cache_read_input_tokens || 0) + (currentUsage.cache_creation_input_tokens || 0);
+
+  // Build detail text: use actual size if available, otherwise calculate from percentage
+  let ctxDetail = "";
+  if (ctx.context_window_size) {
+    ctxDetail = `${fmt(ctxUsed)}/${fmt(ctx.context_window_size)}`;
+  } else if (ctxPct > 0) {
+    const estimatedSize = Math.round(ctxUsed / (ctxPct / 100));
+    ctxDetail = `${fmt(ctxUsed)}/${fmt(estimatedSize)}`;
+  }
+
+  // Compact single-row display
+  return `
+    <div class="limits-row-compact">
+      <div class="limit-item-compact">
+        <span class="limit-label">Ctx</span>
+        ${buildBar(ctxPct)}
+        <span class="limit-pct">${Math.round(ctxPct)}%</span>
+        ${ctxDetail ? `<span class="limit-detail">${ctxDetail}</span>` : ""}
+      </div>
+      <div class="limit-item-compact">
+        <span class="limit-label">5h</span>
+        ${buildBar(fivePct)}
+        <span class="limit-pct">${Math.round(fivePct)}%</span>
+        <span class="limit-detail">限制</span>
+      </div>
+      <div class="limit-item-compact">
+        <span class="limit-label">7d</span>
+        ${buildBar(sevenPct)}
+        <span class="limit-pct">${Math.round(sevenPct)}%</span>
+        <span class="limit-detail">限制</span>
+      </div>
+    </div>
+  `;
+}
 
 export function buildTokHtml(d) {
   return [
@@ -57,7 +136,7 @@ export function toggleCmdOutput(id, toggle) {
   toggle.textContent = open ? "▼ output" : "▶ output";
 }
 
-export function renderTurn(d) {
+export function renderTurn(d, sessionId) {
   const wrap = document.createElement("div");
   wrap.id = "turn-" + d.id;
   wrap.setAttribute("data-turn-id", d.id);
@@ -397,18 +476,19 @@ function restoreExpandState(state) {
   }
 }
 
-export function updateConvList(DATA, TURNS, { preserveState = false } = {}) {
+export function updateConvList(DATA, TURNS, sessionId, { preserveState = false } = {}) {
   const expandState = preserveState ? saveExpandState() : null;
 
   const allIds = new Set(TURNS.map((t) => t.id));
   const list = document.getElementById("convList");
   list.innerHTML = "";
 
+
   // Render in reverse order: newest turn at top
   const reversed = DATA /* [...DATA].reverse() */;
   reversed.forEach((item) => {
     if (item.type === "turn") {
-      list.appendChild(renderTurn(item));
+      list.appendChild(renderTurn(item, sessionId));
     } else if (item.type === "compact") {
       list.appendChild(renderCompact(item));
     } else if (item.type === "command") {

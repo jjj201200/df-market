@@ -1,0 +1,41 @@
+#!/usr/bin/env node
+"use strict";
+/**
+ * Check status line integration status
+ * Usage: token-reporter-statusline-status
+ */
+
+const { getStatus } = require("../src/statusline-integration.js");
+
+const status = getStatus();
+
+console.log("Status Line Integration");
+console.log("=======================");
+console.log();
+
+if (status.integrated) {
+  console.log("Status: Integrated ✓");
+  console.log(`Original script: ${status.originalScript ? "Found" : "Not found"}`);
+  console.log(`  Path: ~/.claude/statusline-command.sh.original`);
+} else {
+  console.log("Status: Not integrated");
+  console.log();
+
+  if (status.hasStatusLine) {
+    console.log("Status line script: Found");
+    console.log(`  Path: ~/.claude/statusline-command.sh`);
+  } else {
+    console.log("Status line script: Not found");
+  }
+
+  if (status.currentCommand) {
+    console.log(`Current command: ${status.currentCommand}`);
+  } else {
+    console.log("No status line configured in Claude Code settings");
+  }
+
+  console.log();
+  console.log("Run 'token-reporter-statusline-on' to integrate.");
+}
+
+process.exit(0);

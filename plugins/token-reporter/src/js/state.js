@@ -19,6 +19,10 @@ export let brushR = 1;
 export let hoveredId = null;
 export const DPR = window.devicePixelRatio || 1;
 
+// Real-time limits data from status line
+export const LIMITS = new Map(); // sessionId -> limits data
+
 export function setN(val) { N = val; }
 export function setBrush(l, r) { brushL = l; brushR = r; }
 export function setHovered(id) { hoveredId = id; }
+export function setLimits(sessionId, data) { LIMITS.set(sessionId, data); }

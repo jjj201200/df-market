@@ -1,0 +1,18 @@
+#!/usr/bin/env node
+"use strict";
+/**
+ * Disable status line integration and restore original configuration
+ * Usage: token-reporter-statusline-off
+ */
+
+const { disableIntegration } = require("../src/statusline-integration.js");
+
+const result = disableIntegration();
+
+if (result.success) {
+  console.log(`✓ ${result.message}`);
+  process.exit(0);
+} else {
+  console.error(`✗ ${result.message}`);
+  process.exit(1);
+}

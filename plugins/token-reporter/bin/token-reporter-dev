@@ -1,0 +1,183 @@
+#!/usr/bin/env node
+"use strict";
+/**
+ * Start token-reporter development/test instance
+ * Uses port 13737 and isolated data directory
+ * Usage: token-reporter-dev [start|stop|status]
+ */
+
+const { spawn, execSync } = require("child_process");
+const fs = require("fs");
+const path = require("path");
+const os = require("os");
+
+const DEV_PORT = 13737;
+const DEV_DATA_DIR = path.join(os.tmpdir(), "token-reporter-dev");
+const PID_FILE = path.join(DEV_DATA_DIR, "server.pid");
+const PLUGIN_ROOT = path.resolve(__dirname, "..");
+
+// Production config path (for updating statusLineTargets)
+const PROD_DATA_DIR = path.join(os.homedir(), ".claude", "token-reporter");
+const PROD_CONFIG_PATH = path.join(PROD_DATA_DIR, "config.json");
+
+function readJSON(p, fallback) {
+  try {
+    return JSON.parse(fs.readFileSync(p, "utf8"));
+  } catch {
+    return fallback;
+  }
+}
+
+function isProcessAlive(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function getPid() {
+  if (!fs.existsSync(PID_FILE)) return null;
+  try {
+    return parseInt(fs.readFileSync(PID_FILE, "utf8").trim());
+  } catch {
+    return null;
+  }
+}
+
+function start() {
+  // Ensure dev data directory exists
+  fs.mkdirSync(DEV_DATA_DIR, { recursive: true });
+
+  // Create dev config if not exists
+  const configPath = path.join(DEV_DATA_DIR, "config.json");
+  if (!fs.existsSync(configPath)) {
+    fs.writeFileSync(
+      configPath,
+      JSON.stringify({ port: DEV_PORT, autoStart: true }, null, 2)
+    );
+  }
+
+  // Check if already running
+  const existingPid = getPid();
+  if (existingPid && isProcessAlive(existingPid)) {
+    console.log(`Dev server already running at http://localhost:${DEV_PORT}`);
+    return;
+  }
+
+  // Start server
+  const child = spawn(process.execPath, [path.join(PLUGIN_ROOT, "src", "server.js")], {
+    detached: true,
+    stdio: "ignore",
+    env: {
+      ...process.env,
+      TOKEN_REPORTER_PLUGIN_ROOT: PLUGIN_ROOT,
+      TOKEN_REPORTER_DATA_DIR: DEV_DATA_DIR,
+    },
+  });
+
+  child.unref();
+
+  // Wait for server to start
+  for (let i = 0; i < 30; i++) {
+    const pid = getPid();
+    if (pid && isProcessAlive(pid)) {
+      // Add dev server to production config's statusLineTargets
+      addDevTargetToProdConfig();
+      console.log(`Dev server started at http://localhost:${DEV_PORT}`);
+      console.log(`Data directory: ${DEV_DATA_DIR}`);
+      return;
+    }
+    execSync("sleep 0.1");
+  }
+
+  console.error("Error: Server failed to start within 3 seconds.");
+  process.exit(1);
+}
+
+function addDevTargetToProdConfig() {
+  try {
+    fs.mkdirSync(PROD_DATA_DIR, { recursive: true });
+    const config = readJSON(PROD_CONFIG_PATH, { port: 3737, autoStart: true });
+    if (!config.statusLineTargets) {
+      config.statusLineTargets = [`http://localhost:${config.port || 3737}/api/limits`];
+    }
+    const devTarget = `http://localhost:${DEV_PORT}/api/limits`;
+    if (!config.statusLineTargets.includes(devTarget)) {
+      config.statusLineTargets.push(devTarget);
+      fs.writeFileSync(PROD_CONFIG_PATH, JSON.stringify(config, null, 2));
+      console.log(`Added ${devTarget} to status line targets`);
+    }
+  } catch (e) {
+    console.error(`Warning: Could not update production config: ${e.message}`);
+  }
+}
+
+function removeDevTargetFromProdConfig() {
+  try {
+    const config = readJSON(PROD_CONFIG_PATH, null);
+    if (!config || !config.statusLineTargets) return;
+    const devTarget = `http://localhost:${DEV_PORT}/api/limits`;
+    const idx = config.statusLineTargets.indexOf(devTarget);
+    if (idx !== -1) {
+      config.statusLineTargets.splice(idx, 1);
+      fs.writeFileSync(PROD_CONFIG_PATH, JSON.stringify(config, null, 2));
+      console.log(`Removed ${devTarget} from status line targets`);
+    }
+  } catch (e) {
+    // Ignore errors
+  }
+}
+
+function stop() {
+  const pid = getPid();
+  if (!pid) {
+    console.log("Dev server not running.");
+    return;
+  }
+
+  try {
+    process.kill(pid, "SIGTERM");
+    console.log("Dev server stopped.");
+  } catch (e) {
+    console.error(`Error stopping server: ${e.message}`);
+  }
+
+  // Clean up PID file
+  try {
+    fs.unlinkSync(PID_FILE);
+  } catch {}
+
+  // Remove dev target from production config
+  removeDevTargetFromProdConfig();
+}
+
+function status() {
+  const pid = getPid();
+  if (pid && isProcessAlive(pid)) {
+    console.log(`Dev server running at http://localhost:${DEV_PORT}`);
+    console.log(`PID: ${pid}`);
+    console.log(`Data directory: ${DEV_DATA_DIR}`);
+  } else {
+    console.log("Dev server not running.");
+    console.log(`Run 'token-reporter-dev start' to start.`);
+  }
+}
+
+const command = process.argv[2] || "start";
+
+switch (command) {
+  case "start":
+    start();
+    break;
+  case "stop":
+    stop();
+    break;
+  case "status":
+    status();
+    break;
+  default:
+    console.log("Usage: token-reporter-dev [start|stop|status]");
+    process.exit(1);
+}

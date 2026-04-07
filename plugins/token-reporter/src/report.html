@@ -70,7 +70,7 @@
       </div>
 
       <div class="brush-wrap" id="brushWrap">
-        <div class="brush-title">RANGE SELECTOR</div>
+        <!-- <div class="brush-title">RANGE SELECTOR</div> -->
         <canvas id="brushChart"></canvas>
         <div class="brush-overlay" id="brushOverlay">
           <div class="brush-selection" id="brushSel"></div>
@@ -116,11 +116,14 @@
           >Hover to highlight bar · Click bar to jump to turn</span
         >
       </div>
+
+      <!-- ── LIMITS DISPLAY ── -->
+      <div id="limitsDisplay" class="limits-display"></div>
     </div>
 
     <!-- ── CONVERSATION CONTENT AREA ── -->
     <div class="conv-scroll">
-      <div class="section-label">Chat History</div>
+      <div class="section-label sticky-label">Chat History</div>
       <div id="loadStatus" class="load-status" style="display: none">
         <div class="spinner"></div>
         <span id="loadStatusText">Loading session list…</span>

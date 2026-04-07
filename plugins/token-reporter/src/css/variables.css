@@ -7,8 +7,10 @@
 }
 
 :root {
-  --bg: #0d1117;
-  --surface: #161b22;
+  --bg: #121212;
+  --sticky-card-bg: #16191c;
+  --surface: #15150d;
+  --model-tag-color: #161b22;
   --border: #21262d;
   --border2: #30363d;
   --text: #c9d1d9;
@@ -33,7 +35,7 @@ body {
   color: var(--text);
   font-family: "SF Mono", "Cascadia Code", "Fira Code", monospace;
   font-size: 14px;
-  padding: 14px 48px;
+  padding: 0 48px 14px;
   min-height: 100vh;
   display: flex;
   flex-direction: column;

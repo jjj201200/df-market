@@ -63,8 +63,16 @@
   flex-wrap: wrap;
   gap: 6px;
 }
+.session-select-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
 .session-select {
-  background: var(--surface);
+  min-width: 0;
+  background: var(--model-tag-color);
   border: 1px solid var(--border);
   border-radius: 5px;
   padding: 4px 10px;
@@ -72,6 +80,28 @@
   font-size: 12px;
   cursor: pointer;
   font-family: inherit;
+}
+.session-copy-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--muted);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.session-copy-btn:hover {
+  color: var(--blue);
+  border-color: var(--blue);
+}
+.session-copy-btn.copied {
+  color: var(--green);
+  border-color: var(--green);
 }
 .session-meta {
   display: flex;
@@ -157,7 +187,7 @@
 }
 .brush-overlay {
   position: absolute;
-  top: 16px;
+  top: 0;
   height: 32px;
   pointer-events: none;
 }

@@ -1,6 +1,6 @@
-import { DATA, TURNS, setN, setBrush } from "./state.js";
+import { DATA, TURNS, LIMITS, setN, setBrush, setLimits } from "./state.js";
 import { drawMainChart, drawBrushChart } from "./chart.js";
-import { updateConvList } from "./renderer.js";
+import { updateConvList, renderLimits } from "./renderer.js";
 import { initMainChartInteraction } from "./interactions.js";
 
 let _suppressScrollObserver = false;
@@ -130,10 +130,14 @@ export async function loadSessions() {
 function populateSessionSelector(list) {
   const sel = document.querySelector(".session-select");
   if (!sel) return;
+
+  // Create container for select + copy button
+  const container = document.createElement("div");
+  container.className = "session-select-container";
+
   const select = document.createElement("select");
   select.className = "session-select";
-  select.style.cssText =
-    "background:#161b22;border:1px solid #21262d;border-radius:5px;padding:5px 12px;color:#58a6ff;font-size:11px;cursor:pointer;font-family:inherit;";
+
   list.forEach((s) => {
     const opt = document.createElement("option");
     opt.value = s.sessionId;
@@ -143,8 +147,32 @@ function populateSessionSelector(list) {
     opt.textContent = `${time} · ${title} (${shortId})`;
     select.appendChild(opt);
   });
+
   select.onchange = () => loadSession(select.value);
-  sel.replaceWith(select);
+
+  // Copy button
+  const copyBtn = document.createElement("button");
+  copyBtn.className = "session-copy-btn";
+  copyBtn.textContent = "Copy";
+  copyBtn.title = "Copy session ID";
+  copyBtn.onclick = async () => {
+    const sessionId = select.value;
+    try {
+      await navigator.clipboard.writeText(sessionId);
+      copyBtn.classList.add("copied");
+      copyBtn.textContent = "Copied";
+      setTimeout(() => {
+        copyBtn.classList.remove("copied");
+        copyBtn.textContent = "Copy";
+      }, 1500);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
+
+  container.appendChild(select);
+  container.appendChild(copyBtn);
+  sel.replaceWith(container);
 }
 
 export async function loadSession(sessionId, { preserveScroll = false } = {}) {
@@ -153,9 +181,20 @@ export async function loadSession(sessionId, { preserveScroll = false } = {}) {
     showConvSkeleton();
   }
   try {
-    const res = await fetch("/api/sessions/" + sessionId);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const session = await res.json();
+    // Load session data and limits in parallel
+    const [sessionRes, limitsRes] = await Promise.all([
+      fetch("/api/sessions/" + sessionId),
+      fetch("/api/limits?sessionId=" + sessionId),
+    ]);
+    if (!sessionRes.ok) throw new Error(`HTTP ${sessionRes.status}`);
+    const session = await sessionRes.json();
+
+    // Store limits data
+    if (limitsRes.ok) {
+      const limitsData = await limitsRes.json();
+      setLimits(sessionId, limitsData);
+    }
+
     const savedScrollY = preserveScroll ? window.scrollY : 0;
 
     DATA.length = 0;
@@ -184,7 +223,15 @@ export async function loadSession(sessionId, { preserveScroll = false } = {}) {
     setLoadStatus(null);
     drawBrushChart();
     drawMainChart();
-    updateConvList(DATA, TURNS, { preserveState: preserveScroll });
+    updateConvList(DATA, TURNS, sessionId, { preserveState: preserveScroll });
+
+    // Render limits display in sticky chart area
+    const limitsDisplay = document.getElementById("limitsDisplay");
+    if (limitsDisplay && LIMITS.has(sessionId)) {
+      limitsDisplay.innerHTML = renderLimits(sessionId);
+    } else if (limitsDisplay) {
+      limitsDisplay.innerHTML = "";
+    }
 
     if (!preserveScroll && TURNS.length > 0) {
       // Scroll to the newest turn (matches brush starting at right end)
@@ -226,6 +273,16 @@ export function connectSSE() {
       if (msg.type === "update" || msg.type === "tool_use") {
         const sel = document.querySelector("select.session-select");
         if (sel) await loadSession(sel.value, { preserveScroll: true });
+      } else if (msg.type === "limits_update" && msg.sessionId) {
+        // Update limits cache and display
+        setLimits(msg.sessionId, msg.payload);
+        const sel = document.querySelector("select.session-select");
+        if (sel && sel.value === msg.sessionId) {
+          const limitsDisplay = document.getElementById("limitsDisplay");
+          if (limitsDisplay) {
+            limitsDisplay.innerHTML = renderLimits(msg.sessionId);
+          }
+        }
       }
     } catch {}
   };

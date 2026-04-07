@@ -1,0 +1,24 @@
+#!/usr/bin/env node
+"use strict";
+/**
+ * Enable status line integration with token-reporter
+ * Usage: token-reporter-statusline-on [--force]
+ */
+
+const { enableIntegration } = require("../src/statusline-integration.js");
+
+const args = process.argv.slice(2);
+const force = args.includes("--force");
+
+const result = enableIntegration({ force });
+
+if (result.success) {
+  console.log(`✓ ${result.message}`);
+  if (result.originalPath) {
+    console.log(`  Original: ${result.originalPath}`);
+  }
+  process.exit(0);
+} else {
+  console.error(`✗ ${result.message}`);
+  process.exit(1);
+}

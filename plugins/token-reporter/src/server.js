@@ -47,6 +47,9 @@ function loadConfig() {
 
 const sseClients = new Set();
 
+// Cache for real-time limits data from status line
+const limitsCache = new Map(); // sessionId -> { timestamp, context_window, rate_limits, model }
+
 function broadcast(data) {
   const msg = `data: ${JSON.stringify(data)}\n\n`;
   for (const res of sseClients) {
@@ -83,6 +86,50 @@ async function handleRequest(req, res) {
       } catch {}
       res.writeHead(200).end("ok");
     });
+    return;
+  }
+
+  // Receive real-time limits data from status line wrapper
+  if (url.pathname === "/api/limits" && req.method === "POST") {
+    let body = "";
+    req.on("data", (d) => (body += d));
+    req.on("end", () => {
+      try {
+        const data = JSON.parse(body);
+        if (data.session_id) {
+          limitsCache.set(data.session_id, {
+            timestamp: data.timestamp || Date.now(),
+            contextWindow: data.context_window,
+            rateLimits: data.rate_limits,
+            model: data.model,
+            cost: data.cost,
+          });
+          // Broadcast to all connected clients
+          broadcast({
+            type: "limits_update",
+            sessionId: data.session_id,
+            payload: data,
+          });
+        }
+        res.writeHead(200).end("ok");
+      } catch {
+        res.writeHead(400).end("invalid json");
+      }
+    });
+    return;
+  }
+
+  // Get limits data for a session
+  if (url.pathname === "/api/limits" && req.method === "GET") {
+    const sessionId = url.searchParams.get("sessionId");
+    res.writeHead(200, { "Content-Type": "application/json" });
+    if (sessionId && limitsCache.has(sessionId)) {
+      res.end(JSON.stringify(limitsCache.get(sessionId)));
+    } else {
+      // Return all cached limits
+      const allLimits = Object.fromEntries(limitsCache);
+      res.end(JSON.stringify(allLimits));
+    }
     return;
   }
 
