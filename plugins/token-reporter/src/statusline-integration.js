@@ -168,7 +168,7 @@ INPUT=$(cat)
     -d @- \
     --connect-timeout 1 \
     --max-time 2 \
-    2>/dev/null
+    2>/dev/null >/dev/null
 ) &
 
 # Call original script with the input
