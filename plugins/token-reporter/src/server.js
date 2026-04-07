@@ -189,33 +189,54 @@ async function handleRequest(req, res) {
 }
 
 const config = loadConfig();
-const server = http.createServer((req, res) => {
-  handleRequest(req, res).catch((e) => {
-    if (!res.headersSent) res.writeHead(500).end(e.message);
+const DEFAULT_PORT = config.port || 3737;
+const MAX_PORT_ATTEMPTS = 10;
+
+function startServer(port) {
+  const server = http.createServer((req, res) => {
+    handleRequest(req, res).catch((e) => {
+      if (!res.headersSent) res.writeHead(500).end(e.message);
+    });
   });
-});
 
-server.listen(config.port, "127.0.0.1", () => {
-  fs.writeFileSync(PID_PATH, String(process.pid));
-  console.log(`token-reporter running at http://localhost:${config.port}`);
-});
+  server.listen(port, "127.0.0.1", () => {
+    fs.writeFileSync(PID_PATH, String(process.pid));
+    if (port !== DEFAULT_PORT) {
+      console.log(`⚠️  Default port ${DEFAULT_PORT} was in use.`);
+      console.log(`✅ token-reporter running at http://localhost:${port}`);
+    } else {
+      console.log(`token-reporter running at http://localhost:${port}`);
+    }
+  });
 
-server.on("error", (e) => {
-  if (e.code === "EADDRINUSE") {
-    console.error(`Port ${config.port} already in use.`);
-    process.exit(1);
-  }
-  throw e;
-});
+  server.on("error", async (e) => {
+    if (e.code === "EADDRINUSE") {
+      const nextPort = port + 1;
+      if (nextPort - DEFAULT_PORT >= MAX_PORT_ATTEMPTS) {
+        console.error(`❌ Could not find an available port after ${MAX_PORT_ATTEMPTS} attempts.`);
+        console.error(`   Tried ports: ${DEFAULT_PORT} - ${port}`);
+        process.exit(1);
+      }
+      console.log(`Port ${port} is in use, trying port ${nextPort}...`);
+      // Small delay before retry to ensure OS releases the port
+      await new Promise(r => setTimeout(r, 100));
+      startServer(nextPort);
+      return;
+    }
+    throw e;
+  });
 
-// Clean up PID and lock files on exit
-process.on("exit", () => {
-  try {
-    fs.unlinkSync(PID_PATH);
-  } catch {}
-  try {
-    fs.unlinkSync(LOCK_PATH);
-  } catch {}
-});
-process.on("SIGTERM", () => process.exit(0));
-process.on("SIGINT", () => process.exit(0));
+  // Clean up PID and lock files on exit
+  process.on("exit", () => {
+    try {
+      fs.unlinkSync(PID_PATH);
+    } catch {}
+    try {
+      fs.unlinkSync(LOCK_PATH);
+    } catch {}
+  });
+  process.on("SIGTERM", () => process.exit(0));
+  process.on("SIGINT", () => process.exit(0));
+}
+
+startServer(DEFAULT_PORT);

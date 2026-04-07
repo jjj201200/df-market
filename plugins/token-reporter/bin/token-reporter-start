@@ -4,17 +4,25 @@
  * Starts the token-reporter server
  */
 
-const { spawn } = require('child_process');
+const { spawn, execSync } = require('child_process');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
+// Use current working directory if it's a token-reporter plugin directory,
+// otherwise fall back to the cached plugin directory
+const CWD_PLUGIN_ROOT = path.join(process.cwd(), 'plugins', 'token-reporter');
+const CACHE_PLUGIN_ROOT = path.join(os.homedir(), '.claude', 'plugins', 'marketplaces', 'df-market', 'plugins', 'token-reporter');
 const PLUGIN_ROOT = process.env.CLAUDE_PLUGIN_ROOT ||
-  path.join(os.homedir(), '.claude', 'plugins', 'marketplaces', 'df-market', 'plugins', 'token-reporter');
+  (fs.existsSync(path.join(CWD_PLUGIN_ROOT, 'src', 'server.js'))
+    ? CWD_PLUGIN_ROOT
+    : CACHE_PLUGIN_ROOT);
 const DATA_DIR = process.env.TOKEN_REPORTER_DATA_DIR || path.join(os.homedir(), '.claude', 'token-reporter');
 const CONFIG_PATH = path.join(DATA_DIR, 'config.json');
 const PID_PATH = path.join(DATA_DIR, 'server.pid');
 const SERVER_PATH = path.join(PLUGIN_ROOT, 'src', 'server.js');
+const DEFAULT_PORT = 3737;
+const MAX_PORT_ATTEMPTS = 10;
 
 function readJSON(p, fallback) {
   try {
@@ -33,17 +41,57 @@ function isProcessAlive(pid) {
   }
 }
 
+function getProcessOnPort(port) {
+  try {
+    const output = execSync(`lsof -i :${port} -sTCP:LISTEN -t 2>/dev/null`, { encoding: 'utf8' });
+    const pid = parseInt(output.trim().split('\n')[0]);
+    return pid || null;
+  } catch {
+    return null;
+  }
+}
+
+function isTokenReporterProcess(pid) {
+  try {
+    const cmdline = execSync(`ps -p ${pid} -o comm= 2>/dev/null`, { encoding: 'utf8' });
+    return cmdline.includes('node') || cmdline.includes('token');
+  } catch {
+    return false;
+  }
+}
+
+function getPortFromArgs() {
+  const config = readJSON(CONFIG_PATH, { port: DEFAULT_PORT });
+  return config.port || DEFAULT_PORT;
+}
+
 async function main() {
   // Ensure data directories exist
   fs.mkdirSync(DATA_DIR, { recursive: true });
   fs.mkdirSync(path.join(DATA_DIR, 'sessions'), { recursive: true });
 
-  // Check if already running
+  const targetPort = getPortFromArgs();
+
+  // Check if already running via PID file
   const existingPid = readJSON(PID_PATH, null);
   if (existingPid && isProcessAlive(existingPid)) {
-    const config = readJSON(CONFIG_PATH, { port: 3737 });
-    console.log(`Token Reporter already running at http://localhost:${config.port}`);
+    console.log(`Token Reporter already running at http://localhost:${targetPort}`);
+    console.log(`PID: ${existingPid}`);
     return;
+  }
+
+  // Check if port is occupied by another process
+  const occupyingPid = getProcessOnPort(targetPort);
+  if (occupyingPid) {
+    if (isTokenReporterProcess(occupyingPid)) {
+      console.log(`Token Reporter already running at http://localhost:${targetPort}`);
+      console.log(`PID: ${occupyingPid}`);
+      return;
+    }
+    // Port is occupied by non-token-reporter process
+    // Server will handle port incrementing
+    console.log(`Port ${targetPort} is occupied by another application.`);
+    console.log('Server will attempt to use next available port...');
   }
 
   // Clean up stale PID file
@@ -60,8 +108,8 @@ async function main() {
 
   // Spawn server process
   const child = spawn(process.execPath, [SERVER_PATH], {
-    detached: true,
-    stdio: 'ignore',
+    detached: false,
+    stdio: 'inherit',
     env: {
       ...process.env,
       TOKEN_REPORTER_PLUGIN_ROOT: PLUGIN_ROOT,
@@ -69,19 +117,43 @@ async function main() {
     },
   });
 
-  child.unref();
+  // Wait for server to start with adaptive timeout
+  // Base wait: 3 seconds, add 2 seconds per port retry (max 10 ports = 20s extra)
+  const maxWaitMs = 3000 + (MAX_PORT_ATTEMPTS * 2000);
+  const checkInterval = 100;
+  const maxChecks = maxWaitMs / checkInterval;
 
-  // Wait for server to start (up to 3 seconds)
-  for (let i = 0; i < 30; i++) {
-    await new Promise(r => setTimeout(r, 100));
+  for (let i = 0; i < maxChecks; i++) {
+    await new Promise(r => setTimeout(r, checkInterval));
+
     if (fs.existsSync(PID_PATH)) {
-      const config = readJSON(CONFIG_PATH, { port: 3737 });
-      console.log(`Token Reporter started at http://localhost:${config.port}`);
+      // Wait a moment for port binding to complete
+      await new Promise(r => setTimeout(r, 200));
+
+      // Server started successfully - find which port it's actually using
+      let actualPort = null;
+      for (let p = targetPort; p < targetPort + MAX_PORT_ATTEMPTS; p++) {
+        const pid = getProcessOnPort(p);
+        if (pid) {
+          actualPort = p;
+          break;
+        }
+      }
+
+      if (actualPort && actualPort !== targetPort) {
+        console.log(`⚠️  Port ${targetPort} was in use.`);
+        console.log(`✅ Token Reporter started at http://localhost:${actualPort}`);
+      } else if (actualPort) {
+        console.log(`Token Reporter started at http://localhost:${targetPort}`);
+      } else {
+        console.log(`Token Reporter started (PID file created)`);
+      }
       return;
     }
   }
 
-  console.error('Error: Server failed to start within 3 seconds.');
+  console.error(`Error: Server failed to start within ${maxWaitMs / 1000} seconds.`);
+  console.error('The server may still be starting. Check with: token-reporter-status');
   process.exit(1);
 }
 

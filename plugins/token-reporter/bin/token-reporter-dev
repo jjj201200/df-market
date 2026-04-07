@@ -11,9 +11,11 @@ const fs = require("fs");
 const path = require("path");
 const os = require("os");
 
-const DEV_PORT = 13737;
+const DEFAULT_DEV_PORT = 13737;
+const MAX_PORT_ATTEMPTS = 10;
 const DEV_DATA_DIR = path.join(os.tmpdir(), "token-reporter-dev");
 const PID_FILE = path.join(DEV_DATA_DIR, "server.pid");
+const CONFIG_PATH = path.join(DEV_DATA_DIR, "config.json");
 
 // Use current working directory if it's a token-reporter plugin directory,
 // otherwise fall back to the directory where this script is located
@@ -53,23 +55,81 @@ function getPid() {
   }
 }
 
+function findAvailablePort() {
+  for (let port = DEFAULT_DEV_PORT; port < DEFAULT_DEV_PORT + MAX_PORT_ATTEMPTS; port++) {
+    const occupyingPid = getProcessOnPort(port);
+    if (!occupyingPid) {
+      // Port is free
+      return port;
+    }
+    // Port is occupied, check if it's another token-reporter instance
+    if (isTokenReporterProcess(occupyingPid)) {
+      console.error(`❌ Another token-reporter instance is already running on port ${port}`);
+      console.error(`   PID: ${occupyingPid}`);
+      console.error(`   Please stop it first with: token-reporter-dev stop`);
+      process.exit(1);
+    }
+    // Port is occupied by non-token-reporter, try next
+  }
+  return null;
+}
+
+function getProcessOnPort(port) {
+  try {
+    const output = execSync(`lsof -i :${port} -sTCP:LISTEN -t 2>/dev/null`, { encoding: 'utf8' });
+    const pid = parseInt(output.trim().split('\n')[0]);
+    return pid || null;
+  } catch {
+    return null;
+  }
+}
+
+function isTokenReporterProcess(pid) {
+  try {
+    const cmdline = execSync(`ps -p ${pid} -o comm= 2>/dev/null`, { encoding: 'utf8' });
+    return cmdline.includes('node') || cmdline.includes('token');
+  } catch {
+    return false;
+  }
+}
+
+function getActualPort() {
+  try {
+    const config = readJSON(CONFIG_PATH, { port: DEFAULT_DEV_PORT });
+    return config.port || DEFAULT_DEV_PORT;
+  } catch {
+    return DEFAULT_DEV_PORT;
+  }
+}
+
 function start() {
   // Ensure dev data directory exists
   fs.mkdirSync(DEV_DATA_DIR, { recursive: true });
 
-  // Create dev config if not exists
-  const configPath = path.join(DEV_DATA_DIR, "config.json");
-  if (!fs.existsSync(configPath)) {
-    fs.writeFileSync(
-      configPath,
-      JSON.stringify({ port: DEV_PORT, autoStart: true }, null, 2)
-    );
+  // Find available port
+  const port = findAvailablePort();
+  if (!port) {
+    console.error(`❌ Could not find an available port after ${MAX_PORT_ATTEMPTS} attempts.`);
+    console.error(`   Tried ports: ${DEFAULT_DEV_PORT} - ${DEFAULT_DEV_PORT + MAX_PORT_ATTEMPTS - 1}`);
+    process.exit(1);
   }
+
+  if (port !== DEFAULT_DEV_PORT) {
+    console.log(`⚠️  Default port ${DEFAULT_DEV_PORT} is in use.`);
+    console.log(`   Using port ${port} instead.`);
+  }
+
+  // Create/update dev config with selected port
+  fs.writeFileSync(
+    CONFIG_PATH,
+    JSON.stringify({ port, autoStart: true }, null, 2)
+  );
 
   // Check if already running
   const existingPid = getPid();
   if (existingPid && isProcessAlive(existingPid)) {
-    console.log(`Dev server already running at http://localhost:${DEV_PORT}`);
+    const actualPort = getActualPort();
+    console.log(`Dev server already running at http://localhost:${actualPort}`);
     return;
   }
 
@@ -90,9 +150,10 @@ function start() {
   for (let i = 0; i < 30; i++) {
     const pid = getPid();
     if (pid && isProcessAlive(pid)) {
+      const actualPort = getActualPort();
       // Add dev server to production config's statusLineTargets
-      addDevTargetToProdConfig();
-      console.log(`Dev server started at http://localhost:${DEV_PORT}`);
+      addDevTargetToProdConfig(actualPort);
+      console.log(`Dev server started at http://localhost:${actualPort}`);
       console.log(`Data directory: ${DEV_DATA_DIR}`);
       return;
     }
@@ -103,14 +164,14 @@ function start() {
   process.exit(1);
 }
 
-function addDevTargetToProdConfig() {
+function addDevTargetToProdConfig(port) {
   try {
     fs.mkdirSync(PROD_DATA_DIR, { recursive: true });
     const config = readJSON(PROD_CONFIG_PATH, { port: 3737, autoStart: true });
     if (!config.statusLineTargets) {
       config.statusLineTargets = [`http://localhost:${config.port || 3737}/api/limits`];
     }
-    const devTarget = `http://localhost:${DEV_PORT}/api/limits`;
+    const devTarget = `http://localhost:${port}/api/limits`;
     if (!config.statusLineTargets.includes(devTarget)) {
       config.statusLineTargets.push(devTarget);
       fs.writeFileSync(PROD_CONFIG_PATH, JSON.stringify(config, null, 2));
@@ -125,12 +186,17 @@ function removeDevTargetFromProdConfig() {
   try {
     const config = readJSON(PROD_CONFIG_PATH, null);
     if (!config || !config.statusLineTargets) return;
-    const devTarget = `http://localhost:${DEV_PORT}/api/limits`;
-    const idx = config.statusLineTargets.indexOf(devTarget);
-    if (idx !== -1) {
-      config.statusLineTargets.splice(idx, 1);
+    // Remove any dev server targets (ports 13737+)
+    const originalLength = config.statusLineTargets.length;
+    config.statusLineTargets = config.statusLineTargets.filter(target => {
+      const match = target.match(/:(\d+)\/api\/limits$/);
+      if (!match) return true;
+      const port = parseInt(match[1]);
+      return port < 13737 || port >= 13737 + MAX_PORT_ATTEMPTS;
+    });
+    if (config.statusLineTargets.length !== originalLength) {
       fs.writeFileSync(PROD_CONFIG_PATH, JSON.stringify(config, null, 2));
-      console.log(`Removed ${devTarget} from status line targets`);
+      console.log(`Removed dev server targets from status line targets`);
     }
   } catch (e) {
     // Ignore errors
@@ -163,7 +229,8 @@ function stop() {
 function status() {
   const pid = getPid();
   if (pid && isProcessAlive(pid)) {
-    console.log(`Dev server running at http://localhost:${DEV_PORT}`);
+    const actualPort = getActualPort();
+    console.log(`Dev server running at http://localhost:${actualPort}`);
     console.log(`PID: ${pid}`);
     console.log(`Data directory: ${DEV_DATA_DIR}`);
   } else {

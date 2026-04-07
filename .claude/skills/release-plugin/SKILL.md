@@ -25,9 +25,24 @@ Automates the complete release workflow for df-market plugins.
 
 1. **Check for uncommitted changes** - Ensure all changes are committed before release
 2. **Bump version** - Update version in plugin.json and marketplace.json
-3. **Create commit** - Commit version changes with conventional commit message
+3. **Create commit** - Commit version changes with conventional commit message (include version bump in same commit)
 4. **Create git tag** - Tag the release with version number
 5. **Push to remote** - Push both commits and tags
+
+## IMPORTANT: Version Bump Timing
+
+**Always bump version BEFORE creating the final commit.**
+
+The correct sequence is:
+1. Make your code changes
+2. Test thoroughly
+3. **Bump version** (updates plugin.json and marketplace.json)
+4. **Create commit** that includes both code changes AND version bump
+5. Create tag
+6. Push
+
+**WRONG**: Commit code changes → Bump version → Commit version bump (two commits)
+**CORRECT**: Code changes + Version bump → Single commit → Tag → Push
 
 ## Usage
 
