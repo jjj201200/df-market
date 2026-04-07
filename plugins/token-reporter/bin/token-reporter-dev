@@ -93,6 +93,24 @@ function isTokenReporterProcess(pid) {
   }
 }
 
+function findTokenReporterProcess() {
+  try {
+    // Search for node processes running token-reporter's server.js
+    const output = execSync(
+      `ps aux 2>/dev/null | grep -E 'node.*token-reporter.*server\.js' | grep -v grep || true`,
+      { encoding: 'utf8' }
+    );
+    const lines = output.trim().split('\n').filter(line => line.trim());
+    if (lines.length === 0) return null;
+    // Return the first match's PID
+    const parts = lines[0].trim().split(/\s+/);
+    const pid = parseInt(parts[1]);
+    return pid || null;
+  } catch {
+    return null;
+  }
+}
+
 function getActualPort() {
   try {
     const config = readJSON(CONFIG_PATH, { port: DEFAULT_DEV_PORT });
@@ -204,23 +222,77 @@ function removeDevTargetFromProdConfig() {
 }
 
 function stop() {
-  const pid = getPid();
+  let pid = null;
+
+  // Priority 1: Search for token-reporter process by command line
+  pid = findTokenReporterProcess();
+  if (pid) {
+    console.log(`Found token-reporter process by search (PID ${pid}).`);
+  }
+
+  // Priority 2: Try PID file if process search didn't find anything
   if (!pid) {
+    pid = getPid();
+    if (pid) {
+      console.log(`Found token-reporter process by PID file (PID ${pid}).`);
+    }
+  }
+
+  // Priority 3: Try to find process by port as last resort
+  if (!pid) {
+    const port = getActualPort();
+    pid = getProcessOnPort(port);
+    if (pid) {
+      if (!isTokenReporterProcess(pid)) {
+        console.log(`Port ${port} is occupied by a non-token-reporter process (PID ${pid}).`);
+        console.log("Dev server not running.");
+        return;
+      }
+      console.log(`Found token-reporter process by port ${port} (PID ${pid}).`);
+    }
+  }
+
+  if (!pid || !isProcessAlive(pid)) {
+    // Clean up stale PID file
+    try { fs.unlinkSync(PID_FILE); } catch {}
     console.log("Dev server not running.");
     return;
   }
 
+  // Send SIGTERM for graceful shutdown
   try {
     process.kill(pid, "SIGTERM");
-    console.log("Dev server stopped.");
   } catch (e) {
     console.error(`Error stopping server: ${e.message}`);
+    return;
+  }
+
+  // Wait up to 3 seconds for graceful shutdown
+  let stopped = false;
+  for (let i = 0; i < 3; i++) {
+    try {
+      process.kill(pid, 0);
+    } catch {
+      stopped = true;
+      break;
+    }
+    execSync("sleep 1");
+  }
+
+  // Force kill with SIGKILL if still running
+  if (!stopped) {
+    try {
+      process.kill(pid, "SIGKILL");
+      console.log("Dev server stopped (forced).");
+    } catch (e) {
+      console.error(`Error force-stopping server: ${e.message}`);
+    }
+  } else {
+    console.log("Dev server stopped.");
   }
 
   // Clean up PID file
-  try {
-    fs.unlinkSync(PID_FILE);
-  } catch {}
+  try { fs.unlinkSync(PID_FILE); } catch {}
 
   // Remove dev target from production config
   removeDevTargetFromProdConfig();

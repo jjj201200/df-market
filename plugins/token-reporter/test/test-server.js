@@ -38,6 +38,62 @@ async function test(name, fn) {
   }
 }
 
+/* ── Process finding helpers (distinguish dev vs prod) ── */
+
+function findDevServerProcess() {
+  try {
+    const { execSync } = require("child_process");
+    // Look for node processes with server.js in a temp/test dir (dev/test instance)
+    const output = execSync(
+      `ps aux 2>/dev/null | grep -E 'node.*server\.js' | grep -v grep | grep -E 'tmp|temp|test' || true`,
+      { encoding: "utf8" }
+    );
+    const lines = output.trim().split("\n").filter((l) => l.trim());
+    if (lines.length === 0) return null;
+    const parts = lines[0].trim().split(/\s+/);
+    return parseInt(parts[1]) || null;
+  } catch {
+    return null;
+  }
+}
+
+function findProdServerProcess() {
+  try {
+    const { execSync } = require("child_process");
+    // Look for node processes with server.js in the production plugin cache path
+    const output = execSync(
+      `ps aux 2>/dev/null | grep -E 'node.*server\.js' | grep -v grep | grep -E 'claude/plugins|\\.claude/plugins' | grep -v 'tmp\\|temp\\|test' || true`,
+      { encoding: "utf8" }
+    );
+    const lines = output.trim().split("\n").filter((l) => l.trim());
+    if (lines.length === 0) return null;
+    const parts = lines[0].trim().split(/\s+/);
+    return parseInt(parts[1]) || null;
+  } catch {
+    return null;
+  }
+}
+
+function getProcessOnPort(port) {
+  try {
+    const { execSync } = require("child_process");
+    const output = execSync(`lsof -i :${port} -sTCP:LISTEN -t 2>/dev/null`, { encoding: "utf8" });
+    return parseInt(output.trim().split("\n")[0]) || null;
+  } catch {
+    return null;
+  }
+}
+
+function isTokenReporterProcess(pid) {
+  try {
+    const { execSync } = require("child_process");
+    const cmdline = execSync(`ps -p ${pid} -o comm= 2>/dev/null`, { encoding: "utf8" });
+    return cmdline.includes("node") || cmdline.includes("token");
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Create a temp data dir with config pointing to TEST_PORT and a mock session JSONL file.
  */
@@ -85,13 +141,56 @@ function startServer() {
 
 function stopServer() {
   return new Promise((resolve) => {
-    if (!serverProcess) return resolve();
-    serverProcess.on("exit", resolve);
-    try { serverProcess.kill("SIGTERM"); } catch {}
-    setTimeout(() => {
-      try { serverProcess.kill("SIGKILL"); } catch {}
-      resolve();
-    }, 3000);
+    // Priority 1: use the direct reference if available
+    if (serverProcess) {
+      serverProcess.on("exit", resolve);
+      try { serverProcess.kill("SIGTERM"); } catch {}
+      setTimeout(() => {
+        try { serverProcess.kill("SIGKILL"); } catch {}
+        resolve();
+      }, 3000);
+      return;
+    }
+
+    // Priority 2: search for dev server process by command line
+    let pid = findDevServerProcess();
+    if (pid) {
+      console.log(`  [cleanup] Found dev server process by search (PID ${pid}).`);
+    }
+
+    // Priority 3: fallback to port lookup
+    if (!pid) {
+      pid = getProcessOnPort(TEST_PORT);
+      if (pid) {
+        if (!isTokenReporterProcess(pid)) {
+          console.log(`  [cleanup] Port ${TEST_PORT} is occupied by a non-token-reporter process (PID ${pid}).`);
+          return resolve();
+        }
+        console.log(`  [cleanup] Found server process by port ${TEST_PORT} (PID ${pid}).`);
+      }
+    }
+
+    if (!pid) return resolve();
+
+    // Try graceful shutdown
+    try { process.kill(pid, "SIGTERM"); } catch {}
+
+    let stopped = false;
+    for (let i = 0; i < 3; i++) {
+      try {
+        process.kill(pid, 0);
+      } catch {
+        stopped = true;
+        break;
+      }
+      require("child_process").execSync("sleep 1");
+    }
+
+    if (!stopped) {
+      try { process.kill(pid, "SIGKILL"); } catch {}
+    }
+
+    resolve();
   });
 }
 

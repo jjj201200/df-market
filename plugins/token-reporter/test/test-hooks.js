@@ -115,16 +115,76 @@ async function main() {
       true,
       "server.pid should exist",
     );
-    // Cleanup: stop the server
-    const pid = parseInt(
+
+    // ── Cleanup: stop the server ──
+    const config = JSON.parse(fs.readFileSync(path.join(dataDir, "config.json"), "utf8"));
+    const testPort = config.port || 3900;
+
+    // Priority 1: PID file
+    let pid = parseInt(
       fs.readFileSync(path.join(dataDir, "server.pid"), "utf8").trim(),
     );
-    try {
-      process.kill(pid, "SIGTERM");
-    } catch {}
-    await new Promise((r) => setTimeout(r, 300));
+
+    // Priority 2: process search (distinguish dev vs prod)
+    if (!pid || !isProcessAlive(pid)) {
+      // This is a test instance (temp data dir), search for dev server processes
+      pid = findDevServerProcess();
+      if (pid) console.log(`  [cleanup] Found dev server by process search (PID ${pid}).`);
+    }
+
+    // Priority 3: port lookup as last resort
+    if (!pid) {
+      pid = getProcessOnPort(testPort);
+      if (pid) {
+        if (!isTokenReporterProcess(pid)) {
+          console.log(`  [cleanup] Port ${testPort} occupied by non-token-reporter (PID ${pid}).`);
+          fs.rmSync(dataDir, { recursive: true });
+          return;
+        }
+        console.log(`  [cleanup] Found server by port ${testPort} (PID ${pid}).`);
+      }
+    }
+
+    if (pid) {
+      try { process.kill(pid, "SIGTERM"); } catch {}
+      await new Promise((r) => setTimeout(r, 300));
+      // Force kill if still alive
+      if (isProcessAlive(pid)) {
+        try { process.kill(pid, "SIGKILL"); } catch {}
+      }
+    }
     fs.rmSync(dataDir, { recursive: true });
   });
+
+  function isProcessAlive(pid) {
+    try { process.kill(pid, 0); return true; } catch { return false; }
+  }
+
+  function getProcessOnPort(port) {
+    try {
+      const output = require("child_process").execSync(`lsof -i :${port} -sTCP:LISTEN -t 2>/dev/null`, { encoding: "utf8" });
+      return parseInt(output.trim().split("\n")[0]) || null;
+    } catch { return null; }
+  }
+
+  function isTokenReporterProcess(pid) {
+    try {
+      const cmdline = require("child_process").execSync(`ps -p ${pid} -o comm= 2>/dev/null`, { encoding: "utf8" });
+      return cmdline.includes("node") || cmdline.includes("token");
+    } catch { return false; }
+  }
+
+  function findDevServerProcess() {
+    try {
+      const output = require("child_process").execSync(
+        `ps aux 2>/dev/null | grep -E 'node.*server\\.js' | grep -v grep | grep -E 'tmp|temp|test' || true`,
+        { encoding: "utf8" }
+      );
+      const lines = output.trim().split("\n").filter((l) => l.trim());
+      if (lines.length === 0) return null;
+      return parseInt(lines[0].trim().split(/\s+/)[1]) || null;
+    } catch { return null; }
+  }
 
   console.log(`\nResults: ${passed} passed, ${failed} failed`);
   if (failed > 0) process.exit(1);
