@@ -289,28 +289,87 @@ export async function loadSession(sessionId, { preserveScroll = false } = {}) {
   }
 }
 
+let _sseConn = null;
+let _sseReconnectTimer = null;
+let _sseReconnectAttempts = 0;
+const MAX_SSE_RECONNECT_ATTEMPTS = 5;
+const SSE_RECONNECT_DELAY = 3000;
+
 export function connectSSE() {
-  const es = new EventSource("/events");
-  es.onmessage = async (e) => {
-    try {
-      const msg = JSON.parse(e.data);
-      if (msg.type === "update" || msg.type === "tool_use") {
-        const sel = document.querySelector("select.session-select");
-        if (sel) await loadSession(sel.value, { preserveScroll: true });
-      } else if (msg.type === "limits_update" && msg.sessionId) {
-        // Update limits cache and display
-        setLimits(msg.sessionId, msg.payload);
-        const sel = document.querySelector("select.session-select");
-        if (sel && sel.value === msg.sessionId) {
-          const limitsDisplay = document.getElementById("limitsDisplay");
-          if (limitsDisplay) {
-            limitsDisplay.innerHTML = renderLimits(msg.sessionId);
+  // Clean up existing connection
+  if (_sseConn) {
+    _sseConn.close();
+    _sseConn = null;
+  }
+  if (_sseReconnectTimer) {
+    clearTimeout(_sseReconnectTimer);
+    _sseReconnectTimer = null;
+  }
+
+  // Stop retrying after max attempts
+  if (_sseReconnectAttempts >= MAX_SSE_RECONNECT_ATTEMPTS) {
+    console.log("SSE: Max reconnection attempts reached, stopping retries");
+    return;
+  }
+
+  try {
+    _sseConn = new EventSource("/events");
+
+    _sseConn.onopen = () => {
+      // Reset counter on successful connection
+      _sseReconnectAttempts = 0;
+    };
+
+    _sseConn.onmessage = async (e) => {
+      try {
+        const msg = JSON.parse(e.data);
+        if (msg.type === "update" || msg.type === "tool_use") {
+          const sel = document.querySelector("select.session-select");
+          if (sel) await loadSession(sel.value, { preserveScroll: true });
+        } else if (msg.type === "limits_update" && msg.sessionId) {
+          // Update limits cache and display
+          setLimits(msg.sessionId, msg.payload);
+          const sel = document.querySelector("select.session-select");
+          if (sel && sel.value === msg.sessionId) {
+            const limitsDisplay = document.getElementById("limitsDisplay");
+            if (limitsDisplay) {
+              limitsDisplay.innerHTML = renderLimits(msg.sessionId);
+            }
           }
         }
+      } catch {}
+    };
+
+    _sseConn.onerror = () => {
+      _sseConn.close();
+      _sseConn = null;
+      _sseReconnectAttempts++;
+
+      if (_sseReconnectAttempts < MAX_SSE_RECONNECT_ATTEMPTS) {
+        _sseReconnectTimer = setTimeout(connectSSE, SSE_RECONNECT_DELAY);
+      } else {
+        console.log("SSE: Max reconnection attempts reached");
       }
-    } catch {}
-  };
-  es.onerror = () => setTimeout(connectSSE, 3000);
+    };
+  } catch (e) {
+    console.error("SSE: Failed to create connection", e);
+    _sseReconnectAttempts++;
+    if (_sseReconnectAttempts < MAX_SSE_RECONNECT_ATTEMPTS) {
+      _sseReconnectTimer = setTimeout(connectSSE, SSE_RECONNECT_DELAY);
+    }
+  }
+}
+
+export function disconnectSSE() {
+  if (_sseReconnectTimer) {
+    clearTimeout(_sseReconnectTimer);
+    _sseReconnectTimer = null;
+  }
+  if (_sseConn) {
+    _sseConn.close();
+    _sseConn = null;
+  }
+  _sseReconnectAttempts = 0;
 }
 
 export function init() {
