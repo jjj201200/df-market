@@ -14,7 +14,14 @@ const os = require("os");
 const DEV_PORT = 13737;
 const DEV_DATA_DIR = path.join(os.tmpdir(), "token-reporter-dev");
 const PID_FILE = path.join(DEV_DATA_DIR, "server.pid");
-const PLUGIN_ROOT = path.resolve(__dirname, "..");
+
+// Use current working directory if it's a token-reporter plugin directory,
+// otherwise fall back to the directory where this script is located
+const CWD_PLUGIN_ROOT = path.join(process.cwd(), "plugins", "token-reporter");
+const SCRIPT_PLUGIN_ROOT = path.resolve(__dirname, "..");
+const PLUGIN_ROOT = (fs.existsSync(path.join(CWD_PLUGIN_ROOT, "src", "server.js"))
+  ? CWD_PLUGIN_ROOT
+  : SCRIPT_PLUGIN_ROOT);
 
 // Production config path (for updating statusLineTargets)
 const PROD_DATA_DIR = path.join(os.homedir(), ".claude", "token-reporter");

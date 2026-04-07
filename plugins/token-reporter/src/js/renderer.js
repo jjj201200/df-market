@@ -4,7 +4,7 @@ import { drawMainChart } from "./chart.js";
 import { initScrollSync } from "./interactions.js";
 
 /**
- * Format reset time from timestamp
+ * Format reset time from timestamp to relative time
  */
 function fmtResetTime(timestamp) {
   if (!timestamp) return "";
@@ -18,6 +18,21 @@ function fmtResetTime(timestamp) {
     return `${days}天${hours % 24}小时后重置`;
   }
   return `${hours}小时${mins}分钟后重置`;
+}
+
+/**
+ * Format reset time from timestamp to absolute datetime (local timezone)
+ */
+function fmtResetTimeAbsolute(timestamp) {
+  if (!timestamp) return "";
+  const date = new Date(timestamp * 1000);
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const day = date.getDate().toString().padStart(2, "0");
+  const hours = date.getHours().toString().padStart(2, "0");
+  const mins = date.getMinutes().toString().padStart(2, "0");
+  const secs = date.getSeconds().toString().padStart(2, "0");
+  return `${year}-${month}-${day} ${hours}:${mins}:${secs}`;
 }
 
 /**
@@ -57,6 +72,29 @@ export function renderLimits(sessionId) {
     ctxDetail = `${fmt(ctxUsed)}/${fmt(estimatedSize)}`;
   }
 
+  // Build 5h and 7d items only if rateLimits exists and has resets_at
+  const hasRateLimits = limits.rateLimits || limits.rate_limits;
+  const fiveHourResetsAt = fiveHour.resets_at;
+  const sevenDayResetsAt = sevenDay.resets_at;
+
+  const fiveHourItem = hasRateLimits && fiveHourResetsAt ? `
+    <div class="limit-item-compact">
+      <span class="limit-label">5h</span>
+      ${buildBar(fivePct)}
+      <span class="limit-pct">${Math.round(fivePct)}%</span>
+      <span class="limit-detail">${fmtResetTimeAbsolute(fiveHourResetsAt)}</span>
+    </div>
+  ` : "";
+
+  const sevenDayItem = hasRateLimits && sevenDayResetsAt ? `
+    <div class="limit-item-compact">
+      <span class="limit-label">7d</span>
+      ${buildBar(sevenPct)}
+      <span class="limit-pct">${Math.round(sevenPct)}%</span>
+      <span class="limit-detail">${fmtResetTimeAbsolute(sevenDayResetsAt)}</span>
+    </div>
+  ` : "";
+
   // Compact single-row display
   return `
     <div class="limits-row-compact">
@@ -66,18 +104,8 @@ export function renderLimits(sessionId) {
         <span class="limit-pct">${Math.round(ctxPct)}%</span>
         ${ctxDetail ? `<span class="limit-detail">${ctxDetail}</span>` : ""}
       </div>
-      <div class="limit-item-compact">
-        <span class="limit-label">5h</span>
-        ${buildBar(fivePct)}
-        <span class="limit-pct">${Math.round(fivePct)}%</span>
-        <span class="limit-detail">限制</span>
-      </div>
-      <div class="limit-item-compact">
-        <span class="limit-label">7d</span>
-        ${buildBar(sevenPct)}
-        <span class="limit-pct">${Math.round(sevenPct)}%</span>
-        <span class="limit-detail">限制</span>
-      </div>
+      ${fiveHourItem}
+      ${sevenDayItem}
     </div>
   `;
 }
