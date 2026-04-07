@@ -164,7 +164,233 @@ export function toggleCmdOutput(id, toggle) {
   toggle.textContent = open ? "▼ output" : "▶ output";
 }
 
-export function renderTurn(d, sessionId) {
+export function renderSubagentSummary(subagents) {
+  if (!subagents || Object.keys(subagents).length === 0) return null;
+
+  const wrap = document.createElement("div");
+  wrap.className = "subagent-summary";
+
+  const header = document.createElement("div");
+  header.className = "subagent-header";
+  header.innerHTML = `<span class="subagent-title">Subagents</span>`;
+  wrap.appendChild(header);
+
+  const list = document.createElement("div");
+  list.className = "subagent-list";
+
+  for (const [agentId, stats] of Object.entries(subagents)) {
+    const cardId = `sa-card-${agentId}`;
+    const turnsId = `sa-turns-${agentId}`;
+
+    const card = document.createElement("div");
+    card.className = `subagent-card sa-${stats.agentType.toLowerCase()}`;
+    card.id = cardId;
+
+    const tokHtml = [
+      stats.totalTokens.input ? `<span class="tok in"><span class="tl">in </span><span class="tv">${fmtF(stats.totalTokens.input)}</span></span>` : "",
+      stats.totalTokens.output ? `<span class="tok out"><span class="tl">out </span><span class="tv">${fmtF(stats.totalTokens.output)}</span></span>` : "",
+      stats.totalTokens.cacheR ? `<span class="tok cr"><span class="tl">cr </span><span class="tv">${fmtF(stats.totalTokens.cacheR)}</span></span>` : "",
+      stats.totalTokens.cacheC ? `<span class="tok cc"><span class="tl">cc </span><span class="tv">${fmtF(stats.totalTokens.cacheC)}</span></span>` : "",
+    ].filter(Boolean).join("");
+
+    // Build tool counts pills
+    const toolCounts = stats.toolCounts || {};
+    const toolPillsHtml = Object.entries(toolCounts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([cls, count]) => `<span class="tool-pill tp-${cls}">${cls.toUpperCase()}×${count}</span>`)
+      .join("");
+
+    // Check if subagent has turns to display
+    const hasTurns = stats.turns && stats.turns.length > 0;
+    const expandHtml = hasTurns ? `
+      <div class="sa-expand-row" onclick="toggleSubagentTurns('${turnsId}', '${cardId}')">
+        <span class="arrow" id="${cardId}-arrow">▶</span>
+        <span>View ${stats.totalTurns} turns</span>
+      </div>
+    ` : "";
+
+    card.innerHTML = `
+      <div class="sa-card-header">
+        <div class="sa-card-left">
+          <span class="sa-type">${escHtml(stats.agentType)}</span>
+          <span class="sa-id">${agentId.slice(0, 8)}</span>
+          <span class="sa-turns">${stats.totalTurns} turn${stats.totalTurns === 1 ? "" : "s"}</span>
+          ${toolPillsHtml ? `<span class="sa-tools">${toolPillsHtml}</span>` : ""}
+        </div>
+        <div class="sa-card-right">
+          <div class="sa-tokens">${tokHtml}</div>
+        </div>
+      </div>
+      ${stats.description ? `<div class="sa-desc">${escHtml(stats.description)}</div>` : ""}
+      ${expandHtml}
+    `;
+
+    // Add turns container if there are turns
+    if (hasTurns) {
+      const turnsContainer = document.createElement("div");
+      turnsContainer.className = "sa-turns-container hidden";
+      turnsContainer.id = turnsId;
+
+      // Render each turn
+      stats.turns.forEach((turn) => {
+        const turnEl = renderSubagentTurn(turn);
+        turnsContainer.appendChild(turnEl);
+      });
+
+      card.appendChild(turnsContainer);
+    }
+
+    list.appendChild(card);
+  }
+
+  wrap.appendChild(list);
+  return wrap;
+}
+
+export function renderSubagentTurn(turn) {
+  const wrap = document.createElement("div");
+  wrap.className = "sa-turn";
+
+  const tokHtml = [
+    turn.input ? `<span class="tok in"><span class="tl">in </span><span class="tv">${fmtF(turn.input)}</span></span>` : "",
+    turn.output ? `<span class="tok out"><span class="tl">out </span><span class="tv">${fmtF(turn.output)}</span></span>` : "",
+    turn.cacheR ? `<span class="tok cr"><span class="tl">cr </span><span class="tv">${fmtF(turn.cacheR)}</span></span>` : "",
+    turn.cacheC ? `<span class="tok cc"><span class="tl">cc </span><span class="tv">${fmtF(turn.cacheC)}</span></span>` : "",
+  ].filter(Boolean).join("");
+
+  const userText = turn.userText || "";
+  const assistantText = turn.assistantText || "";
+  const hasUser = userText.trim().length > 0;
+  const hasAssistant = assistantText.trim().length > 0;
+
+  // Generate unique IDs for this turn
+  const userId = `sa-u-${turn.id}-${Date.now()}`;
+  const assistantId = `sa-a-${turn.id}-${Date.now()}`;
+
+  // Map tool name to CSS class (same logic as parser.js)
+  function getToolCls(name) {
+    const n = (name || "").toLowerCase();
+    if (n === "bash") return "bash";
+    if (n === "read") return "read";
+    if (n === "edit") return "edit";
+    if (n === "write") return "write";
+    if (n === "grep" || n === "toolsearch") return "grep";
+    if (n === "glob") return "glob";
+    if (n === "web" || n === "web_search" || n === "web_fetch") return "web";
+    if (n === "agent") return "agent";
+    if (n.startsWith("mcp__")) return "mcp";
+    return "other";
+  }
+
+  // Build tool summary for header - show actual tool names with colors
+  let toolSummaryHtml = "";
+  if (turn.tools && turn.tools.length > 0) {
+    const toolCounts = {};
+    turn.tools.forEach(t => {
+      const key = t.name;
+      if (!toolCounts[key]) {
+        toolCounts[key] = { count: 0, cls: getToolCls(t.name) };
+      }
+      toolCounts[key].count++;
+    });
+    const toolPills = Object.entries(toolCounts)
+      .map(([name, info]) => `<span class="sa-tool-pill tp-${info.cls}">${name}${info.count > 1 ? "×" + info.count : ""}</span>`)
+      .join("");
+
+    toolSummaryHtml = `<div class="sa-turn-tools-summary">${toolPills}</div>`;
+  }
+
+  // Build user section with scrollable container and copy button
+  let userHtml = "";
+  if (hasUser) {
+    userHtml = `
+      <div class="sa-turn-user">
+        <div class="sa-scrollable-content" id="${userId}">${escHtml(userText)}</div>
+        <button class="sa-copy-btn" onclick="copySaText('${userId}', this)" title="Copy">Copy</button>
+      </div>`;
+  }
+
+  // Build assistant section with scrollable container and copy button
+  let assistantHtml = "";
+  if (hasAssistant) {
+    assistantHtml = `
+      <div class="sa-turn-assistant">
+        <div class="sa-scrollable-content" id="${assistantId}">${escHtml(assistantText)}</div>
+        <button class="sa-copy-btn" onclick="copySaText('${assistantId}', this)" title="Copy">Copy</button>
+      </div>`;
+  }
+
+  wrap.innerHTML = `
+    <div class="sa-turn-body">
+      <div class="sa-turn-header">
+        <span class="sa-turn-num">Turn ${turn.id}</span>
+        ${toolSummaryHtml}
+        <span class="sa-turn-time">${turn.time}</span>
+        <div class="sa-turn-tokens">${tokHtml}</div>
+      </div>
+      ${userHtml}
+      ${assistantHtml}
+    </div>
+    ${turn.tools && turn.tools.length > 0 ? renderSubagentToolGroup(turn.tools) : ""}
+  `;
+
+  return wrap;
+}
+
+window.copySaText = async function(elementId, btn) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+
+  try {
+    await navigator.clipboard.writeText(el.textContent);
+    const original = btn.textContent;
+    btn.textContent = "copied";
+    btn.classList.add("copied");
+    setTimeout(() => {
+      btn.textContent = original;
+      btn.classList.remove("copied");
+    }, 1500);
+  } catch (err) {
+    console.error("Failed to copy:", err);
+  }
+}
+
+function renderSubagentToolGroup(tools) {
+  const total = tools.length;
+  const errCount = tools.filter((t) => t.isErr).length;
+
+  const toolsHtml = tools.map((t, i) => `
+    <div class="sa-tool-item ${t.cls}">
+      <span class="sa-tool-name">${t.name}</span>
+      <span class="sa-tool-params">${escHtml(t.params)}</span>
+      <span class="sa-tool-meta">
+        <span class="sa-tool-dur">${t.dur}</span>
+        <span class="sa-tool-size">${t.retSize}</span>
+        <span class="sa-tool-st ${t.status}">${t.status.toUpperCase()}</span>
+      </span>
+    </div>
+  `).join("");
+
+  return `
+    <div class="sa-tools-group">
+      ${errCount ? `<div class="sa-tools-header"><span class="sa-tools-err">${errCount} ERR</span></div>` : ""}
+      <div class="sa-tools-list">
+        ${toolsHtml}
+      </div>
+    </div>
+  `;
+}
+
+window.toggleSubagentTurns = function(turnsId, cardId) {
+  const turnsEl = document.getElementById(turnsId);
+  const arrowEl = document.getElementById(`${cardId}-arrow`);
+  if (!turnsEl || !arrowEl) return;
+
+  const isHidden = turnsEl.classList.toggle("hidden");
+  arrowEl.style.transform = isHidden ? "rotate(0deg)" : "rotate(90deg)";
+};
+
+export function renderTurn(d, sessionId, subagents = {}) {
   const wrap = document.createElement("div");
   wrap.id = "turn-" + d.id;
   wrap.setAttribute("data-turn-id", d.id);
@@ -190,6 +416,9 @@ export function renderTurn(d, sessionId) {
   const scBadge = d.sidechain
     ? `<span class="sidechain-badge">SIDECHAIN</span>`
     : "";
+  const agentBadge = d.agentId
+    ? `<span class="agent-badge" title="Agent: ${d.agentId}">AGENT</span>`
+    : "";
   const hasUser = (d.user || "").trim().length > 0;
 
   // ── USER row ──
@@ -207,6 +436,7 @@ export function renderTurn(d, sessionId) {
     <div class="msg-user-header">
       <span class="role-badge user">USER</span>
       ${scBadge}
+      ${agentBadge}
       <span class="msg-time">${d.time}</span>
       <div class="msg-tokens">${tokHtml}</div>
     </div>
@@ -235,6 +465,7 @@ export function renderTurn(d, sessionId) {
     <div class="msg-assistant-header">
       <span class="role-badge asst">ASSISTANT</span>
       ${!hasUser ? scBadge : ""}
+      ${!hasUser ? agentBadge : ""}
       <span class="msg-time">${d.time}</span>
       ${d.model ? `<span class="model-tag">${d.model}</span>` || '' : ''}
       ${aHeaderTok}
@@ -267,12 +498,12 @@ export function renderTurn(d, sessionId) {
 
   wrap.appendChild(aDiv);
   if (d.tools && d.tools.length > 0) {
-    wrap.appendChild(renderToolGroup(d));
+    wrap.appendChild(renderToolGroup(d, subagents));
   }
   return wrap;
 }
 
-export function renderToolGroup(d) {
+export function renderToolGroup(d, subagents = {}) {
   const tools = d.tools;
   const tcId = `tc-${d.id}`;
   const listId = `tcl-${d.id}`;
@@ -344,6 +575,44 @@ export function renderToolGroup(d) {
       )
       .join("");
 
+    // Find matching subagent for Agent tools
+    let subagentInfoHtml = "";
+    if (t.name === "Agent" && Object.keys(subagents).length > 0) {
+      const descInput = t.input?.find(p => p.k === "description");
+      if (descInput) {
+        const matchingSubagent = Object.values(subagents).find(sa =>
+          sa.description === descInput.v
+        );
+        if (matchingSubagent) {
+          const tok = matchingSubagent.totalTokens;
+          const tokHtml = [
+            tok.input ? `<span class="tok in"><span class="tl">in </span><span class="tv">${fmtF(tok.input)}</span></span>` : "",
+            tok.output ? `<span class="tok out"><span class="tl">out </span><span class="tv">${fmtF(tok.output)}</span></span>` : "",
+            tok.cacheR ? `<span class="tok cr"><span class="tl">cr </span><span class="tv">${fmtF(tok.cacheR)}</span></span>` : "",
+            tok.cacheC ? `<span class="tok cc"><span class="tl">cc </span><span class="tv">${fmtF(tok.cacheC)}</span></span>` : "",
+          ].filter(Boolean).join("");
+
+          subagentInfoHtml = `
+            <div class="tc-subagent-info">
+              <span class="tc-sa-label">Subagent completed:</span>
+              <span class="tc-sa-turns">${matchingSubagent.totalTurns} turns</span>
+              <div class="tc-sa-tokens">${tokHtml}</div>
+            </div>`;
+        }
+      }
+    }
+
+    // Build MCP info display
+    let mcpInfoHtml = "";
+    if (t.mcp) {
+      mcpInfoHtml = `
+        <div class="tc-mcp-info">
+          <span class="tc-mcp-server">${escHtml(t.mcp.server)}</span>
+          <span class="tc-mcp-sep">→</span>
+          <span class="tc-mcp-method">${escHtml(t.mcp.method)}</span>
+        </div>`;
+    }
+
     const card = document.createElement("div");
     card.className = `tc-card ${t.cls}`;
     card.innerHTML = `
@@ -351,6 +620,7 @@ export function renderToolGroup(d) {
         <div class="tc-band"></div>
         <div class="tc-head-inner">
           <span class="tc-name">${t.name}</span>
+          ${mcpInfoHtml}
           <span class="tc-params-summary">${escHtml(t.params)}</span>
           <div class="tc-meta">
             <span class="tc-dur">${t.dur}</span>
@@ -359,6 +629,7 @@ export function renderToolGroup(d) {
           </div>
         </div>
       </div>
+      ${subagentInfoHtml}
       <div class="tc-expand-row" onclick="toggleTcDetail('${detailId}',this)">
         <span class="arrow" style="font-size: 12px;transition:transform .15s;display:inline-block">▶</span>
         <span>Expand params &amp; output</span>
@@ -511,12 +782,20 @@ export function updateConvList(DATA, TURNS, sessionId, { preserveState = false }
   const list = document.getElementById("convList");
   list.innerHTML = "";
 
+  // Render subagent summary if available
+  if (DATA.subagents && Object.keys(DATA.subagents).length > 0) {
+    const saSummary = renderSubagentSummary(DATA.subagents);
+    if (saSummary) {
+      list.appendChild(saSummary);
+    }
+  }
 
   // Render in reverse order: newest turn at top
   const reversed = DATA /* [...DATA].reverse() */;
+  const subagents = DATA.subagents || {};
   reversed.forEach((item) => {
     if (item.type === "turn") {
-      list.appendChild(renderTurn(item, sessionId));
+      list.appendChild(renderTurn(item, sessionId, subagents));
     } else if (item.type === "compact") {
       list.appendChild(renderCompact(item));
     } else if (item.type === "command") {

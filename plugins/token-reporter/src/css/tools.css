@@ -53,7 +53,6 @@
 }
 .tool-pill {
   font-size: 10px;
-  font-weight: 700;
   padding: 1px 5px;
   border-radius: 3px;
   font-family: monospace;
@@ -98,6 +97,11 @@
   background: #3a1a00;
   color: var(--orange);
   border: 1px solid #f0883e44;
+}
+.tp-mcp {
+  background: #1a1a3a;
+  color: #a78bfa;
+  border: 1px solid #a78bfa44;
 }
 .tp-other {
   background: var(--surface);
@@ -211,6 +215,9 @@
 .agent .tc-band {
   background: var(--orange);
 }
+.mcp .tc-band {
+  background: #a78bfa;
+}
 .other .tc-band {
   background: var(--muted);
 }
@@ -252,6 +259,9 @@
 }
 .agent .tc-name {
   color: var(--orange);
+}
+.mcp .tc-name {
+  color: #a78bfa;
 }
 .other .tc-name {
   color: var(--muted);
@@ -415,4 +425,71 @@
   color: var(--red);
   border-color: #f8514933;
   background: #160a0a;
+}
+
+/* MCP info in tool card */
+.tc-mcp-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  background: #1a1a3a;
+  border: 1px solid #a78bfa44;
+  border-radius: 4px;
+  font-size: 11px;
+  margin-right: 8px;
+}
+.tc-mcp-server {
+  color: #a78bfa;
+  font-weight: 600;
+}
+.tc-mcp-sep {
+  color: var(--faint);
+}
+.tc-mcp-method {
+  color: #c4b5fd;
+  font-family: monospace;
+}
+
+/* Subagent info in tool card */
+.tc-subagent-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 10px 4px 13px;
+  background: #1a2a1a;
+  border-top: 1px solid #3fb95033;
+  font-size: 11px;
+}
+.tc-sa-label {
+  color: var(--green);
+  font-weight: 600;
+}
+.tc-sa-turns {
+  color: var(--muted);
+}
+.tc-sa-tokens {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+  font-size: 11px;
+}
+.tc-sa-tokens .tok {
+  display: inline-flex;
+  gap: 2px;
+}
+.tc-sa-tokens .tok .tl {
+  color: var(--faint);
+}
+.tc-sa-tokens .tok.in .tv {
+  color: var(--blue);
+}
+.tc-sa-tokens .tok.out .tv {
+  color: var(--green);
+}
+.tc-sa-tokens .tok.cr .tv {
+  color: var(--yellow);
+}
+.tc-sa-tokens .tok.cc .tv {
+  color: var(--purple);
 }
