@@ -7,7 +7,7 @@ let _suppressScrollObserver = false;
 let _suppressScrollTimer = null;
 
 function adaptSession(session) {
-  if (!session || !session.turns) return [];
+  if (!session || !session.turns) return { items: [], subagents: {} };
 
   // Adapt turns
   const items = session.turns.map((t) => ({
@@ -69,7 +69,10 @@ function adaptSession(session) {
     return ta < tb ? -1 : ta > tb ? 1 : 0;
   });
 
-  return items;
+  // Include subagent stats if available
+  const subagents = session.subagents || {};
+
+  return { items, subagents };
 }
 
 export function setLoadStatus(text) {
@@ -111,7 +114,12 @@ export async function loadSessions() {
     const list = await res.json();
     populateSessionSelector(list);
     if (list.length > 0) {
-      await loadSession(list[0].sessionId);
+      // Try to load last selected session, fallback to most recent
+      const lastSession = localStorage.getItem(LAST_SESSION_KEY);
+      const sessionToLoad = lastSession && list.some((s) => s.sessionId === lastSession)
+        ? lastSession
+        : list[0].sessionId;
+      await loadSession(sessionToLoad);
     } else {
       setLoadStatus(null);
       showConvError(
@@ -126,6 +134,8 @@ export async function loadSessions() {
     console.error("Failed to load sessions", e);
   }
 }
+
+const LAST_SESSION_KEY = "token-reporter:last-session";
 
 function populateSessionSelector(list) {
   const sel = document.querySelector(".session-select");
@@ -148,7 +158,16 @@ function populateSessionSelector(list) {
     select.appendChild(opt);
   });
 
-  select.onchange = () => loadSession(select.value);
+  // Restore last selected session
+  const lastSession = localStorage.getItem(LAST_SESSION_KEY);
+  if (lastSession && Array.from(select.options).some((o) => o.value === lastSession)) {
+    select.value = lastSession;
+  }
+
+  select.onchange = () => {
+    localStorage.setItem(LAST_SESSION_KEY, select.value);
+    loadSession(select.value);
+  };
 
   // Copy button
   const copyBtn = document.createElement("button");
@@ -197,8 +216,10 @@ export async function loadSession(sessionId, { preserveScroll = false } = {}) {
 
     const savedScrollY = preserveScroll ? window.scrollY : 0;
 
+    const adapted = adaptSession(session);
+
     DATA.length = 0;
-    DATA.push(...adaptSession(session));
+    DATA.push(...adapted.items);
     TURNS.length = 0;
     TURNS.push(
       ...DATA.flatMap((d) => {
@@ -208,6 +229,9 @@ export async function loadSession(sessionId, { preserveScroll = false } = {}) {
       })
     );
     setN(TURNS.length);
+
+    // Store subagents for rendering
+    DATA.subagents = adapted.subagents;
 
     if (!preserveScroll) {
       // Start brush at the right end (newest turns visible first)

@@ -109,6 +109,99 @@ function readFirstLineMeta(filePath) {
 }
 
 /**
+ * Load subagent meta file for a given session and agentId
+ * @param {string} sessionDir - Directory containing the session JSONL file
+ * @param {string} agentId
+ * @returns {{agentType: string, description: string} | null}
+ */
+function loadSubagentMeta(sessionDir, agentId) {
+  const metaPath = path.join(sessionDir, "subagents", `agent-${agentId}.meta.json`);
+  try {
+    if (fs.existsSync(metaPath)) {
+      return JSON.parse(fs.readFileSync(metaPath, "utf8"));
+    }
+  } catch {}
+  return null;
+}
+
+/**
+ * Parse a subagent JSONL file and return full session data
+ * @param {string} filePath
+ * @returns {Promise<{totalTurns: number, totalTokens: Object, toolCounts: Object, turns: Array}>}
+ */
+async function parseSubagentFile(filePath) {
+  // Reuse parseSession logic for subagent files
+  const sessionData = await parseSession(filePath);
+  if (!sessionData) {
+    return { totalTurns: 0, totalTokens: { input: 0, output: 0, cacheR: 0, cacheC: 0 }, toolCounts: {}, turns: [] };
+  }
+
+  // Calculate tool counts from turns
+  const toolCounts = {};
+  for (const turn of sessionData.turns) {
+    for (const tool of turn.tools || []) {
+      toolCounts[tool.cls] = (toolCounts[tool.cls] || 0) + 1;
+    }
+  }
+
+  // Calculate total tokens
+  const totalTokens = sessionData.turns.reduce(
+    (acc, t) => ({
+      input: acc.input + (t.input || 0),
+      output: acc.output + (t.output || 0),
+      cacheR: acc.cacheR + (t.cacheR || 0),
+      cacheC: acc.cacheC + (t.cacheC || 0),
+    }),
+    { input: 0, output: 0, cacheR: 0, cacheC: 0 }
+  );
+
+  return {
+    totalTurns: sessionData.turns.length,
+    totalTokens,
+    toolCounts,
+    turns: sessionData.turns,
+  };
+}
+
+/**
+ * Collect subagent statistics from subagents directory
+ * @param {string} sessionDir - Directory containing the session JSONL file
+ * @returns {Promise<Object>} subagent stats map
+ */
+async function collectSubagentStats(sessionDir) {
+  const subagentsDir = path.join(sessionDir, "subagents");
+  if (!fs.existsSync(subagentsDir)) {
+    return {};
+  }
+
+  const subagents = new Map();
+
+  const files = fs.readdirSync(subagentsDir);
+  for (const f of files) {
+    if (!f.startsWith("agent-") || !f.endsWith(".jsonl")) continue;
+
+    // Extract agentId from filename: agent-{agentId}.jsonl
+    const agentId = f.replace(/^agent-/, "").replace(/\.jsonl$/, "");
+    if (!agentId) continue;
+
+    const meta = loadSubagentMeta(sessionDir, agentId);
+    const stats = await parseSubagentFile(path.join(subagentsDir, f));
+
+    subagents.set(agentId, {
+      agentId,
+      agentType: meta?.agentType || "Unknown",
+      description: meta?.description || "",
+      totalTurns: stats.totalTurns,
+      totalTokens: stats.totalTokens,
+      toolCounts: stats.toolCounts || {},
+      turns: stats.turns || [],
+    });
+  }
+
+  return Object.fromEntries(subagents);
+}
+
+/**
  * Parse a JSONL file and return structured session data
  * @param {string} filePath
  * @returns {Promise<SessionData>}
@@ -258,6 +351,9 @@ async function parseSession(filePath) {
       // Build single-line params summary
       const params = buildParamsSummary(tu.name, tu.input || {});
 
+      // Parse MCP tool info
+      const mcpInfo = parseMcpToolName(tu.name);
+
       return {
         name: tu.name,
         cls,
@@ -274,6 +370,7 @@ async function parseSession(filePath) {
             ? (retSize / 1024).toFixed(1) + " KB"
             : retSize + " B",
         retLines: retLines > 1 ? retLines + " lines" : "1 line",
+        mcp: mcpInfo,
       };
     });
 
@@ -281,6 +378,7 @@ async function parseSession(filePath) {
     // Some records (e.g. "attachment") sit between the assistant and its user record.
     const parentRec = findParentUser(rec, byUuid);
     let userText = "";
+    let agentId = rec.agentId || null;
     if (parentRec) {
       const userContent = parentRec.message?.content;
       if (Array.isArray(userContent)) {
@@ -291,6 +389,10 @@ async function parseSession(filePath) {
           .trim();
       } else if (typeof userContent === "string") {
         userText = userContent;
+      }
+      // Get agentId from parent user record if not in assistant record
+      if (!agentId && parentRec.agentId) {
+        agentId = parentRec.agentId;
       }
     }
 
@@ -307,7 +409,7 @@ async function parseSession(filePath) {
       assistantText: textBlocks,
       model: msg.model || "",
       isSidechain: !!rec.isSidechain,
-      agentId: rec.agentId || null,
+      agentId,
       input: usage.input_tokens || 0,
       output: usage.output_tokens || 0,
       cacheR: usage.cache_read_input_tokens || 0,
@@ -317,7 +419,15 @@ async function parseSession(filePath) {
     });
   }
 
-  return { sessionId, slug, gitBranch, turns, systemEvents };
+  // Collect subagent statistics
+  // For main session file: /path/to/sessionId.jsonl -> sessionDir is /path/to/sessionId/
+  // For subagent file: /path/to/sessionId/subagents/agent-id.jsonl -> sessionDir is /path/to/sessionId/
+  const baseDir = path.dirname(filePath);
+  const baseName = path.basename(filePath, ".jsonl");
+  const sessionDir = path.join(baseDir, baseName);
+  const subagents = await collectSubagentStats(sessionDir);
+
+  return { sessionId, slug, gitBranch, turns, systemEvents, subagents };
 }
 
 /** Map tool name to CSS class */
@@ -327,12 +437,28 @@ function toolNameToCls(name) {
   if (n === "read") return "read";
   if (n === "edit") return "edit";
   if (n === "write") return "write";
+  if (n === "toolsearch") return "toolsearch";
   if (n === "grep") return "grep";
   if (n === "glob") return "glob";
-  if (n.includes("web") || n.includes("fetch") || n.includes("search"))
-    return "web";
+  if (n === "web" || n === "web_search" || n === "web_fetch") return "web";
   if (n === "agent") return "agent";
+  if (n.startsWith("mcp__")) return "mcp";
   return "other";
+}
+
+/**
+ * Parse MCP tool name to extract server and method
+ * @param {string} name - Tool name like "mcp__server_name__method_name"
+ * @returns {{server: string, method: string} | null}
+ */
+function parseMcpToolName(name) {
+  if (!name || !name.startsWith("mcp__")) return null;
+  const parts = name.split("__");
+  if (parts.length < 3) return null;
+  // mcp__{server}__{method}
+  const server = parts[1];
+  const method = parts.slice(2).join("__");
+  return { server, method };
 }
 
 /** Extract key-value display entries from a tool's input object */
