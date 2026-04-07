@@ -109,7 +109,11 @@ Version appears in these places for `token-reporter`:
 
 ### Commit Guidelines
 
-**Do NOT add `Co-Authored-By:` or any attribution lines to commits.** Keep commit messages clean and simple without any trailer lines.
+**Keep commit messages clean and simple.**
+
+- Use concise, descriptive messages without attribution lines
+- Do not add `Co-Authored-By:`, `Signed-off-by:`, or similar trailer lines
+- Follow conventional commit format: `type(scope): description`
 
 ### Git Hook (Optional)
 

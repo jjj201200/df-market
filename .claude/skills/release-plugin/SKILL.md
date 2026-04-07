@@ -61,7 +61,7 @@ When user wants to release:
 # Check git status
 git status
 
-# Commit any pending changes (NO co-author attribution)
+# Commit any pending changes - keep message simple
 git add -A
 git commit -m "fix: description of changes"
 
@@ -73,7 +73,7 @@ node plugins/<name>/scripts/bump-version.js patch
 node plugins/<name>/scripts/bump-version.js minor
 node plugins/<name>/scripts/bump-version.js major
 
-# Create tag (NO co-author attribution)
+# Create tag
 git tag v<version>
 
 # Push everything
@@ -81,11 +81,14 @@ git push
 git push --tags
 ```
 
-## IMPORTANT: No Co-Author Attribution
+## IMPORTANT: Clean Commit Messages
 
-**Never add `Co-Authored-By:` lines to commits in this repository.**
+**Keep commit messages simple and clean.**
 
-The user has explicitly requested that commits NOT include any attribution to Claude or other co-authors. Keep commit messages simple and clean without any trailer lines.
+- Use concise, descriptive commit messages
+- Do not add trailer lines like `Co-Authored-By:`, `Signed-off-by:`, etc.
+- Do not mention attribution, authorship, or co-authors in commit messages
+- Follow conventional commit format: `type(scope): description`
 
 ## Release Checklist
 
