@@ -107,6 +107,10 @@ Version appears in these places for `token-reporter`:
 - `.claude-plugin/marketplace.json` — marketplace registry
 - Git commit message (convention: `chore: bump version to X.Y.Z`)
 
+### Commit Guidelines
+
+**Do NOT add `Co-Authored-By:` or any attribution lines to commits.** Keep commit messages clean and simple without any trailer lines.
+
 ### Git Hook (Optional)
 
 To automatically check version before every push, add to `.git/hooks/pre-push`:
