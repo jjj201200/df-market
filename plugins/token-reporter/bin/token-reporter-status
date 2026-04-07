@@ -9,12 +9,10 @@ const os = require('os');
 const path = require('path');
 
 const R = '\x1b[0m';
-const BOLD = '\x1b[1m';
 const GREEN = '\x1b[32m';
 const RED = '\x1b[31m';
 const YELLOW = '\x1b[33m';
 const CYAN = '\x1b[36m';
-const DIM = '\x1b[2m';
 
 const d = process.env.TOKEN_REPORTER_DATA_DIR || path.join(os.homedir(), '.claude', 'token-reporter');
 const pidPath = path.join(d, 'server.pid');
@@ -39,30 +37,45 @@ try {
 } catch {}
 
 const statusText = running
-  ? GREEN + BOLD + '● running' + R
-  : RED + '○ stopped' + R;
+  ? GREEN + 'running' + R
+  : RED + 'stopped' + R;
 const autoStartText = config.autoStart !== false
-  ? GREEN + 'enabled' + R
-  : YELLOW + 'disabled' + R;
+  ? GREEN + 'on' + R
+  : YELLOW + 'off' + R;
 
-console.log('');
-console.log(BOLD + CYAN + '  Token Reporter' + R);
-console.log(DIM + '  ───────────────────────────────' + R);
-console.log('  Status     ' + statusText);
-if (running) console.log('  URL        ' + CYAN + 'http://localhost:' + config.port + R);
-if (running && pid) console.log('  PID        ' + DIM + pid + R);
-console.log('  Port       ' + config.port);
-console.log('  Auto-start ' + autoStartText);
-console.log('  Sessions   ' + sessions);
-console.log('  Data dir   ' + DIM + d + R);
-console.log(DIM + '  ───────────────────────────────' + R);
-console.log('  ' + BOLD + 'Commands' + R);
-console.log(DIM + '  ───────────────────────────────' + R);
-console.log('  ' + CYAN + 'token-reporter-start' + R + '           Start server');
-console.log('  ' + CYAN + 'token-reporter-stop' + R + '            Stop server');
-console.log('  ' + CYAN + 'token-reporter-status' + R + '          Show status');
-console.log('  ' + CYAN + 'token-reporter-auto-launch-on' + R + '  Enable auto-launch');
-console.log('  ' + CYAN + 'token-reporter-auto-launch-off' + R + ' Disable auto-launch');
-console.log('');
+// 3列动态对齐布局 - key和value分别对齐
+const stripAnsi = (str) => str.replace(/\x1b\[\d+m/g, '');
+const visibleLen = (str) => stripAnsi(String(str)).length;
+
+// 定义数据行（每行3列：[key, value]）
+const row1 = running
+  ? [['Status', statusText], ['URL', CYAN + 'http://localhost:' + config.port + R], ['PID', pid]]
+  : [['Status', statusText], ['Port', config.port], ['Auto', autoStartText]];
+const row2 = running
+  ? [['Port', config.port], ['Auto', autoStartText], ['Sessions', sessions]]
+  : null;
+
+// 计算每列的总宽度（key + ": " + value）
+const rows = row2 ? [row1, row2] : [row1];
+const colWidths = [0, 0, 0];
+for (const row of rows) {
+  for (let i = 0; i < 3; i++) {
+    const [key, value] = row[i];
+    const len = visibleLen(key) + 2 + visibleLen(value); // "key: value"
+    colWidths[i] = Math.max(colWidths[i], len);
+  }
+}
+
+// 对齐输出：key左对齐，整列宽度固定
+const formatRow = (row) => {
+  return row.map(([key, value], i) => {
+    const text = `${key}: ${value}`;
+    const padding = ' '.repeat(Math.max(0, colWidths[i] - visibleLen(text)));
+    return text + padding + '  ';
+  }).join('');
+};
+
+console.log(formatRow(row1));
+if (row2) console.log(formatRow(row2));
 
 process.exit(0);
