@@ -4,7 +4,7 @@ import {useSessionStore} from '../../stores/sessionStore';
 import {fmt} from '../../utils/format';
 import {DPR, getSegs, setupCanvas} from '../../utils/canvas';
 import type {TurnItem, BarRect} from '../../types/state';
-import {suppressScrollSync} from '../../hooks/useScrollSync';
+import {lockBrushDriving, deferScrollToTurn} from '../../hooks/useScrollSync';
 import styles from './MainChart.module.scss';
 
 function getCSSVar(name: string): string {
@@ -23,11 +23,12 @@ export function scrollToTurnIndex(turns: TurnItem[], idx: number) {
   if (!t) return;
   const el = document.getElementById('turn-' + t.id);
   if (!el) return;
-  suppressScrollSync(2000);
+
   const stickyEl = document.getElementById('stickyChart');
   const stickyH = stickyEl?.offsetHeight || 0;
   const top = el.getBoundingClientRect().top + window.scrollY - stickyH - 8;
-  window.scrollTo({top, behavior: 'smooth'});
+  lockBrushDriving();
+  window.scrollTo({top, behavior: 'auto'});
 }
 
 function fmtTs(ts: string | undefined, timeFmt: string): string {
@@ -207,12 +208,12 @@ export default function MainChart() {
         startR: brushR,
       };
       if (styles.dragging) canvasRef.current?.classList.add(styles.dragging);
-      suppressScrollSync(2000);
+      lockBrushDriving();
 
       const onMove = (ev: MouseEvent) => {
         const dr = dragRef.current;
         if (!dr.active) return;
-        suppressScrollSync(2000);
+        lockBrushDriving();
         const dx = ev.clientX - dr.startX;
         if (Math.abs(dx) > 3) dr.moved = true;
         if (!dr.moved) return;
@@ -224,12 +225,15 @@ export default function MainChart() {
         const offset = -(dx / W) * span;
         const newL = Math.max(0, Math.min(dr.startL + offset, 1 - span));
         setBrush(newL, newL + span);
-        scrollToTurnIndex(turns, Math.round(newL * (turns.length - 1)));
+        deferScrollToTurn(() => scrollToTurnIndex(turns, Math.round(newL * (turns.length - 1))));
       };
 
       const onUp = () => {
         dragRef.current.active = false;
         if (styles.dragging) canvasRef.current?.classList.remove(styles.dragging);
+        // Scroll immediately on drag end
+        const {brushL: finalL} = useChartStore.getState();
+        scrollToTurnIndex(turns, Math.round(finalL * (turns.length - 1)));
         window.removeEventListener('mousemove', onMove);
         window.removeEventListener('mouseup', onUp);
       };

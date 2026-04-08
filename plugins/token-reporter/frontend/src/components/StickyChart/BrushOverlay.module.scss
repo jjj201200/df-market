@@ -6,6 +6,13 @@
   pointer-events: none;
 }
 
+.dragging .brushSelection,
+.dragging .brushHandle,
+.dragging .brushMoveArea,
+.dragging .viewportIndicator {
+  transition: none;
+}
+
 .brushSelection {
   position: absolute;
   top: 0;
@@ -13,6 +20,7 @@
   background: var(--brush-selection);
   border-left: 1px solid var(--accent);
   border-right: 1px solid var(--accent);
+  transition: left 0.1s ease-out, width 0.1s ease-out;
 }
 
 .brushHandle {
@@ -26,6 +34,31 @@
   pointer-events: all;
   z-index: 3;
   transform: translateY(-50%) translateX(-2px);
+  transition: left 0.1s ease-out;
+}
+
+.viewportIndicator {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border: 1.5px solid var(--accent);
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 4;
+  opacity: 0.7;
+  transition: left 0.15s ease-out, width 0.15s ease-out;
+}
+
+.viewportLabel {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  color: var(--accent);
+  white-space: nowrap;
+  pointer-events: none;
+  line-height: 1;
 }
 
 .brushMoveArea {
@@ -35,6 +68,7 @@
   cursor: grab;
   pointer-events: all;
   z-index: 2;
+  transition: left 0.1s ease-out, width 0.1s ease-out;
 
   &:active {
     cursor: grabbing;

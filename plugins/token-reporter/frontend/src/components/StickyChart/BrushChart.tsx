@@ -3,11 +3,16 @@ import {useChartStore} from '../../stores/chartStore';
 import {useSessionStore} from '../../stores/sessionStore';
 import {DPR, getSegs, setupCanvas} from '../../utils/canvas';
 import {scrollToTurnIndex} from './MainChart';
+import {lockBrushDriving, deferScrollToTurn} from '../../hooks/useScrollSync';
 import styles from './BrushChart.module.scss';
 const BRUSH_H = 32;
+const ZOOM_FACTOR = 0.05;
+const WHEEL_THROTTLE_MS = 80; // 节流间隔，防止惯性滚动触发过快
 
 export default function BrushChart() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const lastWheelTime = useRef<number>(0);
   const turns = useSessionStore((s) => s.turns);
   const brushL = useChartStore((s) => s.brushL);
   const brushR = useChartStore((s) => s.brushR);
@@ -50,6 +55,7 @@ export default function BrushChart() {
         y -= sh;
       }
     }
+
   }, [turns, dims, resizeTick]);
 
   // Click handler: center brush at click position
@@ -68,5 +74,82 @@ export default function BrushChart() {
     [turns, brushL, brushR, setBrush],
   );
 
-  return <canvas ref={canvasRef} className={styles.brushChart} onClick={handleClick} />;
+  // Wheel handler: zoom towards mouse position (throttled)
+  // When already at min span, pans towards mouse instead
+  const handleWheel = useCallback(
+    (e: React.WheelEvent<HTMLDivElement>) => {
+      // Throttle: ignore events too close together (inertial scrolling)
+      const now = Date.now();
+      if (now - lastWheelTime.current < WHEEL_THROTTLE_MS) return;
+      lastWheelTime.current = now;
+
+      lockBrushDriving();
+
+      const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+      const mouseX = (e.clientX - rect.left) / rect.width;
+
+      const span = brushR - brushL;
+      const minSpan = 0.01;
+      const maxSpan = 1;
+
+      const zoomIn = e.deltaY < 0;
+      const factor = zoomIn ? 1 - ZOOM_FACTOR : 1 + ZOOM_FACTOR;
+
+      let newSpan = span * factor;
+      newSpan = Math.max(minSpan, Math.min(maxSpan, newSpan));
+
+      let newL: number;
+      let newR: number;
+
+      if (span <= minSpan * 1.01 && zoomIn) {
+        // Already at minimum span: pan towards mouse position gradually
+        const panStep = 0.02; // 2% per tick, slower pan
+        const halfSpan = minSpan / 2;
+        const center = (brushL + brushR) / 2;
+
+        // Calculate target center (clamped to valid range)
+        let targetCenter = mouseX;
+        if (targetCenter < halfSpan) targetCenter = halfSpan;
+        else if (targetCenter > 1 - halfSpan) targetCenter = 1 - halfSpan;
+
+        // Move one step towards target
+        const diff = targetCenter - center;
+        let newCenter = center + Math.sign(diff) * Math.min(Math.abs(diff), panStep);
+
+        newL = newCenter - halfSpan;
+        newR = newCenter + halfSpan;
+      } else {
+        // Normal zoom towards mouse position
+        const ratio = newSpan / span;
+        newL = mouseX - (mouseX - brushL) * ratio;
+        newR = newL + newSpan;
+
+        // Clamp to valid range
+        if (newL < 0) {
+          newR -= newL;
+          newL = 0;
+        }
+        if (newR > 1) {
+          newL -= newR - 1;
+          newR = 1;
+        }
+      }
+
+      setBrush(newL, newR);
+
+      // Defer scroll until wheel stops — prevents dialog jitter during zoom
+      const finalL = newL;
+      const N = turns.length;
+      if (N > 0) {
+        deferScrollToTurn(() => scrollToTurnIndex(turns, Math.round(finalL * (N - 1))));
+      }
+    },
+    [brushL, brushR, setBrush, turns],
+  );
+
+  return (
+    <div ref={containerRef} className={styles.brushChartContainer} onWheel={handleWheel}>
+      <canvas ref={canvasRef} className={styles.brushChart} onClick={handleClick} />
+    </div>
+  );
 }

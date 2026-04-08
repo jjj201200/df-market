@@ -3,6 +3,13 @@
   position: relative;
 }
 
+.brushChartContainer {
+  position: relative;
+  width: 100%;
+  height: 32px;
+  cursor: crosshair;
+}
+
 .brushChart {
   width: 100%;
   height: 32px;

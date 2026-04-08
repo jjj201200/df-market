@@ -1,4 +1,4 @@
-import {useMemo} from 'react';
+import {useMemo, useRef, useEffect} from 'react';
 import {useChartStore} from '../../stores/chartStore';
 import {useSessionStore} from '../../stores/sessionStore';
 import DimBar from './DimBar';
@@ -26,6 +26,20 @@ export default function StickyChart() {
     return `Request #${first.id} \u2013 #${last.id}`;
   }, [turns, brushL, brushR]);
 
+  const chartAreaRef = useRef<HTMLDivElement>(null);
+
+  // Attach native non-passive wheel listener to prevent page scroll
+  // when wheeling over the chart area. React onWheel is passive by default
+  // and cannot call preventDefault().
+  useEffect(() => {
+    const stop = (e: WheelEvent) => {
+      e.preventDefault();
+    };
+    const el = chartAreaRef.current;
+    el?.addEventListener('wheel', stop, {passive: false});
+    return () => el?.removeEventListener('wheel', stop);
+  }, []);
+
   return (
     <div id="stickyChart" className={styles.stickyChart}>
       <DimBar />
@@ -36,13 +50,15 @@ export default function StickyChart() {
         {rangeLabel && <span className={styles.rangeLabel}>{rangeLabel}</span>}
       </div>
 
-      <div className={styles.mainChartScroll}>
-        <MainChart />
-      </div>
+      <div ref={chartAreaRef} className={styles.chartArea}>
+        <div className={styles.mainChartScroll}>
+          <MainChart />
+        </div>
 
-      <div className={styles.brushWrap}>
-        <BrushChart />
-        <BrushOverlay />
+        <div className={styles.brushWrap}>
+          <BrushChart />
+          <BrushOverlay />
+        </div>
       </div>
 
       <ChartLegend />
