@@ -21,7 +21,7 @@ const CONFIG_PATH = path.join(DEV_DATA_DIR, "config.json");
 // otherwise fall back to the directory where this script is located
 const CWD_PLUGIN_ROOT = process.cwd();
 const SCRIPT_PLUGIN_ROOT = path.resolve(__dirname, "..");
-const PLUGIN_ROOT = (fs.existsSync(path.join(CWD_PLUGIN_ROOT, "src", "server.js"))
+const PLUGIN_ROOT = (fs.existsSync(path.join(CWD_PLUGIN_ROOT, "backend", "server.js"))
   ? CWD_PLUGIN_ROOT
   : SCRIPT_PLUGIN_ROOT);
 
@@ -121,65 +121,31 @@ function getActualPort() {
 }
 
 function start() {
-  // Ensure dev data directory exists
-  fs.mkdirSync(DEV_DATA_DIR, { recursive: true });
-
-  // Find available port
   const port = findAvailablePort();
   if (!port) {
-    console.error(`❌ Could not find an available port after ${MAX_PORT_ATTEMPTS} attempts.`);
+    console.error(`Could not find an available port after ${MAX_PORT_ATTEMPTS} attempts.`);
     console.error(`   Tried ports: ${DEFAULT_DEV_PORT} - ${DEFAULT_DEV_PORT + MAX_PORT_ATTEMPTS - 1}`);
     process.exit(1);
   }
 
   if (port !== DEFAULT_DEV_PORT) {
-    console.log(`⚠️  Default port ${DEFAULT_DEV_PORT} is in use.`);
-    console.log(`   Using port ${port} instead.`);
+    console.log(`Default port ${DEFAULT_DEV_PORT} is in use, using port ${port} instead.`);
   }
 
-  // Create/update dev config with selected port
-  fs.writeFileSync(
-    CONFIG_PATH,
-    JSON.stringify({ port, autoStart: true }, null, 2)
-  );
-
-  // Check if already running
   const existingPid = getPid();
   if (existingPid && isProcessAlive(existingPid)) {
-    const actualPort = getActualPort();
-    console.log(`Dev server already running at http://localhost:${actualPort}`);
+    console.log(`Dev server already running at http://localhost:${getActualPort()}`);
     return;
   }
 
-  // Start server
-  const child = spawn(process.execPath, [path.join(PLUGIN_ROOT, "src", "server.js")], {
-    detached: true,
-    stdio: "ignore",
-    env: {
-      ...process.env,
-      TOKEN_REPORTER_PLUGIN_ROOT: PLUGIN_ROOT,
-      TOKEN_REPORTER_DATA_DIR: DEV_DATA_DIR,
-    },
-  });
-
-  child.unref();
-
-  // Wait for server to start
-  for (let i = 0; i < 30; i++) {
-    const pid = getPid();
-    if (pid && isProcessAlive(pid)) {
-      const actualPort = getActualPort();
-      // Add dev server to production config's statusLineTargets
-      addDevTargetToProdConfig(actualPort);
-      console.log(`Dev server started at http://localhost:${actualPort}`);
-      console.log(`Data directory: ${DEV_DATA_DIR}`);
-      return;
-    }
-    execSync("sleep 0.1");
+  const pid = ensureApiServer(port);
+  if (!pid) {
+    console.error("Error: Server failed to start within 3 seconds.");
+    process.exit(1);
   }
 
-  console.error("Error: Server failed to start within 3 seconds.");
-  process.exit(1);
+  console.log(`Dev server started at http://localhost:${getActualPort()}`);
+  console.log(`Data directory: ${DEV_DATA_DIR}`);
 }
 
 function addDevTargetToProdConfig(port) {
@@ -311,11 +277,88 @@ function status() {
   }
 }
 
+function ensureApiServer(port) {
+  fs.mkdirSync(DEV_DATA_DIR, { recursive: true });
+  fs.writeFileSync(CONFIG_PATH, JSON.stringify({ port, autoStart: true }, null, 2));
+
+  const existingPid = getPid();
+  if (existingPid && isProcessAlive(existingPid)) {
+    return existingPid;
+  }
+
+  const child = spawn(process.execPath, [path.join(PLUGIN_ROOT, "backend", "server.js")], {
+    detached: true,
+    stdio: "ignore",
+    env: {
+      ...process.env,
+      TOKEN_REPORTER_PLUGIN_ROOT: PLUGIN_ROOT,
+      TOKEN_REPORTER_DATA_DIR: DEV_DATA_DIR,
+    },
+  });
+  child.unref();
+
+  for (let i = 0; i < 30; i++) {
+    const pid = getPid();
+    if (pid && isProcessAlive(pid)) {
+      addDevTargetToProdConfig(port);
+      return pid;
+    }
+    execSync("sleep 0.1");
+  }
+  return null;
+}
+
+function startHmr() {
+  const apiPort = DEFAULT_DEV_PORT + 1;
+  const hmrPort = DEFAULT_DEV_PORT;
+
+  const pid = ensureApiServer(apiPort);
+  if (!pid) {
+    console.error("Error: API server failed to start within 3 seconds.");
+    process.exit(1);
+  }
+  console.log(`API server running on port ${apiPort} (PID ${pid})`);
+
+  const frontendDir = path.join(PLUGIN_ROOT, "frontend");
+  if (!fs.existsSync(path.join(frontendDir, "node_modules"))) {
+    console.log("Installing frontend dependencies...");
+    execSync("npm ci --silent", { cwd: frontendDir, stdio: "inherit" });
+  }
+
+  console.log(`\nStarting Vite HMR on http://localhost:${hmrPort}`);
+  console.log(`   API proxy -> http://localhost:${apiPort}`);
+  console.log(`   Press Ctrl+C to stop\n`);
+
+  const viteChild = spawn(
+    path.join(frontendDir, "node_modules", ".bin", "vite"),
+    [],
+    {
+      cwd: frontendDir,
+      stdio: "inherit",
+      env: {
+        ...process.env,
+        VITE_HMR_PORT: String(hmrPort),
+        VITE_API_PORT: String(apiPort),
+      },
+    }
+  );
+
+  const cleanup = () => {
+    viteChild.kill("SIGTERM");
+    process.exit(0);
+  };
+  process.on("SIGINT", cleanup);
+  process.on("SIGTERM", cleanup);
+}
+
 const command = process.argv[2] || "start";
 
 switch (command) {
   case "start":
     start();
+    break;
+  case "hmr":
+    startHmr();
     break;
   case "stop":
     stop();
@@ -324,6 +367,6 @@ switch (command) {
     status();
     break;
   default:
-    console.log("Usage: token-reporter-dev [start|stop|status]");
+    console.log("Usage: token-reporter-dev [start|stop|status|hmr]");
     process.exit(1);
 }

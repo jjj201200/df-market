@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const os = require("os");
 const { execFile } = require("child_process");
-const { migrate } = require("../src/migrate.js");
+const { migrate } = require("../backend/migrate.js");
 
 const PLUGIN_ROOT = path.resolve(__dirname, "..");
 const DATA_DIR =
@@ -12,7 +12,7 @@ const DATA_DIR =
 const CONFIG_PATH = path.join(DATA_DIR, "config.json");
 const PID_PATH = path.join(DATA_DIR, "server.pid");
 const LOCK_PATH = path.join(DATA_DIR, "server.lock");
-const SERVER_PATH = path.join(PLUGIN_ROOT, "src", "server.js");
+const SERVER_PATH = path.join(PLUGIN_ROOT, "backend", "server.js");
 const PLUGIN_JSON_PATH = path.join(
   PLUGIN_ROOT,
   ".claude-plugin",

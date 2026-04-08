@@ -4,7 +4,7 @@ const path = require("path");
 const fs = require("fs");
 const os = require("os");
 
-const { parseSession } = require(path.join(__dirname, "..", "src", "parser.js"));
+const { parseSession } = require(path.join(__dirname, "..", "backend", "parser.js"));
 
 let passed = 0;
 let failed = 0;

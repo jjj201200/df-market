@@ -3,7 +3,7 @@ const assert = require("assert");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
-const { migrate, semverCompare, MIGRATIONS } = require("../src/migrate.js");
+const { migrate, semverCompare, MIGRATIONS } = require("../backend/migrate.js");
 
 let passed = 0;
 let failed = 0;

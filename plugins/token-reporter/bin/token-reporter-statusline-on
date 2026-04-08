@@ -5,7 +5,7 @@
  * Usage: token-reporter-statusline-on [--force]
  */
 
-const { enableIntegration } = require("../src/statusline-integration.js");
+const { enableIntegration } = require("../backend/statusline-integration.js");
 
 const args = process.argv.slice(2);
 const force = args.includes("--force");

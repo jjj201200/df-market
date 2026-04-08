@@ -5,7 +5,7 @@
  * Usage: token-reporter-statusline-off
  */
 
-const { disableIntegration } = require("../src/statusline-integration.js");
+const { disableIntegration } = require("../backend/statusline-integration.js");
 
 const result = disableIntegration();
 

@@ -117,7 +117,7 @@ function startServer() {
       TOKEN_REPORTER_PLUGIN_ROOT: PLUGIN_ROOT,
       TOKEN_REPORTER_DATA_DIR: dataDir,
     };
-    serverProcess = execFile(process.execPath, [path.join(PLUGIN_ROOT, "src", "server.js")], {
+    serverProcess = execFile(process.execPath, [path.join(PLUGIN_ROOT, "backend", "server.js")], {
       env,
       timeout: 30000,
     });

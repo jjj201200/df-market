@@ -13,18 +13,23 @@ const DATA_DIR =
   path.join(os.homedir(), ".claude", "token-reporter");
 
 const { parseSession, listSessions } = require(
-  path.join(PLUGIN_ROOT, "src", "parser.js"),
+  path.join(PLUGIN_ROOT, "backend", "parser.js"),
 );
 
 const CONFIG_PATH = path.join(DATA_DIR, "config.json");
 const PID_PATH = path.join(DATA_DIR, "server.pid");
 const LOCK_PATH = path.join(DATA_DIR, "server.lock");
-const SRC_DIR = path.join(PLUGIN_ROOT, "src");
+const DIST_DIR = path.join(PLUGIN_ROOT, "dist");
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
   ".css": "text/css; charset=utf-8",
   ".js": "application/javascript; charset=utf-8",
+  ".svg": "image/svg+xml",
+  ".png": "image/png",
+  ".ico": "image/x-icon",
+  ".woff2": "font/woff2",
+  ".woff": "font/woff",
 };
 
 function serveStatic(res, filePath) {
@@ -169,20 +174,15 @@ async function handleRequest(req, res) {
   }
 
   if (url.pathname === "/" || url.pathname === "/index.html") {
-    serveStatic(res, path.join(SRC_DIR, "report.html"));
+    serveStatic(res, path.join(DIST_DIR, "index.html"));
     return;
   }
 
-  // Serve static assets only from src/css/ and src/js/
-  if (url.pathname.startsWith("/css/") || url.pathname.startsWith("/js/")) {
-    const ext = path.extname(url.pathname);
-    if (MIME[ext]) {
-      const filePath = path.resolve(path.join(SRC_DIR, url.pathname));
-      if (filePath.startsWith(path.resolve(SRC_DIR) + path.sep)) {
-        serveStatic(res, filePath);
-        return;
-      }
-    }
+  // Serve static assets from dist/ (Vite build output)
+  const filePath = path.resolve(path.join(DIST_DIR, url.pathname));
+  if (filePath.startsWith(path.resolve(DIST_DIR) + path.sep)) {
+    serveStatic(res, filePath);
+    return;
   }
 
   res.writeHead(404).end("not found");
