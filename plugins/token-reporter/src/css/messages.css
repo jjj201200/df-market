@@ -613,6 +613,72 @@
 .sa-tools-group {
   margin-left: 28px;
 }
+
+/* Subagent turn tool calls - nested inside sa-turn */
+.sa-tc-group {
+  margin: 8px 0 8px 0;
+  border-left: 2px solid var(--border2);
+  padding-left: 12px;
+}
+.sa-tc-group .tc-toggle {
+  font-size: 11px;
+}
+.sa-tc-group .tc-badge {
+  font-size: 9px;
+  padding: 1px 6px;
+}
+.sa-tc-group .tc-stats-panel {
+  padding: 4px 8px;
+  gap: 12px;
+}
+.sa-tc-group .ts-item {
+  min-width: 40px;
+}
+.sa-tc-group .ts-label {
+  font-size: 10px;
+}
+.sa-tc-group .ts-val {
+  font-size: 11px;
+}
+.sa-tc-group .tc-card {
+  font-size: 11px;
+}
+.sa-tc-group .tc-head-inner {
+  padding: 4px 8px;
+}
+.sa-tc-group .tc-name {
+  font-size: 9px;
+}
+.sa-tc-group .tc-params-summary {
+  font-size: 11px;
+}
+.sa-tc-group .tc-dur,
+.sa-tc-group .tc-size {
+  font-size: 11px;
+  min-width: 36px;
+}
+.sa-tc-group .tc-st {
+  font-size: 9px;
+  padding: 1px 4px;
+}
+.sa-tc-group .tc-expand-row {
+  padding: 2px 8px 2px 11px;
+  font-size: 11px;
+}
+.sa-tc-group .tc-detail-body {
+  padding: 6px 8px 6px 11px;
+}
+.sa-tc-group .tc-param-row {
+  font-size: 11px;
+}
+.sa-tc-group .tc-pk {
+  min-width: 60px;
+  font-size: 11px;
+}
+.sa-tc-group .tc-result-preview {
+  font-size: 11px;
+  max-height: 120px;
+}
 .sa-tools-header {
   display: flex;
   align-items: center;

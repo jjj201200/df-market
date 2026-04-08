@@ -138,10 +138,12 @@ export function toggleTcGroup(listId, toggleId) {
 
 export function toggleTcDetail(detailId, row) {
   const wrap = document.getElementById(detailId);
+  if (!wrap) return;
   const open = wrap.classList.toggle("open");
   const arrow = row.querySelector(".arrow");
   if (arrow) arrow.style.transform = open ? "rotate(90deg)" : "rotate(0)";
 }
+window.toggleTcDetail = toggleTcDetail;
 
 export function toggleThink(id, header) {
   const body = document.getElementById(id);
@@ -575,29 +577,100 @@ export function renderToolGroup(d, subagents = {}) {
       )
       .join("");
 
-    // Find matching subagent for Agent tools
-    let subagentInfoHtml = "";
+    // Find matching subagent for Agent tools and render its tools
+    let subagentToolsHtml = "";
     if (t.name === "Agent" && Object.keys(subagents).length > 0) {
       const descInput = t.input?.find(p => p.k === "description");
       if (descInput) {
         const matchingSubagent = Object.values(subagents).find(sa =>
           sa.description === descInput.v
         );
-        if (matchingSubagent) {
-          const tok = matchingSubagent.totalTokens;
-          const tokHtml = [
-            tok.input ? `<span class="tok in"><span class="tl">in </span><span class="tv">${fmtF(tok.input)}</span></span>` : "",
-            tok.output ? `<span class="tok out"><span class="tl">out </span><span class="tv">${fmtF(tok.output)}</span></span>` : "",
-            tok.cacheR ? `<span class="tok cr"><span class="tl">cr </span><span class="tv">${fmtF(tok.cacheR)}</span></span>` : "",
-            tok.cacheC ? `<span class="tok cc"><span class="tl">cc </span><span class="tv">${fmtF(tok.cacheC)}</span></span>` : "",
-          ].filter(Boolean).join("");
+        if (matchingSubagent && matchingSubagent.turns && matchingSubagent.turns.length > 0) {
+          // Collect all tools from all turns
+          const allTools = [];
+          matchingSubagent.turns.forEach(turn => {
+            if (turn.tools && turn.tools.length > 0) {
+              allTools.push(...turn.tools);
+            }
+          });
 
-          subagentInfoHtml = `
-            <div class="tc-subagent-info">
-              <span class="tc-sa-label">Subagent completed:</span>
-              <span class="tc-sa-turns">${matchingSubagent.totalTurns} turns</span>
-              <div class="tc-sa-tokens">${tokHtml}</div>
-            </div>`;
+          if (allTools.length > 0) {
+            const saTcId = `sa-tc-${d.id}-${i}`;
+            const saListId = `sa-tcl-${d.id}-${i}`;
+
+            const saTotal = allTools.length;
+            const saErrCount = allTools.filter(t2 => t2.isErr).length;
+            const saTotalMs = allTools.reduce((s, t2) => s + parseDur(t2.dur), 0);
+            const saTotalBytes = allTools.reduce((s, t2) => s + parseSize(t2.retSize), 0);
+
+            const saCounts = {};
+            allTools.forEach(t2 => { saCounts[t2.cls] = (saCounts[t2.cls] || 0) + 1; });
+            const saPillsHtml = Object.entries(saCounts)
+              .map(([cls, n]) => `<span class="tool-pill tp-${cls}">${cls.toUpperCase()}×${n}</span>`)
+              .join("");
+
+            // Render subagent tool cards
+            let saToolCardsHtml = "";
+            allTools.forEach((t2, j) => {
+              const saDetailId = `sa-tcd-${d.id}-${i}-${j}`;
+              const saParamsHtml = (t2.input || [])
+                .map(p => `<div class="tc-param-row"><span class="tc-pk">${p.k}</span><span class="tc-pv ${p.vc || ""}">${escHtml(p.v)}</span></div>`)
+                .join("");
+
+              saToolCardsHtml += `
+                <div class="tc-card ${t2.cls}">
+                  <div class="tc-head">
+                    <div class="tc-band"></div>
+                    <div class="tc-head-inner">
+                      <span class="tc-name">${t2.name}</span>
+                      <span class="tc-params-summary">${escHtml(t2.params)}</span>
+                      <div class="tc-meta">
+                        <span class="tc-dur">${t2.dur}</span>
+                        <span class="tc-size">${t2.retSize}</span>
+                        <span class="tc-st ${t2.status}">${t2.status.toUpperCase()}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="tc-expand-row" onclick="toggleTcDetail('${saDetailId}',this)">
+                    <span class="arrow" style="font-size: 12px;transition:transform .15s;display:inline-block">▶</span>
+                    <span>Expand params &amp; output</span>
+                    ${t2.retLines && t2.retLines !== "—" ? `<span style="margin-left:auto;color:var(--faint)">${t2.retLines}</span>` : ""}
+                  </div>
+                  <div class="tc-detail-wrap" id="${saDetailId}">
+                    <div class="tc-detail-body">
+                      ${saParamsHtml ? `<div class="tc-section-label">INPUT</div>${saParamsHtml}` : ""}
+                      <div class="tc-result-block">
+                        <div class="tc-result-meta">
+                          <span>OUTPUT</span>
+                          <span class="rm-bytes">${t2.retSize}</span>
+                          ${t2.retLines && t2.retLines !== "—" ? `<span class="rm-lines">${t2.retLines}</span>` : ""}
+                        </div>
+                        <div class="tc-result-preview${t2.isErr ? " is-err" : ""}">${escHtml(t2.output || "(no output)")}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>`;
+            });
+
+            subagentToolsHtml = `
+              <div class="sa-tc-group">
+                <div class="tc-toggle" id="${saTcId}" onclick="toggleTcGroup('${saListId}','${saTcId}')">
+                  <span class="arrow">▶</span>
+                  <span class="tc-badge">${saTotal} subagent tool call${saTotal === 1 ? "" : "s"}</span>
+                  <span class="tc-summary">
+                    <span class="tool-pills">${saPillsHtml}</span>
+                    <span class="tc-sum-sep">·</span>
+                    <span class="tc-sum-time">${fmtDur(saTotalMs)}</span>
+                    <span class="tc-sum-sep">·</span>
+                    <span class="tc-sum-size">${fmtBytes(saTotalBytes)}</span>
+                    ${saErrCount ? `<span class="tc-sum-sep">·</span><span class="tc-sum-err">${saErrCount} ERR</span>` : ""}
+                  </span>
+                </div>
+                <div class="tc-list hidden" id="${saListId}">
+                  ${saToolCardsHtml}
+                </div>
+              </div>`;
+          }
         }
       }
     }
@@ -629,7 +702,7 @@ export function renderToolGroup(d, subagents = {}) {
           </div>
         </div>
       </div>
-      ${subagentInfoHtml}
+      ${subagentToolsHtml}
       <div class="tc-expand-row" onclick="toggleTcDetail('${detailId}',this)">
         <span class="arrow" style="font-size: 12px;transition:transform .15s;display:inline-block">▶</span>
         <span>Expand params &amp; output</span>
@@ -781,14 +854,6 @@ export function updateConvList(DATA, TURNS, sessionId, { preserveState = false }
   const allIds = new Set(TURNS.map((t) => t.id));
   const list = document.getElementById("convList");
   list.innerHTML = "";
-
-  // Render subagent summary if available
-  if (DATA.subagents && Object.keys(DATA.subagents).length > 0) {
-    const saSummary = renderSubagentSummary(DATA.subagents);
-    if (saSummary) {
-      list.appendChild(saSummary);
-    }
-  }
 
   // Render in reverse order: newest turn at top
   const reversed = DATA /* [...DATA].reverse() */;

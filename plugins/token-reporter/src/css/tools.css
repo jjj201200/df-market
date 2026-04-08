@@ -103,6 +103,11 @@
   color: #a78bfa;
   border: 1px solid #a78bfa44;
 }
+.tp-toolsearch {
+  background: #1a1a3a;
+  color: #a78bfa;
+  border: 1px solid #a78bfa44;
+}
 .tp-other {
   background: var(--surface);
   color: var(--muted);
@@ -177,8 +182,7 @@
 
 /* Individual tool card */
 .tc-card {
-  background: #0a0e14;
-  border: 1px solid var(--border);
+  /* border: 1px solid var(--border); */
   border-radius: 4px;
   overflow: hidden;
   font-size: 12px;
@@ -186,6 +190,7 @@
 .tc-head {
   display: flex;
   align-items: stretch;
+  background: #0a0e14;
 }
 .tc-band {
   width: 3px;
@@ -321,9 +326,11 @@
   align-items: center;
   gap: 6px;
   padding: 3px 10px 3px 13px;
-  border-top: 1px solid var(--border);
+  border: 1px solid var(--border);
+  border-bottom: none;
   font-size: 12px;
   color: var(--faint);
+  background: #0a0e14;
   cursor: pointer;
   user-select: none;
 }
@@ -342,6 +349,10 @@
 }
 .tc-detail-body {
   padding: 7px 10px 7px 13px;
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  background: #0a0e14;
 }
 
 .tc-section-label {
@@ -427,6 +438,35 @@
   background: #160a0a;
 }
 
+/* Copy button for tc-detail-wrap */
+.tc-detail-wrap {
+  position: relative;
+}
+.tc-copy-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  color: var(--faint);
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s, background 0.15s;
+}
+.tc-detail-wrap:hover .tc-copy-btn {
+  opacity: 1;
+}
+.tc-copy-btn:hover {
+  color: var(--fg);
+  background: var(--border2);
+}
+.tc-copy-btn.copied {
+  color: var(--green);
+}
+
 /* MCP info in tool card */
 .tc-mcp-info {
   display: inline-flex;
@@ -492,4 +532,26 @@
 }
 .tc-sa-tokens .tok.cc .tv {
   color: var(--purple);
+}
+
+/* Subagent tool group inside Agent card */
+.sa-tc-group {
+  margin: 8px 0 8px 13px;
+  padding: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+.sa-tc-group .tc-toggle {
+  margin-bottom: 0;
+}
+.sa-tc-group .tc-list {
+  margin-top: 8px;
+}
+.sa-tc-group .tc-card {
+  margin-bottom: 6px;
+  border: 1px solid var(--border);
+}
+.sa-tc-group .tc-card:last-child {
+  margin-bottom: 0;
 }

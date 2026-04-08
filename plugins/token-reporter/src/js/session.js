@@ -70,7 +70,29 @@ function adaptSession(session) {
   });
 
   // Include subagent stats if available
-  const subagents = session.subagents || {};
+  // Also adapt subagent turns' tools to use consistent field names
+  const subagents = {};
+  for (const [agentId, sa] of Object.entries(session.subagents || {})) {
+    subagents[agentId] = {
+      ...sa,
+      turns: (sa.turns || []).map((t) => ({
+        ...t,
+        tools: (t.tools || []).map((tool) => ({
+          cls: tool.cls,
+          name: tool.name,
+          params: tool.params,
+          status: tool.status,
+          dur: tool.dur,
+          retSize: tool.retSize,
+          retLines: tool.retLines,
+          input: tool.inputArgs || [],
+          output: tool.retContent || "",
+          isErr: tool.isErr,
+          mcp: tool.mcp || null,
+        })),
+      })),
+    };
+  }
 
   return { items, subagents };
 }
@@ -292,15 +314,30 @@ export async function loadSession(sessionId, { preserveScroll = false } = {}) {
 let _sseConn = null;
 let _sseReconnectTimer = null;
 let _sseReconnectAttempts = 0;
+let _sseReconnectDelay = 3000;
 const MAX_SSE_RECONNECT_ATTEMPTS = 5;
-const SSE_RECONNECT_DELAY = 3000;
+const MAX_SSE_RECONNECT_DELAY = 30000;
+let _sseExplicitClose = false;
+let _sseIsReconnecting = false;
+let _sseLastErrorTime = 0;
+const SSE_ERROR_THROTTLE = 1000; // Minimum ms between error handlers
 
 export function connectSSE() {
+  // Prevent concurrent reconnection attempts
+  if (_sseIsReconnecting) {
+    return;
+  }
+
   // Clean up existing connection
   if (_sseConn) {
-    _sseConn.close();
+    _sseExplicitClose = true;
+    try {
+      _sseConn.close();
+    } catch {}
     _sseConn = null;
   }
+
+  // Clear any pending reconnect timer
   if (_sseReconnectTimer) {
     clearTimeout(_sseReconnectTimer);
     _sseReconnectTimer = null;
@@ -309,15 +346,30 @@ export function connectSSE() {
   // Stop retrying after max attempts
   if (_sseReconnectAttempts >= MAX_SSE_RECONNECT_ATTEMPTS) {
     console.log("SSE: Max reconnection attempts reached, stopping retries");
+    const loadStatus = document.getElementById("loadStatus");
+    const loadStatusText = document.getElementById("loadStatusText");
+    if (loadStatus && loadStatusText) {
+      loadStatus.style.display = "flex";
+      loadStatusText.textContent = "Disconnected from server. Please refresh.";
+    }
     return;
   }
 
+  _sseIsReconnecting = true;
+
   try {
+    _sseExplicitClose = false;
     _sseConn = new EventSource("/events");
 
     _sseConn.onopen = () => {
-      // Reset counter on successful connection
       _sseReconnectAttempts = 0;
+      _sseReconnectDelay = 3000;
+      _sseIsReconnecting = false;
+      const loadStatusText = document.getElementById("loadStatusText");
+      if (loadStatusText && loadStatusText.textContent.includes("Disconnected")) {
+        const loadStatus = document.getElementById("loadStatus");
+        if (loadStatus) loadStatus.style.display = "none";
+      }
     };
 
     _sseConn.onmessage = async (e) => {
@@ -327,7 +379,6 @@ export function connectSSE() {
           const sel = document.querySelector("select.session-select");
           if (sel) await loadSession(sel.value, { preserveScroll: true });
         } else if (msg.type === "limits_update" && msg.sessionId) {
-          // Update limits cache and display
           setLimits(msg.sessionId, msg.payload);
           const sel = document.querySelector("select.session-select");
           if (sel && sel.value === msg.sessionId) {
@@ -341,21 +392,56 @@ export function connectSSE() {
     };
 
     _sseConn.onerror = () => {
-      _sseConn.close();
-      _sseConn = null;
+      const now = Date.now();
+      // Throttle error handling to prevent rapid reconnection loops
+      if (now - _sseLastErrorTime < SSE_ERROR_THROTTLE) {
+        return;
+      }
+      _sseLastErrorTime = now;
+
+      if (_sseExplicitClose) {
+        _sseIsReconnecting = false;
+        return;
+      }
+
+      if (_sseConn) {
+        try {
+          _sseConn.close();
+        } catch {}
+        _sseConn = null;
+      }
+
       _sseReconnectAttempts++;
 
       if (_sseReconnectAttempts < MAX_SSE_RECONNECT_ATTEMPTS) {
-        _sseReconnectTimer = setTimeout(connectSSE, SSE_RECONNECT_DELAY);
+        const jitter = Math.random() * 1000;
+        _sseReconnectDelay = Math.min(_sseReconnectDelay * 1.5 + jitter, MAX_SSE_RECONNECT_DELAY);
+        console.log(`SSE: Reconnecting in ${_sseReconnectDelay.toFixed(0)}ms (attempt ${_sseReconnectAttempts}/${MAX_SSE_RECONNECT_ATTEMPTS})`);
+        _sseReconnectTimer = setTimeout(() => {
+          _sseIsReconnecting = false;
+          connectSSE();
+        }, _sseReconnectDelay);
       } else {
         console.log("SSE: Max reconnection attempts reached");
+        _sseIsReconnecting = false;
+        const loadStatus = document.getElementById("loadStatus");
+        const loadStatusText = document.getElementById("loadStatusText");
+        if (loadStatus && loadStatusText) {
+          loadStatus.style.display = "flex";
+          loadStatusText.textContent = "Disconnected from server. Please refresh.";
+        }
       }
     };
   } catch (e) {
     console.error("SSE: Failed to create connection", e);
     _sseReconnectAttempts++;
     if (_sseReconnectAttempts < MAX_SSE_RECONNECT_ATTEMPTS) {
-      _sseReconnectTimer = setTimeout(connectSSE, SSE_RECONNECT_DELAY);
+      _sseReconnectTimer = setTimeout(() => {
+        _sseIsReconnecting = false;
+        connectSSE();
+      }, _sseReconnectDelay);
+    } else {
+      _sseIsReconnecting = false;
     }
   }
 }

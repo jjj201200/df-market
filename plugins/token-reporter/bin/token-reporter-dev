@@ -19,7 +19,7 @@ const CONFIG_PATH = path.join(DEV_DATA_DIR, "config.json");
 
 // Use current working directory if it's a token-reporter plugin directory,
 // otherwise fall back to the directory where this script is located
-const CWD_PLUGIN_ROOT = path.join(process.cwd(), "plugins", "token-reporter");
+const CWD_PLUGIN_ROOT = process.cwd();
 const SCRIPT_PLUGIN_ROOT = path.resolve(__dirname, "..");
 const PLUGIN_ROOT = (fs.existsSync(path.join(CWD_PLUGIN_ROOT, "src", "server.js"))
   ? CWD_PLUGIN_ROOT
