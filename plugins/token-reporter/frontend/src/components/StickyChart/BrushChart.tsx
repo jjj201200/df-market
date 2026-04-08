@@ -19,6 +19,7 @@ export default function BrushChart() {
   const dims = useChartStore((s) => s.dims);
   const setBrush = useChartStore((s) => s.setBrush);
   const resizeTick = useChartStore((s) => s.resizeTick);
+  const hoveredId = useChartStore((s) => s.hoveredId);
 
   // Draw brush chart
   useEffect(() => {
@@ -27,7 +28,7 @@ export default function BrushChart() {
 
     const N = turns.length;
     const parentW = canvas.parentElement?.clientWidth ?? 400;
-    const W = parentW - 2;
+    const W = parentW;
     const ctx = setupCanvas(canvas, W, BRUSH_H, DPR);
 
     let maxT = 0;
@@ -40,6 +41,9 @@ export default function BrushChart() {
     const barW = Math.max(2, (W / N) * 0.6);
     const gap = W / N;
 
+    // Find hovered turn index
+    const hoveredIndex = hoveredId !== null ? turns.findIndex((t) => t.id === hoveredId) : -1;
+
     for (let i = 0; i < N; i++) {
       const d = turns[i]!;
       const cx = gap * (i + 0.5);
@@ -48,14 +52,28 @@ export default function BrushChart() {
       if (total === 0) continue;
       const bH = (total / maxT) * (BRUSH_H - 2);
       let y = BRUSH_H;
+
+      // Check if this turn is hovered
+      const isHovered = i === hoveredIndex;
+      if (isHovered) {
+        ctx.save();
+        ctx.shadowColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#3b82f6';
+        ctx.shadowBlur = 8;
+      }
+
       for (const seg of segs) {
         const sh = (seg.val / total) * bH;
-        ctx.fillStyle = seg.col + '77';
+        // Use brighter color for hovered bar
+        ctx.fillStyle = isHovered ? seg.col + 'ff' : seg.col + '77';
         ctx.fillRect(cx - barW / 2, y - sh, barW, sh);
         y -= sh;
       }
+
+      if (isHovered) {
+        ctx.restore();
+      }
     }
-  }, [turns, dims, resizeTick]);
+  }, [turns, dims, resizeTick, hoveredId]);
 
   // Click handler: center brush at click position
   const handleClick = useCallback(

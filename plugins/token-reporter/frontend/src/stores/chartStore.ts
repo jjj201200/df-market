@@ -10,12 +10,14 @@ interface ChartStore {
   resizeTick: number;
   viewLoIdx: number;
   viewHiIdx: number;
+  viewLoPct: number;
+  viewHiPct: number;
   setBrush: (l: number, r: number) => void;
   setHovered: (id: number | null) => void;
   toggleDim: (key: keyof Dims) => void;
   setBarRects: (rects: BarRect[]) => void;
-  setViewRange: (lo: number, hi: number) => void;
-  initBrushForTurnCount: (n: number) => void;
+  setViewRange: (lo: number, hi: number, loPct?: number, hiPct?: number) => void;
+  initBrushForTurnCount: (n: number, viewportTurnCount?: number) => void;
   triggerResize: () => void;
 }
 
@@ -28,6 +30,8 @@ export const useChartStore = create<ChartStore>((set) => ({
   resizeTick: 0,
   viewLoIdx: -1,
   viewHiIdx: -1,
+  viewLoPct: 0,
+  viewHiPct: 1,
 
   setBrush: (l, r) => set({brushL: l, brushR: r}),
 
@@ -37,16 +41,23 @@ export const useChartStore = create<ChartStore>((set) => ({
 
   setBarRects: (rects) => set({barRects: rects}),
 
-  setViewRange: (lo, hi) => set({viewLoIdx: lo, viewHiIdx: hi}),
+  setViewRange: (lo, hi, loPct, hiPct) => set({
+    viewLoIdx: lo,
+    viewHiIdx: hi,
+    viewLoPct: loPct ?? lo / 100,
+    viewHiPct: hiPct ?? hi / 100,
+  }),
 
   triggerResize: () => set((s) => ({resizeTick: s.resizeTick + 1})),
 
-  initBrushForTurnCount: (n) => {
+  initBrushForTurnCount: (n: number, viewportTurnCount?: number) => {
     if (n <= 0) {
       set({brushL: 0, brushR: 1});
       return;
     }
-    const initSpan = Math.min(0.25, 20 / n);
+    // Use viewportTurnCount if provided, otherwise default to 20
+    const turnCount = viewportTurnCount ?? 20;
+    const initSpan = Math.min(0.25, turnCount / n);
     set({brushL: Math.max(0, 1 - initSpan), brushR: 1});
   },
 }));

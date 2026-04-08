@@ -1,4 +1,4 @@
-import {useRef, useCallback, useMemo} from 'react';
+import {useRef, useCallback, useMemo, useEffect, useState} from 'react';
 import {useChartStore} from '../../stores/chartStore';
 import {useSessionStore} from '../../stores/sessionStore';
 import {scrollToTurnIndex} from './MainChart';
@@ -14,10 +14,32 @@ export default function BrushOverlay() {
   const setBrush = useChartStore((s) => s.setBrush);
   const viewLoIdx = useChartStore((s) => s.viewLoIdx);
   const viewHiIdx = useChartStore((s) => s.viewHiIdx);
+  const viewLoPct = useChartStore((s) => s.viewLoPct);
+  const viewHiPct = useChartStore((s) => s.viewHiPct);
   const turns = useSessionStore((s) => s.turns);
 
   const overlayRef = useRef<HTMLDivElement>(null);
   const lastWheelTime = useRef<number>(0);
+  const [overlayWidth, setOverlayWidth] = useState<number>(0);
+
+  // Measure overlay width to match BrushChart canvas exactly
+  useEffect(() => {
+    const measure = () => {
+      const parent = overlayRef.current?.parentElement;
+      if (!parent) return;
+      const canvas = parent.querySelector('canvas');
+      const width = canvas ? canvas.clientWidth : parent.clientWidth;
+      setOverlayWidth(width);
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    // Also measure after a short delay to ensure canvas is rendered
+    const timer = setTimeout(measure, 50);
+    return () => {
+      window.removeEventListener('resize', measure);
+      clearTimeout(timer);
+    };
+  }, []);
 
   // Zoom towards mouse position (like map zoom, throttled)
   // When already at min span, pans towards mouse instead
@@ -121,11 +143,7 @@ export default function BrushOverlay() {
       const N = turns.length;
 
       const getOverlayWidth = (): number => {
-        const parent = overlayRef.current?.parentElement;
-        if (!parent) return 400;
-        // BrushChart canvas sibling width
-        const canvas = parent.querySelector('canvas');
-        return canvas ? canvas.clientWidth : parent.clientWidth - 2;
+        return overlayWidth > 0 ? overlayWidth : 400;
       };
 
       const onMove = (ev: MouseEvent) => {
@@ -192,12 +210,11 @@ export default function BrushOverlay() {
   const rPct = brushR * 100;
   const selWidth = rPct - lPct;
 
-  // Viewport indicator: map visible turn indices to brush-chart percentage
-  const N = turns.length;
-  const viewLPct = N > 1 ? (viewLoIdx / (N - 1)) * 100 : 0;
-  const viewRPct = N > 1 ? (viewHiIdx / (N - 1)) * 100 : 100;
+  // Viewport indicator: use precise percentage from scroll sync
+  const viewLPct = viewLoPct * 100;
+  const viewRPct = viewHiPct * 100;
   const viewWidth = viewRPct - viewLPct;
-  const showViewport = viewLoIdx >= 0 && viewHiIdx >= 0 && N > 0;
+  const showViewport = viewLoIdx >= 0 && viewHiIdx >= 0 && turns.length > 0;
 
   // Label for visible turns
   const viewLabel = useMemo(() => {
@@ -210,7 +227,7 @@ export default function BrushOverlay() {
   }, [showViewport, turns, viewLoIdx, viewHiIdx]);
 
   return (
-    <div ref={overlayRef} className={styles.brushOverlay} style={{width: '100%'}} onWheel={handleWheel}>
+    <div ref={overlayRef} className={styles.brushOverlay} style={{width: overlayWidth > 0 ? overlayWidth : '100%'}} onWheel={handleWheel}>
       {/* Viewport indicator (visible turns) */}
       {showViewport && (
         <div className={styles.viewportIndicator} style={{left: `${viewLPct}%`, width: `${Math.max(viewWidth, 0.5)}%`}}>

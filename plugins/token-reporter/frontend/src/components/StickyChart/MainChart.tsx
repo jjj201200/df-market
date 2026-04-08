@@ -77,7 +77,7 @@ export default function MainChart() {
 
     const N = turns.length;
     const parentW = canvas.parentElement?.clientWidth ?? 400;
-    const W = parentW - 2;
+    const W = parentW;
     const ctx = setupCanvas(canvas, W, H, DPR);
 
     const lo = Math.round(brushL * (N - 1));
