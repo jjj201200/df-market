@@ -17,13 +17,52 @@ const DEV_DATA_DIR = path.join(os.tmpdir(), "token-reporter-dev");
 const PID_FILE = path.join(DEV_DATA_DIR, "server.pid");
 const CONFIG_PATH = path.join(DEV_DATA_DIR, "config.json");
 
-// Use current working directory if it's a token-reporter plugin directory,
-// otherwise fall back to the directory where this script is located
-const CWD_PLUGIN_ROOT = process.cwd();
-const SCRIPT_PLUGIN_ROOT = path.resolve(__dirname, "..");
-const PLUGIN_ROOT = (fs.existsSync(path.join(CWD_PLUGIN_ROOT, "backend", "server.js"))
-  ? CWD_PLUGIN_ROOT
-  : SCRIPT_PLUGIN_ROOT);
+// Resolve plugin root for the dev server.
+// Priority: env var > CWD match > git repo root > saved devRoot > script dir.
+// Once found, devRoot is persisted so future runs from any location work.
+function resolvePluginRoot() {
+  const scriptDir = path.resolve(__dirname, "..");
+  const marker = path.join("backend", "server.js");
+  const devConfig = readJSON(CONFIG_PATH, {});
+
+  function tryPlugin(dir) {
+    return dir && fs.existsSync(path.join(dir, marker)) ? dir : null;
+  }
+
+  // 0. Explicit env var — always wins
+  let found = tryPlugin(process.env.TOKEN_REPORTER_DEV_ROOT);
+
+  // 1. CWD is the plugin root
+  if (!found) found = tryPlugin(process.cwd());
+
+  // 2. CWD contains plugins/token-reporter/
+  if (!found) found = tryPlugin(path.join(process.cwd(), "plugins", "token-reporter"));
+
+  // 3. Use git to find repo root, then check plugins/token-reporter/ inside it
+  if (!found) {
+    try {
+      const repoRoot = execSync("git rev-parse --show-toplevel 2>/dev/null", { encoding: "utf8" }).trim();
+      if (repoRoot) found = tryPlugin(path.join(repoRoot, "plugins", "token-reporter"));
+    } catch {}
+  }
+
+  // Persist devRoot for future runs
+  if (found) {
+    if (devConfig.devRoot !== found) {
+      fs.mkdirSync(DEV_DATA_DIR, { recursive: true });
+      fs.writeFileSync(CONFIG_PATH, JSON.stringify({ ...devConfig, devRoot: found }, null, 2));
+    }
+    return found;
+  }
+
+  // 4. Use saved devRoot from a previous run
+  if (devConfig.devRoot && tryPlugin(devConfig.devRoot)) return devConfig.devRoot;
+
+  // 5. Fall back to script's own directory
+  return scriptDir;
+}
+
+const PLUGIN_ROOT = resolvePluginRoot();
 
 // Production config path (for updating statusLineTargets)
 const PROD_DATA_DIR = path.join(os.homedir(), ".claude", "token-reporter");

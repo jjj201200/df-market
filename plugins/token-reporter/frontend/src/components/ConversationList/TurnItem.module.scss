@@ -46,14 +46,14 @@
 }
 
 .roleBadgeUser {
-  composes: roleBadge;
+  @extend .roleBadge;
   background: #d2992222;
   color: $yellow;
   border: 1px solid #d2992244;
 }
 
 .roleBadgeAsst {
-  composes: roleBadge;
+  @extend .roleBadge;
   background: #1f6feb22;
   color: $blue;
   border: 1px solid #1f6feb44;

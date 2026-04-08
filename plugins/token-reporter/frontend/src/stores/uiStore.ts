@@ -5,10 +5,12 @@ interface UIStore {
   expandedToolDetails: Set<string>;
   expandedThinking: Set<string>;
   expandedTexts: Set<string>;
+  expandedSubagents: Set<string>;
   toggleToolGroup: (id: string) => void;
   toggleToolDetail: (id: string) => void;
   toggleThinking: (id: string) => void;
   toggleText: (id: string) => void;
+  toggleSubagent: (id: string) => void;
   resetAll: () => void;
 }
 
@@ -24,6 +26,7 @@ export const useUIStore = create<UIStore>((set) => ({
   expandedToolDetails: new Set(),
   expandedThinking: new Set(),
   expandedTexts: new Set(),
+  expandedSubagents: new Set(),
 
   toggleToolGroup: (id) => set((s) => ({expandedToolGroups: toggleInSet(s.expandedToolGroups, id)})),
 
@@ -33,11 +36,14 @@ export const useUIStore = create<UIStore>((set) => ({
 
   toggleText: (id) => set((s) => ({expandedTexts: toggleInSet(s.expandedTexts, id)})),
 
+  toggleSubagent: (id) => set((s) => ({expandedSubagents: toggleInSet(s.expandedSubagents, id)})),
+
   resetAll: () =>
     set({
       expandedToolGroups: new Set(),
       expandedToolDetails: new Set(),
       expandedThinking: new Set(),
       expandedTexts: new Set(),
+      expandedSubagents: new Set(),
     }),
 }));
