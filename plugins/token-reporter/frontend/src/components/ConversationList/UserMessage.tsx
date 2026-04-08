@@ -1,0 +1,55 @@
+import React, {useCallback, useRef, useState, useLayoutEffect} from 'react';
+import type {TurnItem} from '../../types/state';
+import {useUIStore} from '../../stores/uiStore';
+import {TokenBadges} from '../common/TokenBadges';
+import s from './TurnItem.module.scss';
+
+interface UserMessageProps {
+  turn: TurnItem;
+  isHovered: boolean;
+}
+
+export const UserMessage: React.FC<UserMessageProps> = React.memo(({turn, isHovered}) => {
+  const textId = `ut-${turn.id}`;
+  const expanded = useUIStore((st) => st.expandedTexts.has(textId));
+  const toggleText = useUIStore((st) => st.toggleText);
+  const textRef = useRef<HTMLDivElement>(null);
+  const [overflows, setOverflows] = useState(false);
+
+  const handleToggle = useCallback(() => {
+    toggleText(textId);
+  }, [textId, toggleText]);
+
+  const userText = turn.user || '';
+
+  useLayoutEffect(() => {
+    const el = textRef.current;
+    if (!el) return;
+    setOverflows(el.scrollHeight > el.clientHeight);
+  }, [userText]);
+
+  if (!userText.trim()) return null;
+
+  const cls = [s.msgUser, isHovered ? s.barHover : '', turn.isSidechain ? s.sidechain : ''].filter(Boolean).join(' ');
+
+  return (
+    <div className={cls}>
+      <div className={s.msgUserHeader}>
+        <span className={s.roleBadgeUser}>USER</span>
+        {turn.isSidechain && <span className={s.sidechainBadge}>SIDECHAIN</span>}
+        <span className={s.msgTime}>{turn.time}</span>
+        <TokenBadges input={turn.input} output={turn.output} cacheR={turn.cacheR} cacheC={turn.cacheC} />
+      </div>
+      <div className={s.msgBody}>
+        <div ref={textRef} className={`${s.msgText} ${!expanded ? s.clamped : ''}`}>{userText}</div>
+        {overflows && (
+          <span className={s.expandBtn} onClick={handleToggle}>
+            {expanded ? '▲ Collapse' : '▼ Expand all'}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+});
+
+UserMessage.displayName = 'UserMessage';

@@ -1,0 +1,12 @@
+@use '../../styles/variables' as *;
+
+.brushWrap {
+  margin-top: 6px;
+  position: relative;
+}
+
+.brushChart {
+  width: 100%;
+  height: 32px;
+  display: block;
+}

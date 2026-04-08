@@ -1,0 +1,32 @@
+@use '../../styles/variables' as *;
+
+.msgTokens {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  font-size: $font-size-sm;
+}
+
+.tok {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.tl {
+  color: $faint;
+}
+
+.tvIn {
+  color: $blue;
+}
+.tvOut {
+  color: $green;
+}
+.tvCr {
+  color: $yellow;
+}
+.tvCc {
+  color: $purple;
+}

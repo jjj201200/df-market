@@ -1,0 +1,69 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.eventCommand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  margin-bottom: 10px;
+  background: #0f1a2e;
+  border: 1px solid #58a6ff33;
+  border-left: 3px solid $blue;
+  border-radius: $radius-sm;
+  font-size: $font-size-sm;
+  flex-wrap: wrap;
+  position: relative;
+}
+
+.evCmdIcon {
+  font-size: $font-size-sm;
+  color: $blue;
+  flex-shrink: 0;
+}
+
+.evCmdName {
+  color: $blue;
+  font-weight: 700;
+  font-size: $font-size-sm;
+  letter-spacing: 0.04em;
+}
+
+.evCmdMsg {
+  color: $muted;
+  font-size: $font-size-sm;
+}
+
+.evCmdTime {
+  color: $faint;
+  font-size: $font-size-sm;
+  margin-left: auto;
+}
+
+.evCmdToggle {
+  font-size: $font-size-sm;
+  color: $faint;
+  cursor: pointer;
+  user-select: none;
+  background: none;
+  border: none;
+  padding: 0;
+
+  &:hover {
+    color: $blue;
+  }
+}
+
+.evCmdOutput {
+  width: 100%;
+  margin-top: 4px;
+  padding: 4px 8px;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: 3px;
+  font-size: $font-size-sm;
+  color: $muted;
+  font-family: monospace;
+  white-space: pre-wrap;
+  @include scrollable(80px);
+}

@@ -1,0 +1,182 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+// --- Turn wrapper ---
+.turnWrap {
+  margin-bottom: 12px;
+}
+
+// --- User message ---
+.msgUser {
+  background: $user;
+  border: 1px solid #2e2b1d;
+  border-radius: $radius-md $radius-md 0 $radius-md;
+  overflow: hidden;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+
+  &.barHover {
+    border-color: $blue;
+    box-shadow:
+      0 0 0 1px #58a6ff33,
+      0 0 12px #58a6ff22;
+  }
+
+  &.sidechain {
+    border-color: #f8514933;
+  }
+}
+
+.msgUserHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+}
+
+// --- Role badges ---
+.roleBadge {
+  font-size: $font-size-xs;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 3px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.roleBadgeUser {
+  composes: roleBadge;
+  background: #d2992222;
+  color: $yellow;
+  border: 1px solid #d2992244;
+}
+
+.roleBadgeAsst {
+  composes: roleBadge;
+  background: #1f6feb22;
+  color: $blue;
+  border: 1px solid #1f6feb44;
+}
+
+// --- Sidechain & Agent badges ---
+.sidechainBadge {
+  font-size: $font-size-xs;
+  font-weight: 700;
+  background: #2a1a1a;
+  color: $red;
+  border: 1px solid #f8514944;
+  border-radius: 3px;
+  padding: 1px 5px;
+  letter-spacing: 0.05em;
+}
+
+.agentBadge {
+  font-size: $font-size-xs;
+  font-weight: 700;
+  background: #1a2a3a;
+  color: $blue;
+  border: 1px solid #1f6feb44;
+  border-radius: 3px;
+  padding: 1px 5px;
+  letter-spacing: 0.05em;
+  cursor: help;
+}
+
+// --- Time ---
+.msgTime {
+  font-size: $font-size-sm;
+  color: $muted;
+  flex-shrink: 0;
+}
+
+// --- Body ---
+.msgBody {
+  padding: 8px 12px 8px;
+}
+
+.msgText {
+  color: $text;
+  font-size: $font-size-sm;
+  line-height: 1.65;
+  font-family: -apple-system, 'Segoe UI', sans-serif;
+  white-space: pre-wrap;
+
+  &.clamped {
+    @include text-clamp(6);
+  }
+}
+
+.expandBtn {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: $font-size-sm;
+  color: $blue;
+  cursor: pointer;
+  border-bottom: 1px dashed #1f6feb55;
+  font-family: inherit;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  padding: 0;
+}
+
+// --- Assistant message ---
+.msgAssistant {
+  margin-left: 28px;
+  margin-bottom: 6px;
+  background: $bg;
+  border: 1px solid $border;
+  border-left: 2px solid #1f6feb44;
+  border-radius: 0 0 $radius-md $radius-md;
+  border-top: none;
+  overflow: hidden;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+
+  &.barHover {
+    border-color: $blue;
+    border-left-color: $blue;
+    box-shadow: 0 0 0 1px #58a6ff33;
+  }
+}
+
+// --- Assistant-led (no user input) ---
+.msgAsstLed {
+  background: #0f1318;
+  border: 1px solid #1f6feb33;
+  border-radius: $radius-md;
+  overflow: hidden;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+
+  &.barHover {
+    border-color: $blue;
+    box-shadow:
+      0 0 0 1px #58a6ff33,
+      0 0 12px #58a6ff22;
+  }
+
+  .msgUserHeader {
+    background: #1f6feb0d;
+  }
+}
+
+.msgAssistantHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px 6px 12px;
+}
+
+.modelTag {
+  font-size: $font-size-sm;
+  color: $faint;
+  background: $model-tag-color;
+  border: 1px solid $border;
+  border-radius: 3px;
+  padding: 1px 6px;
+}

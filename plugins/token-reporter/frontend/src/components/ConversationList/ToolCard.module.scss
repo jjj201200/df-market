@@ -1,0 +1,281 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.tcCard {
+  border-radius: $radius-sm;
+  overflow: hidden;
+  font-size: $font-size-sm;
+}
+
+.tcHead {
+  display: flex;
+  align-items: stretch;
+  background: #0a0e14;
+}
+
+.tcBand {
+  width: 3px;
+  flex-shrink: 0;
+}
+
+.tcHeadInner {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  min-width: 0;
+}
+
+.tcName {
+  font-size: $font-size-xs;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.tcParamsSummary {
+  flex: 1;
+  min-width: 0;
+  font-size: $font-size-sm;
+  color: $muted;
+  font-family: monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tcMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.tcDur {
+  font-size: $font-size-sm;
+  color: $faint;
+  font-family: monospace;
+  min-width: 44px;
+  text-align: right;
+}
+
+.tcSize {
+  font-size: $font-size-sm;
+  color: $faint;
+  font-family: monospace;
+  min-width: 40px;
+  text-align: right;
+}
+
+.tcSt {
+  font-size: $font-size-xs;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 3px;
+  letter-spacing: 0.05em;
+
+  &.ok {
+    background: #1a3a28;
+    color: $green;
+    border: 1px solid #3fb95044;
+  }
+  &.err {
+    background: #2a1a1a;
+    color: $red;
+    border: 1px solid #f8514944;
+  }
+}
+
+// --- Expand row ---
+.tcExpandRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px 4px 13px;
+  border: 1px solid $border;
+  border-bottom: none;
+  font-size: $font-size-sm;
+  color: $faint;
+  background: #0a0e14;
+  cursor: pointer;
+  user-select: none;
+
+  &:hover {
+    color: $blue;
+    background: #161b2266;
+  }
+}
+
+.arrow {
+  font-size: $font-size-sm;
+  transition: transform 0.15s;
+  display: inline-block;
+
+  &.open {
+    transform: rotate(90deg);
+  }
+}
+
+.retLinesHint {
+  margin-left: auto;
+  color: $faint;
+}
+
+// --- Detail body ---
+.tcDetailWrap {
+  border-top: 1px solid $border;
+  position: relative;
+}
+
+.tcDetailBody {
+  padding: 7px 10px 7px 13px;
+  border: 1px solid $border;
+  border-top: none;
+  border-radius: 0 0 $radius-sm $radius-sm;
+  background: #0a0e14;
+}
+
+.tcSectionLabel {
+  font-size: $font-size-sm;
+  color: $faint;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.tcParamRow {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: $font-size-sm;
+  margin-bottom: 2px;
+}
+
+.tcPk {
+  color: $blue;
+  flex-shrink: 0;
+  min-width: 76px;
+  font-family: monospace;
+}
+
+.tcPv {
+  font-family: monospace;
+  word-break: break-all;
+
+  &.path {
+    color: #79c0ff;
+  }
+  &.cmd {
+    color: $yellow;
+  }
+  &.str {
+    color: #a8d8a8;
+  }
+  &.num {
+    color: $purple;
+  }
+  &.bool {
+    color: $orange;
+  }
+}
+
+// --- Result block ---
+.tcResultBlock {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid $border;
+}
+
+.tcResultMeta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: $font-size-sm;
+  color: $faint;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.rmBytes {
+  color: $faint;
+  font-family: monospace;
+}
+
+.rmLines {
+  color: $faint;
+  font-family: monospace;
+}
+
+.tcResultPreview {
+  position: relative;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: 3px;
+
+  &.isErr {
+    border-color: #f8514933;
+    background: #160a0a;
+
+    .tcResultText {
+      color: $red;
+    }
+  }
+}
+
+.tcResultText {
+  font-size: $font-size-sm;
+  color: #6e7681;
+  font-family: monospace;
+  white-space: pre-wrap;
+  padding: 5px 8px;
+  @include scrollable(150px);
+}
+
+// --- MCP info ---
+.tcMcpInfo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  background: #1a1a3a;
+  border: 1px solid #a78bfa44;
+  border-radius: $radius-sm;
+  font-size: 11px;
+  margin-right: 8px;
+}
+
+.tcMcpServer {
+  color: #a78bfa;
+  font-weight: 600;
+}
+
+.tcMcpSep {
+  color: $faint;
+}
+
+.tcMcpMethod {
+  color: #c4b5fd;
+  font-family: monospace;
+}
+
+// --- Subagent info in tool card ---
+.tcSubagentInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 10px 4px 13px;
+  background: #1a2a1a;
+  border-top: 1px solid #3fb95033;
+  font-size: 11px;
+}
+
+.tcSaLabel {
+  color: $green;
+  font-weight: 600;
+}
+
+.tcSaTurns {
+  color: $muted;
+}

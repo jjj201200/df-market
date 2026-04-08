@@ -1,0 +1,64 @@
+@use '../../styles/variables' as *;
+
+.dimBar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.dimLabel {
+  font-size: 12px;
+  color: $muted;
+  letter-spacing: 0.05em;
+}
+
+.dimChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 9px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: opacity 0.15s;
+  user-select: none;
+}
+
+.dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.input {
+  background: #1f3a5f;
+  color: $blue;
+  border-color: #1f6feb55;
+}
+
+.output {
+  background: #1a3a28;
+  color: $green;
+  border-color: #3fb95055;
+}
+
+.cacheR {
+  background: #3a2a00;
+  color: $yellow;
+  border-color: #d2992255;
+}
+
+.cacheC {
+  background: #2a1a3a;
+  color: $purple;
+  border-color: #bc8cff55;
+}
+
+.off {
+  opacity: 0.3;
+}

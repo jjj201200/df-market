@@ -1,0 +1,32 @@
+@use 'reset';
+@use 'variables' as *;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: $bg;
+  color: $text;
+  font-family: $font-mono;
+  font-size: $font-size-base;
+  padding: 0 48px 14px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -600px 0;
+  }
+  100% {
+    background-position: 600px 0;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

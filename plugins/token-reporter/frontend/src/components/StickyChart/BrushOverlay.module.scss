@@ -1,0 +1,44 @@
+@use '../../styles/variables' as *;
+
+.brushOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 32px;
+  pointer-events: none;
+}
+
+.brushSelection {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: rgba(88, 166, 255, 0.1);
+  border-left: 1px solid $blue;
+  border-right: 1px solid $blue;
+}
+
+.brushHandle {
+  position: absolute;
+  top: 50%;
+  width: 5px;
+  height: 18px;
+  background: $blue;
+  border-radius: 2px;
+  cursor: ew-resize;
+  pointer-events: all;
+  z-index: 3;
+  transform: translateY(-50%) translateX(-2px);
+}
+
+.brushMoveArea {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  cursor: grab;
+  pointer-events: all;
+  z-index: 2;
+
+  &:active {
+    cursor: grabbing;
+  }
+}

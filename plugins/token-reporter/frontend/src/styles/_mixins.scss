@@ -1,0 +1,39 @@
+@use 'variables' as *;
+
+@mixin skeleton-shimmer {
+  background: linear-gradient(90deg, #161b22 25%, #21262d 50%, #161b22 75%);
+  background-size: 600px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: $radius-sm;
+}
+
+@mixin text-clamp($lines: 6) {
+  display: -webkit-box;
+  -webkit-line-clamp: $lines;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@mixin scrollable($max-height: 300px) {
+  max-height: $max-height;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: $border2 transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $border2;
+    border-radius: 3px;
+  }
+}
+
+@mixin tool-color-band($color) {
+  border-left: 3px solid $color;
+}

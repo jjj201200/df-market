@@ -1,0 +1,52 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.thinkingBlock {
+  margin: 4px 12px 6px;
+  border: 1px solid $border2;
+  border-left: 2px solid $faint;
+  border-radius: 0 $radius-sm $radius-sm 0;
+  overflow: hidden;
+}
+
+.thinkingHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: #161b22;
+  cursor: pointer;
+  user-select: none;
+  font-size: $font-size-sm;
+  color: $faint;
+
+  &:hover {
+    color: $muted;
+  }
+}
+
+.thinkingIcon {
+  font-size: $font-size-sm;
+}
+
+.thinkingEstimate {
+  font-size: $font-size-sm;
+  color: $faint;
+  margin-left: 4px;
+}
+
+.thinkingToggle {
+  margin-left: auto;
+  font-size: $font-size-sm;
+}
+
+.thinkingBody {
+  padding: 8px 10px;
+  background: #0d1117;
+  font-size: $font-size-sm;
+  color: #6e7681;
+  line-height: 1.6;
+  font-family: -apple-system, 'Segoe UI', sans-serif;
+  white-space: pre-wrap;
+  @include scrollable(160px);
+}

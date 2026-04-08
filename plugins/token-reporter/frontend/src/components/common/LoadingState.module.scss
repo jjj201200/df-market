@@ -1,0 +1,88 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+@keyframes shimmer {
+  0% {
+    background-position: -600px 0;
+  }
+  100% {
+    background-position: 600px 0;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.skeleton {
+  @include skeleton-shimmer;
+}
+
+.initState {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px 0;
+}
+
+.skRow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.skBadge {
+  @include skeleton-shimmer;
+  height: 20px;
+  width: 64px;
+}
+
+.skLine {
+  @include skeleton-shimmer;
+  height: 14px;
+  flex: 1;
+
+  &.s {
+    flex: 0 0 38%;
+  }
+  &.m {
+    flex: 0 0 60%;
+  }
+}
+
+.loadStatus {
+  font-size: 11px;
+  color: $muted;
+  letter-spacing: 0.06em;
+  padding: 6px 0 2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spinner {
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid $border2;
+  border-top-color: $blue;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+.loadError {
+  padding: 32px 0;
+  text-align: center;
+  color: $red;
+  font-size: $font-size-sm;
+  line-height: 1.8;
+}
+
+.errTitle {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  letter-spacing: 0.04em;
+}

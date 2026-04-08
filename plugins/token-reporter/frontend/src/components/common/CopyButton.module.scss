@@ -1,0 +1,32 @@
+@use '../../styles/variables' as *;
+
+.copyBtn {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  padding: 2px 8px;
+  font-size: $font-size-xs;
+  color: $muted;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  opacity: 0.7;
+  transition:
+    opacity 0.15s,
+    background 0.15s,
+    color 0.15s;
+  z-index: 1;
+
+  &:hover {
+    opacity: 1;
+    background: $bg;
+    color: $text;
+  }
+
+  &.copied {
+    background: #1a3a28;
+    border-color: #3fb95044;
+    color: $green;
+  }
+}

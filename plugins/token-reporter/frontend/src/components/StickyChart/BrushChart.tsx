@@ -1,0 +1,72 @@
+import {useRef, useEffect, useCallback} from 'react';
+import {useChartStore} from '../../stores/chartStore';
+import {useSessionStore} from '../../stores/sessionStore';
+import {DPR, getSegs, setupCanvas} from '../../utils/canvas';
+import {scrollToTurnIndex} from './MainChart';
+import styles from './BrushChart.module.scss';
+const BRUSH_H = 32;
+
+export default function BrushChart() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const turns = useSessionStore((s) => s.turns);
+  const brushL = useChartStore((s) => s.brushL);
+  const brushR = useChartStore((s) => s.brushR);
+  const dims = useChartStore((s) => s.dims);
+  const setBrush = useChartStore((s) => s.setBrush);
+  const resizeTick = useChartStore((s) => s.resizeTick);
+
+  // Draw brush chart
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || turns.length === 0) return;
+
+    const N = turns.length;
+    const parentW = canvas.parentElement?.clientWidth ?? 400;
+    const W = parentW - 2;
+    const ctx = setupCanvas(canvas, W, BRUSH_H, DPR);
+
+    let maxT = 0;
+    for (const d of turns) {
+      const t = d.input + d.output + d.cacheR + d.cacheC;
+      if (t > maxT) maxT = t;
+    }
+    if (!maxT) maxT = 1;
+
+    const barW = Math.max(2, (W / N) * 0.6);
+    const gap = W / N;
+
+    for (let i = 0; i < N; i++) {
+      const d = turns[i]!;
+      const cx = gap * (i + 0.5);
+      const segs = getSegs(d, dims);
+      const total = segs.reduce((s, x) => s + x.val, 0);
+      if (total === 0) continue;
+      const bH = (total / maxT) * (BRUSH_H - 2);
+      let y = BRUSH_H;
+      for (const seg of segs) {
+        const sh = (seg.val / total) * bH;
+        ctx.fillStyle = seg.col + '77';
+        ctx.fillRect(cx - barW / 2, y - sh, barW, sh);
+        y -= sh;
+      }
+    }
+  }, [turns, dims, resizeTick]);
+
+  // Click handler: center brush at click position
+  const handleClick = useCallback(
+    (e: React.MouseEvent<HTMLCanvasElement>) => {
+      const N = turns.length;
+      if (N === 0) return;
+      const rect = (e.target as HTMLCanvasElement).getBoundingClientRect();
+      const ratio = (e.clientX - rect.left) / rect.width;
+      const span = brushR - brushL;
+      let newL = ratio - span / 2;
+      newL = Math.max(0, Math.min(newL, 1 - span));
+      setBrush(newL, newL + span);
+      scrollToTurnIndex(turns, Math.round(newL * (N - 1)));
+    },
+    [turns, brushL, brushR, setBrush],
+  );
+
+  return <canvas ref={canvasRef} className={styles.brushChart} onClick={handleClick} />;
+}

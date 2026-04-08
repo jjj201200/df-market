@@ -1,0 +1,89 @@
+@use '../../styles/variables' as *;
+
+.sessionBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sessionSelectContainer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.sessionSelect {
+  min-width: 0;
+  background: $model-tag-color;
+  border: 1px solid $border;
+  border-radius: 5px;
+  padding: 2px 10px;
+  color: $blue;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.sessionCopyBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 12px;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 5px;
+  color: $muted;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+
+  &:hover {
+    color: $blue;
+    border-color: $blue;
+  }
+
+  &.copied {
+    color: $green;
+    border-color: $green;
+  }
+}
+
+.sessionMeta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.smeta {
+  font-size: 12px;
+}
+
+.smetaL {
+  color: $muted;
+}
+
+.smetaV {
+  font-weight: 700;
+}
+
+.in {
+  color: $blue;
+}
+
+.out {
+  color: $green;
+}
+
+.cr {
+  color: $yellow;
+}
+
+.cc {
+  color: $purple;
+}

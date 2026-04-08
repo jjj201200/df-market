@@ -1,0 +1,87 @@
+@use '../../styles/variables' as *;
+
+.limitsDisplay {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid $border;
+}
+
+.limitsRowCompact {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.limitItemCompact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.limitLabel {
+  font-size: 11px;
+  color: $faint;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  margin: 0;
+}
+
+.limitBar {
+  width: 60px;
+  height: 6px;
+  background: $border;
+  border-radius: 3px;
+  overflow: hidden;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.limitFill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.limitPct {
+  font-size: 12px;
+  font-weight: 600;
+  color: $text;
+  min-width: 32px;
+  margin: 0;
+}
+
+.limitDetail {
+  font-size: 11px;
+  color: $faint;
+  white-space: nowrap;
+  margin: 0;
+}
+
+@media (max-width: 800px) {
+  .limitsRowCompact {
+    gap: 16px;
+  }
+
+  .limitDetail {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .limitsRowCompact {
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  .limitItemCompact {
+    justify-content: space-between;
+  }
+
+  .limitDetail {
+    display: block;
+  }
+}
