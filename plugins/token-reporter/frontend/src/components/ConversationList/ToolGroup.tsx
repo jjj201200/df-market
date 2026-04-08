@@ -2,23 +2,10 @@ import React, {useCallback, useMemo} from 'react';
 import type {TurnItem, SubagentStats} from '../../types/state';
 import {useUIStore} from '../../stores/uiStore';
 import {fmtDur, fmtBytes, parseDur, parseSize} from '../../utils/format';
+import {ToolPills} from '../common/ToolPills';
 import {ToolStatsPanel} from './ToolStatsPanel';
 import {ToolCard} from './ToolCard';
 import s from './ToolGroup.module.scss';
-
-const PILL_CLASS: Record<string, string> = {
-  bash: 'tpBash',
-  read: 'tpRead',
-  edit: 'tpEdit',
-  write: 'tpWrite',
-  grep: 'tpGrep',
-  glob: 'tpGlob',
-  web: 'tpWeb',
-  agent: 'tpAgent',
-  mcp: 'tpMcp',
-  toolsearch: 'tpToolsearch',
-  other: 'tpOther',
-};
 
 interface ToolGroupProps {
   turn: TurnItem;
@@ -37,7 +24,7 @@ export const ToolGroup: React.FC<ToolGroupProps> = React.memo(({turn, subagents}
     toggleToolGroup(groupId);
   }, [groupId, toggleToolGroup]);
 
-  const {total, errCount, totalMs, totalBytes, pillEntries} = useMemo(() => {
+  const {total, errCount, totalMs, totalBytes, toolCounts} = useMemo(() => {
     const counts: Record<string, number> = {};
     let tMs = 0;
     let tBytes = 0;
@@ -55,7 +42,7 @@ export const ToolGroup: React.FC<ToolGroupProps> = React.memo(({turn, subagents}
       errCount: errs,
       totalMs: tMs,
       totalBytes: tBytes,
-      pillEntries: Object.entries(counts),
+      toolCounts: counts,
     };
   }, [tools]);
 
@@ -67,13 +54,7 @@ export const ToolGroup: React.FC<ToolGroupProps> = React.memo(({turn, subagents}
           {total} tool call{total === 1 ? '' : 's'}
         </span>
         <span className={s.tcSummary}>
-          <span className={s.toolPills}>
-            {pillEntries.map(([cls, n]) => (
-              <span className={`${s.toolPill} ${s[PILL_CLASS[cls] || 'tpOther'] || ''}`} key={cls}>
-                {cls.toUpperCase()}&times;{n}
-              </span>
-            ))}
-          </span>
+          <ToolPills counts={toolCounts} />
           <span className={s.tcSumSep}>&middot;</span>
           <span className={s.tcSumTime}>{fmtDur(totalMs)}</span>
           <span className={s.tcSumSep}>&middot;</span>

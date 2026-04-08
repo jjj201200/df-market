@@ -1,7 +1,7 @@
 import React from 'react';
 import type {SubagentStats} from '../../types/state';
 import {useUIStore} from '../../stores/uiStore';
-import {TOOL_COLORS} from '../../types/toolColors';
+import {ToolPills} from '../common/ToolPills';
 import {TokenBadges} from '../common/TokenBadges';
 import {SubagentTurn} from './SubagentTurn';
 import s from './SubagentSummary.module.scss';
@@ -18,7 +18,6 @@ export const SubagentCard: React.FC<SubagentCardProps> = ({subagent, turnId, too
   const toggleSubagent = useUIStore((st) => st.toggleSubagent);
   const hasTurns = subagent.turns && subagent.turns.length > 0;
   const toolCounts = subagent.toolCounts || {};
-  const toolPills = Object.entries(toolCounts).sort((a, b) => b[1] - a[1]);
 
   return (
     <div className={s.saCard}>
@@ -29,15 +28,7 @@ export const SubagentCard: React.FC<SubagentCardProps> = ({subagent, turnId, too
           <span className={s.saTurnsCount}>
             {subagent.totalTurns} turn{subagent.totalTurns === 1 ? '' : 's'}
           </span>
-          {toolPills.length > 0 && (
-            <span className={s.saTools}>
-              {toolPills.map(([cls, count]) => (
-                <span key={cls} className={s.toolPill} style={{color: TOOL_COLORS[cls] ?? TOOL_COLORS.other}}>
-                  {cls.toUpperCase()}&times;{count}
-                </span>
-              ))}
-            </span>
-          )}
+          <ToolPills counts={toolCounts} />
         </div>
         <div className={s.saTokens}>
           <TokenBadges

@@ -1,21 +1,9 @@
 import React, {useState} from 'react';
 import type {SubagentStats} from '../../types/state';
+import {ToolPills} from '../common/ToolPills';
 import {TokenBadges} from '../common/TokenBadges';
 import {SubagentTurn} from './SubagentTurn';
 import s from './SubagentSummary.module.scss';
-
-const TOOL_PILL_COLORS: Record<string, string> = {
-  bash: '#e3b341',
-  read: '#58a6ff',
-  edit: '#f0883e',
-  write: '#bc8cff',
-  grep: '#3fb950',
-  glob: '#8b949e',
-  web: '#58a6ff',
-  agent: '#d2a8ff',
-  mcp: '#79c0ff',
-  other: '#484f58',
-};
 
 const AGENT_TYPE_CLASS: Record<string, string> = {
   explore: 'saExplore',
@@ -52,7 +40,6 @@ function SubagentCardItem({agentId, stats}: {agentId: string; stats: SubagentSta
   const typeClass = AGENT_TYPE_CLASS[agentTypeLower] ?? '';
 
   const toolCounts = stats.toolCounts || {};
-  const toolPills = Object.entries(toolCounts).sort((a, b) => b[1] - a[1]);
 
   return (
     <div className={`${s.saCard} ${s[typeClass] ?? ''}`}>
@@ -63,15 +50,7 @@ function SubagentCardItem({agentId, stats}: {agentId: string; stats: SubagentSta
           <span className={s.saTurnsCount}>
             {stats.totalTurns} turn{stats.totalTurns === 1 ? '' : 's'}
           </span>
-          {toolPills.length > 0 && (
-            <span className={s.saTools}>
-              {toolPills.map(([cls, count]) => (
-                <span key={cls} className={s.toolPill} style={{color: TOOL_PILL_COLORS[cls] ?? TOOL_PILL_COLORS.other}}>
-                  {cls.toUpperCase()}&times;{count}
-                </span>
-              ))}
-            </span>
-          )}
+          <ToolPills counts={toolCounts} />
         </div>
         <div className={s.saTokens}>
           <TokenBadges
