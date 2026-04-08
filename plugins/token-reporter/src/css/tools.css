@@ -400,6 +400,36 @@
   padding-top: 6px;
   border-top: 1px solid var(--border);
 }
+.tc-result-preview {
+  position: relative;
+}
+.tc-result-preview .tc-copy-btn {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  padding: 2px 8px;
+  font-size: 10px;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.15s, background 0.15s, color 0.15s;
+  z-index: 1;
+}
+.tc-result-preview:hover .tc-copy-btn {
+  opacity: 1;
+}
+.tc-result-preview .tc-copy-btn:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+.tc-result-preview .tc-copy-btn.copied {
+  background: #1a3a28;
+  border-color: #3fb95044;
+  color: var(--green);
+}
 .tc-result-meta {
   display: flex;
   align-items: center;
@@ -419,6 +449,7 @@
   font-family: monospace;
 }
 .tc-result-preview {
+  position: relative;
   font-size: 12px;
   color: #6e7681;
   font-family: monospace;
@@ -444,7 +475,6 @@
 }
 .tc-copy-btn {
   position: absolute;
-  top: 4px;
   right: 4px;
   padding: 2px 8px;
   font-size: 11px;
@@ -536,11 +566,10 @@
 
 /* Subagent tool group inside Agent card */
 .sa-tc-group {
-  margin: 8px 0 8px 13px;
+  margin: 0 0 8px 0;
   padding: 8px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 4px;
+  border-left: 2px solid var(--border2);
+  padding-left: 12px;
 }
 .sa-tc-group .tc-toggle {
   margin-bottom: 0;

@@ -355,7 +355,25 @@ window.copySaText = async function(elementId, btn) {
   } catch (err) {
     console.error("Failed to copy:", err);
   }
-}
+};
+
+window.copyTcResult = async function(elementId, btn) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+
+  try {
+    await navigator.clipboard.writeText(el.textContent);
+    const original = btn.textContent;
+    btn.textContent = "copied";
+    btn.classList.add("copied");
+    setTimeout(() => {
+      btn.textContent = original;
+      btn.classList.remove("copied");
+    }, 1500);
+  } catch (err) {
+    console.error("Failed to copy:", err);
+  }
+};
 
 function renderSubagentToolGroup(tools) {
   const total = tools.length;
@@ -645,7 +663,7 @@ export function renderToolGroup(d, subagents = {}) {
                           <span class="rm-bytes">${t2.retSize}</span>
                           ${t2.retLines && t2.retLines !== "—" ? `<span class="rm-lines">${t2.retLines}</span>` : ""}
                         </div>
-                        <div class="tc-result-preview${t2.isErr ? " is-err" : ""}">${escHtml(t2.output || "(no output)")}</div>
+                        <div class="tc-result-preview${t2.isErr ? " is-err" : ""}" id="${saDetailId}-out">${escHtml(t2.output || "(no output)")}<button class="tc-copy-btn" onclick="copyTcResult('${saDetailId}-out',this)" title="Copy">Copy</button></div>
                       </div>
                     </div>
                   </div>
@@ -717,7 +735,7 @@ export function renderToolGroup(d, subagents = {}) {
               <span class="rm-bytes">${t.retSize}</span>
               ${t.retLines && t.retLines !== "—" ? `<span class="rm-lines">${t.retLines}</span>` : ""}
             </div>
-            <div class="tc-result-preview${t.isErr ? " is-err" : ""}">${escHtml(t.output || "(no output)")}</div>
+            <div class="tc-result-preview${t.isErr ? " is-err" : ""}" id="${detailId}-out">${escHtml(t.output || "(no output)")}<button class="tc-copy-btn" onclick="copyTcResult('${detailId}-out',this)" title="Copy">Copy</button></div>
           </div>
         </div>
       </div>`;
