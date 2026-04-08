@@ -15,6 +15,8 @@ const DEFAULT_DEV_PORT = 13737;
 const MAX_PORT_ATTEMPTS = 10;
 const DEV_DATA_DIR = path.join(os.tmpdir(), "token-reporter-dev");
 const PID_FILE = path.join(DEV_DATA_DIR, "server.pid");
+const VITE_PID_FILE = path.join(DEV_DATA_DIR, "vite.pid");
+const VITE_LOG_FILE = path.join(DEV_DATA_DIR, "vite.log");
 const CONFIG_PATH = path.join(DEV_DATA_DIR, "config.json");
 
 // Resolve plugin root for the dev server.
@@ -150,6 +152,15 @@ function findTokenReporterProcess() {
   }
 }
 
+function getVitePid() {
+  if (!fs.existsSync(VITE_PID_FILE)) return null;
+  try {
+    return parseInt(fs.readFileSync(VITE_PID_FILE, "utf8").trim());
+  } catch {
+    return null;
+  }
+}
+
 function getActualPort() {
   try {
     const config = readJSON(CONFIG_PATH, { port: DEFAULT_DEV_PORT });
@@ -159,31 +170,96 @@ function getActualPort() {
   }
 }
 
+function ensureViteServer(hmrPort, apiPort) {
+  const frontendDir = path.join(PLUGIN_ROOT, "frontend");
+  if (!fs.existsSync(path.join(frontendDir, "package.json"))) {
+    return null;
+  }
+  if (!fs.existsSync(path.join(frontendDir, "node_modules"))) {
+    console.log("Installing frontend dependencies...");
+    execSync("npm ci --silent", { cwd: frontendDir, stdio: "inherit" });
+  }
+
+  const viteBin = path.join(frontendDir, "node_modules", ".bin", "vite");
+  if (!fs.existsSync(viteBin)) return null;
+
+  const logFd = fs.openSync(VITE_LOG_FILE, "a");
+  const viteChild = spawn(viteBin, [], {
+    cwd: frontendDir,
+    detached: true,
+    stdio: ["ignore", logFd, logFd],
+    env: {
+      ...process.env,
+      VITE_HMR_PORT: String(hmrPort),
+      VITE_API_PORT: String(apiPort),
+    },
+  });
+  fs.closeSync(logFd);
+  viteChild.unref();
+
+  fs.writeFileSync(VITE_PID_FILE, String(viteChild.pid));
+
+  // Wait for Vite to be ready
+  for (let i = 0; i < 50; i++) {
+    const pid = getProcessOnPort(hmrPort);
+    if (pid) return viteChild.pid;
+    execSync("sleep 0.1");
+  }
+  return null;
+}
+
 function start() {
-  const port = findAvailablePort();
-  if (!port) {
-    console.error(`Could not find an available port after ${MAX_PORT_ATTEMPTS} attempts.`);
-    console.error(`   Tried ports: ${DEFAULT_DEV_PORT} - ${DEFAULT_DEV_PORT + MAX_PORT_ATTEMPTS - 1}`);
-    process.exit(1);
-  }
+  const hmrPort = DEFAULT_DEV_PORT;
+  const apiPort = DEFAULT_DEV_PORT + 1;
 
-  if (port !== DEFAULT_DEV_PORT) {
-    console.log(`Default port ${DEFAULT_DEV_PORT} is in use, using port ${port} instead.`);
-  }
-
+  // Check if already running
   const existingPid = getPid();
   if (existingPid && isProcessAlive(existingPid)) {
-    console.log(`Dev server already running at http://localhost:${getActualPort()}`);
+    console.log(`Dev server already running at http://localhost:${hmrPort}`);
     return;
   }
 
-  const pid = ensureApiServer(port);
-  if (!pid) {
-    console.error("Error: Server failed to start within 3 seconds.");
+  // Check port availability for both ports
+  for (const port of [hmrPort, apiPort]) {
+    const occupyingPid = getProcessOnPort(port);
+    if (occupyingPid) {
+      if (isTokenReporterProcess(occupyingPid)) {
+        console.error(`Another token-reporter instance is on port ${port} (PID ${occupyingPid}).`);
+        console.error(`   Please stop it first with: token-reporter-dev stop`);
+        process.exit(1);
+      }
+      console.error(`Port ${port} is occupied by another process (PID ${occupyingPid}).`);
+      process.exit(1);
+    }
+  }
+
+  // Start API server on apiPort
+  const apiPid = ensureApiServer(apiPort);
+  if (!apiPid) {
+    console.error("Error: API server failed to start.");
     process.exit(1);
   }
 
-  console.log(`Dev server started at http://localhost:${getActualPort()}`);
+  // Start Vite HMR on hmrPort
+  const vitePid = ensureViteServer(hmrPort, apiPort);
+  if (!vitePid) {
+    console.log(`API server started at http://localhost:${apiPort} (no HMR — frontend not found)`);
+    console.log(`Data directory: ${DEV_DATA_DIR}`);
+    return;
+  }
+
+  // Update config with both ports
+  const config = readJSON(CONFIG_PATH, {});
+  config.port = hmrPort;
+  config.apiPort = apiPort;
+  fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
+
+  // Register the API port for status line
+  addDevTargetToProdConfig(apiPort);
+
+  console.log(`Dev server started at http://localhost:${hmrPort} (HMR)`);
+  console.log(`   API server on port ${apiPort}`);
+  console.log(`   Vite log: ${VITE_LOG_FILE}`);
   console.log(`Data directory: ${DEV_DATA_DIR}`);
 }
 
@@ -226,99 +302,99 @@ function removeDevTargetFromProdConfig() {
   }
 }
 
-function stop() {
-  let pid = null;
+function killProcess(pid, label) {
+  if (!pid || !isProcessAlive(pid)) return false;
 
-  // Priority 1: Search for token-reporter process by command line
-  pid = findTokenReporterProcess();
-  if (pid) {
-    console.log(`Found token-reporter process by search (PID ${pid}).`);
-  }
-
-  // Priority 2: Try PID file if process search didn't find anything
-  if (!pid) {
-    pid = getPid();
-    if (pid) {
-      console.log(`Found token-reporter process by PID file (PID ${pid}).`);
-    }
-  }
-
-  // Priority 3: Try to find process by port as last resort
-  if (!pid) {
-    const port = getActualPort();
-    pid = getProcessOnPort(port);
-    if (pid) {
-      if (!isTokenReporterProcess(pid)) {
-        console.log(`Port ${port} is occupied by a non-token-reporter process (PID ${pid}).`);
-        console.log("Dev server not running.");
-        return;
-      }
-      console.log(`Found token-reporter process by port ${port} (PID ${pid}).`);
-    }
-  }
-
-  if (!pid || !isProcessAlive(pid)) {
-    // Clean up stale PID file
-    try { fs.unlinkSync(PID_FILE); } catch {}
-    console.log("Dev server not running.");
-    return;
-  }
-
-  // Send SIGTERM for graceful shutdown
   try {
     process.kill(pid, "SIGTERM");
   } catch (e) {
-    console.error(`Error stopping server: ${e.message}`);
-    return;
+    console.error(`Error stopping ${label}: ${e.message}`);
+    return false;
   }
 
-  // Wait up to 3 seconds for graceful shutdown
-  let stopped = false;
   for (let i = 0; i < 3; i++) {
-    try {
-      process.kill(pid, 0);
-    } catch {
-      stopped = true;
-      break;
-    }
+    try { process.kill(pid, 0); } catch { return true; }
     execSync("sleep 1");
   }
 
-  // Force kill with SIGKILL if still running
-  if (!stopped) {
-    try {
-      process.kill(pid, "SIGKILL");
-      console.log("Dev server stopped (forced).");
-    } catch (e) {
-      console.error(`Error force-stopping server: ${e.message}`);
-    }
-  } else {
-    console.log("Dev server stopped.");
+  try {
+    process.kill(pid, "SIGKILL");
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function stop() {
+  let apiPid = null;
+
+  // Find API server process
+  apiPid = findTokenReporterProcess();
+  if (!apiPid) apiPid = getPid();
+  if (!apiPid) {
+    const config = readJSON(CONFIG_PATH, {});
+    const port = config.apiPort || DEFAULT_DEV_PORT + 1;
+    const portPid = getProcessOnPort(port);
+    if (portPid && isTokenReporterProcess(portPid)) apiPid = portPid;
   }
 
-  // Clean up PID file
+  // Kill Vite server
+  const vitePid = getVitePid();
+  if (vitePid && isProcessAlive(vitePid)) {
+    killProcess(vitePid, "Vite HMR");
+  }
+  try { fs.unlinkSync(VITE_PID_FILE); } catch {}
+
+  // Kill API server
+  if (!apiPid || !isProcessAlive(apiPid)) {
+    try { fs.unlinkSync(PID_FILE); } catch {}
+    if (!vitePid) {
+      console.log("Dev server not running.");
+    } else {
+      console.log("Dev server stopped.");
+    }
+    removeDevTargetFromProdConfig();
+    return;
+  }
+
+  killProcess(apiPid, "API server");
   try { fs.unlinkSync(PID_FILE); } catch {}
 
-  // Remove dev target from production config
+  console.log("Dev server stopped.");
   removeDevTargetFromProdConfig();
 }
 
 function status() {
-  const pid = getPid();
-  if (pid && isProcessAlive(pid)) {
-    const actualPort = getActualPort();
-    console.log(`Dev server running at http://localhost:${actualPort}`);
-    console.log(`PID: ${pid}`);
-    console.log(`Data directory: ${DEV_DATA_DIR}`);
-  } else {
+  const config = readJSON(CONFIG_PATH, {});
+  const apiPid = getPid();
+  const vitePid = getVitePid();
+  const apiAlive = apiPid && isProcessAlive(apiPid);
+  const viteAlive = vitePid && isProcessAlive(vitePid);
+
+  if (!apiAlive && !viteAlive) {
     console.log("Dev server not running.");
     console.log(`Run 'token-reporter-dev start' to start.`);
+    return;
   }
+
+  if (viteAlive) {
+    console.log(`Vite HMR running at http://localhost:${config.port || DEFAULT_DEV_PORT} (PID ${vitePid})`);
+  }
+  if (apiAlive) {
+    console.log(`API server running on port ${config.apiPort || DEFAULT_DEV_PORT + 1} (PID ${apiPid})`);
+  }
+  console.log(`Plugin root: ${PLUGIN_ROOT}`);
+  console.log(`Data directory: ${DEV_DATA_DIR}`);
 }
 
 function ensureApiServer(port) {
   fs.mkdirSync(DEV_DATA_DIR, { recursive: true });
-  fs.writeFileSync(CONFIG_PATH, JSON.stringify({ port, autoStart: true }, null, 2));
+
+  // Write config with port so server.js picks it up
+  const config = readJSON(CONFIG_PATH, {});
+  config.port = port;
+  config.autoStart = true;
+  fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
 
   const existingPid = getPid();
   if (existingPid && isProcessAlive(existingPid)) {
@@ -339,55 +415,11 @@ function ensureApiServer(port) {
   for (let i = 0; i < 30; i++) {
     const pid = getPid();
     if (pid && isProcessAlive(pid)) {
-      addDevTargetToProdConfig(port);
       return pid;
     }
     execSync("sleep 0.1");
   }
   return null;
-}
-
-function startHmr() {
-  const apiPort = DEFAULT_DEV_PORT + 1;
-  const hmrPort = DEFAULT_DEV_PORT;
-
-  const pid = ensureApiServer(apiPort);
-  if (!pid) {
-    console.error("Error: API server failed to start within 3 seconds.");
-    process.exit(1);
-  }
-  console.log(`API server running on port ${apiPort} (PID ${pid})`);
-
-  const frontendDir = path.join(PLUGIN_ROOT, "frontend");
-  if (!fs.existsSync(path.join(frontendDir, "node_modules"))) {
-    console.log("Installing frontend dependencies...");
-    execSync("npm ci --silent", { cwd: frontendDir, stdio: "inherit" });
-  }
-
-  console.log(`\nStarting Vite HMR on http://localhost:${hmrPort}`);
-  console.log(`   API proxy -> http://localhost:${apiPort}`);
-  console.log(`   Press Ctrl+C to stop\n`);
-
-  const viteChild = spawn(
-    path.join(frontendDir, "node_modules", ".bin", "vite"),
-    [],
-    {
-      cwd: frontendDir,
-      stdio: "inherit",
-      env: {
-        ...process.env,
-        VITE_HMR_PORT: String(hmrPort),
-        VITE_API_PORT: String(apiPort),
-      },
-    }
-  );
-
-  const cleanup = () => {
-    viteChild.kill("SIGTERM");
-    process.exit(0);
-  };
-  process.on("SIGINT", cleanup);
-  process.on("SIGTERM", cleanup);
 }
 
 const command = process.argv[2] || "start";
@@ -396,9 +428,6 @@ switch (command) {
   case "start":
     start();
     break;
-  case "hmr":
-    startHmr();
-    break;
   case "stop":
     stop();
     break;
@@ -406,6 +435,6 @@ switch (command) {
     status();
     break;
   default:
-    console.log("Usage: token-reporter-dev [start|stop|status|hmr]");
+    console.log("Usage: token-reporter-dev [start|stop|status]");
     process.exit(1);
 }
