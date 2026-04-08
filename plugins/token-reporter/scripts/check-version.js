@@ -57,17 +57,22 @@ async function main() {
     // No tags or git error
   }
 
-  // Check if version was changed in the current HEAD commit
-  let versionInCurrentCommit = false;
+  // Check if version was changed in commits being pushed (since origin/main)
+  let versionInPendingCommits = false;
   try {
-    const currentCommitChanges = execSync('git diff-tree --no-commit-id --name-only -r HEAD', { encoding: 'utf8', stdio: 'pipe' });
-    versionInCurrentCommit = currentCommitChanges.includes('.claude-plugin/plugin.json');
+    const base = execSync('git merge-base origin/main HEAD', { encoding: 'utf8', stdio: 'pipe' }).trim();
+    const pendingChanges = execSync(`git diff --name-only ${base}..HEAD`, { encoding: 'utf8', stdio: 'pipe' });
+    versionInPendingCommits = pendingChanges.includes('.claude-plugin/plugin.json');
   } catch {
-    // Git error
+    // Fallback: check only HEAD commit
+    try {
+      const headChanges = execSync('git diff-tree --no-commit-id --name-only -r HEAD', { encoding: 'utf8', stdio: 'pipe' });
+      versionInPendingCommits = headChanges.includes('.claude-plugin/plugin.json');
+    } catch {}
   }
 
   // If version is in current commit and has a tag, we're good
-  if (versionInCurrentCommit && hasTag) {
+  if (versionInPendingCommits && hasTag) {
     console.log(`\n✅ Version check passed (v${currentVersion})\n`);
     process.exit(0);
   }
@@ -76,11 +81,11 @@ async function main() {
   console.log('\n⚠️  Version Check Warning\n');
   console.log(`Current version: ${currentVersion}`);
 
-  if (!versionInCurrentCommit) {
+  if (!versionInPendingCommits) {
     console.log('\n❌ Version file has not been modified. Please bump the version.');
   }
 
-  if (versionInCurrentCommit && !hasTag) {
+  if (versionInPendingCommits && !hasTag) {
     console.log('\n⚠️  No git tag found for version v' + currentVersion);
     console.log('   Consider creating a tag: git tag v' + currentVersion);
   }
