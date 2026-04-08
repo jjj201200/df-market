@@ -6,7 +6,7 @@ import SessionBar from './SessionBar';
 import MainChart from './MainChart';
 import BrushChart from './BrushChart';
 import BrushOverlay from './BrushOverlay';
-import ChartLegend from './ChartLegend';
+// import ChartLegend from './ChartLegend';
 import LimitsDisplay from './LimitsDisplay';
 import styles from './StickyChart.module.scss';
 
@@ -42,7 +42,10 @@ export default function StickyChart() {
 
   return (
     <div id="stickyChart" className={styles.stickyChart}>
-      <DimBar />
+      <div className={styles.title}>
+        TOKEN REPORTER ❤️ <span>DF</span>
+        <span className={styles.version}>v{__PLUGIN_VERSION__}</span>
+      </div>
       <SessionBar />
 
       <div className={styles.chartHeader}>
@@ -61,8 +64,12 @@ export default function StickyChart() {
         </div>
       </div>
 
-      <ChartLegend />
-      <LimitsDisplay />
+      {/* <ChartLegend /> */}
+
+      <div className={styles.bottomRow}>
+        <LimitsDisplay />
+        <DimBar />
+      </div>
     </div>
   );
 }

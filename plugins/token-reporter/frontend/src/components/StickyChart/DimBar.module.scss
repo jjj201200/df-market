@@ -2,8 +2,9 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 8px;
   flex-wrap: wrap;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .dimLabel {
@@ -21,9 +22,12 @@
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  border: 1px solid transparent;
   transition: opacity 0.15s;
   user-select: none;
+
+  &:hover {
+    filter: brightness(1.2);
+  }
 }
 
 .dot {

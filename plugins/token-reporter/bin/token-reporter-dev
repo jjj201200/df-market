@@ -34,13 +34,16 @@ function resolvePluginRoot() {
   // 0. Explicit env var — always wins
   let found = tryPlugin(process.env.TOKEN_REPORTER_DEV_ROOT);
 
-  // 1. CWD is the plugin root
+  // 1. Script's own directory (development mode - use current plugin source)
+  if (!found) found = tryPlugin(scriptDir);
+
+  // 2. CWD is the plugin root
   if (!found) found = tryPlugin(process.cwd());
 
-  // 2. CWD contains plugins/token-reporter/
+  // 3. CWD contains plugins/token-reporter/
   if (!found) found = tryPlugin(path.join(process.cwd(), "plugins", "token-reporter"));
 
-  // 3. Use git to find repo root, then check plugins/token-reporter/ inside it
+  // 4. Use git to find repo root, then check plugins/token-reporter/ inside it
   if (!found) {
     try {
       const repoRoot = execSync("git rev-parse --show-toplevel 2>/dev/null", { encoding: "utf8" }).trim();
@@ -57,10 +60,10 @@ function resolvePluginRoot() {
     return found;
   }
 
-  // 4. Use saved devRoot from a previous run
+  // 5. Use saved devRoot from a previous run
   if (devConfig.devRoot && tryPlugin(devConfig.devRoot)) return devConfig.devRoot;
 
-  // 5. Fall back to script's own directory
+  // 6. Fall back to script's own directory
   return scriptDir;
 }
 
