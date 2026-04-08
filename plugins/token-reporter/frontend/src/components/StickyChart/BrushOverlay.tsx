@@ -34,8 +34,11 @@ export default function BrushOverlay() {
       const mouseX = (e.clientX - rect.left) / rect.width; // 0-1 position under mouse
 
       const span = brushR - brushL;
-      const minSpan = 1 / Math.max(turns.length - 1, 1);
-      const maxSpan = 1; // Maximum 100%
+      const {viewLoIdx: vLo, viewHiIdx: vHi} = useChartStore.getState();
+      const Nm1 = Math.max(turns.length - 1, 1);
+      const viewSpan = vLo >= 0 && vHi >= 0 ? (vHi - vLo) / Nm1 : 1 / Nm1;
+      const minSpan = Math.max(viewSpan, 1 / Nm1);
+      const maxSpan = 1;
 
       // Determine zoom direction: negative deltaY = zoom in (scroll up), positive = zoom out
       const zoomIn = e.deltaY < 0;
@@ -129,7 +132,10 @@ export default function BrushOverlay() {
         lockBrushDriving();
         const W = getOverlayWidth();
         const dx = (ev.clientX - startX) / W;
-        const minS = 1 / Math.max(N, 1);
+        const {viewLoIdx: vLo, viewHiIdx: vHi} = useChartStore.getState();
+        const Nm1 = Math.max(N - 1, 1);
+        const viewSpan = vLo >= 0 && vHi >= 0 ? (vHi - vLo) / Nm1 : 1 / Nm1;
+        const minS = Math.max(viewSpan, 1 / Nm1);
 
         if (type === 'L') {
           const newL = Math.max(0, Math.min(startL + dx, startR - minS));
@@ -143,18 +149,18 @@ export default function BrushOverlay() {
           setBrush(newL, newL + sp);
         }
 
-        // Defer scroll until drag stops — only if viewport outside brush
+        // Defer scroll until drag stops — if viewport partially outside brush
         deferScrollToTurn(() => {
           const {brushL: bL, brushR: bR, viewLoIdx, viewHiIdx} = useChartStore.getState();
           const Nm1 = Math.max(N - 1, 1);
           const vL = viewLoIdx / Nm1;
           const vR = viewHiIdx / Nm1;
-          if (vR <= bL) {
-            // Viewport entirely left of brush — align viewport top to brush left edge
-            scrollToTurnIndex(turns, Math.round(bL * Nm1));
-          } else if (vL >= bR) {
-            // Viewport entirely right of brush — align viewport bottom to brush right edge
+          if (vR > bR) {
+            // Viewport right edge beyond brush right — align viewport bottom to brush right edge
             scrollToTurnIndex(turns, Math.round(bR * Nm1), 'bottom');
+          } else if (vL < bL) {
+            // Viewport left edge before brush left — align viewport top to brush left edge
+            scrollToTurnIndex(turns, Math.round(bL * Nm1));
           }
         });
       };
@@ -165,10 +171,10 @@ export default function BrushOverlay() {
         const Nm1 = Math.max(N - 1, 1);
         const vL = viewLoIdx / Nm1;
         const vR = viewHiIdx / Nm1;
-        if (vR <= bL) {
-          scrollToTurnIndex(turns, Math.round(bL * Nm1));
-        } else if (vL >= bR) {
+        if (vR > bR) {
           scrollToTurnIndex(turns, Math.round(bR * Nm1), 'bottom');
+        } else if (vL < bL) {
+          scrollToTurnIndex(turns, Math.round(bL * Nm1));
         }
         window.removeEventListener('mousemove', onMove);
         window.removeEventListener('mouseup', onUp);

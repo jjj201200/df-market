@@ -55,7 +55,6 @@ export default function BrushChart() {
         y -= sh;
       }
     }
-
   }, [turns, dims, resizeTick]);
 
   // Click handler: center brush at click position
@@ -89,7 +88,10 @@ export default function BrushChart() {
       const mouseX = (e.clientX - rect.left) / rect.width;
 
       const span = brushR - brushL;
-      const minSpan = 1 / Math.max(turns.length - 1, 1);
+      const {viewLoIdx: vLo, viewHiIdx: vHi} = useChartStore.getState();
+      const Nm1 = Math.max(turns.length - 1, 1);
+      const viewSpan = vLo >= 0 && vHi >= 0 ? (vHi - vLo) / Nm1 : 1 / Nm1;
+      const minSpan = Math.max(viewSpan, 1 / Nm1);
       const maxSpan = 1;
 
       const zoomIn = e.deltaY < 0;
