@@ -97,11 +97,23 @@ export function useScrollSync() {
       const N = turns.length;
       if (N === 0 || loIdx < 0) return;
 
-      const centerRatio = (loIdx + hiIdx) / 2 / Math.max(N - 1, 1);
+      const Nm1 = Math.max(N - 1, 1);
+      const viewL = loIdx / Nm1;
+      const viewR = hiIdx / Nm1;
       const {brushL, brushR, setBrush} = useChartStore.getState();
       const span = brushR - brushL;
-      let newL = centerRatio - span / 2;
-      newL = Math.max(0, Math.min(newL, 1 - span));
+
+      // Only push brush when viewport exceeds brush boundaries
+      let newL = brushL;
+      if (viewR > brushR) {
+        // Viewport overflows right — push brush right
+        newL = Math.min(viewR - span, 1 - span);
+      } else if (viewL < brushL) {
+        // Viewport overflows left — push brush left
+        newL = Math.max(viewL, 0);
+      } else {
+        return; // Viewport within brush range, no change
+      }
       setBrush(newL, newL + span);
     }
 

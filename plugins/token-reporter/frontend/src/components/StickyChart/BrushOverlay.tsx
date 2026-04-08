@@ -34,7 +34,7 @@ export default function BrushOverlay() {
       const mouseX = (e.clientX - rect.left) / rect.width; // 0-1 position under mouse
 
       const span = brushR - brushL;
-      const minSpan = 0.02; // Minimum 2% of total range
+      const minSpan = 1 / Math.max(turns.length - 1, 1);
       const maxSpan = 1; // Maximum 100%
 
       // Determine zoom direction: negative deltaY = zoom in (scroll up), positive = zoom out
@@ -84,11 +84,22 @@ export default function BrushOverlay() {
 
       setBrush(newL, newR);
 
-      // Defer scroll until wheel stops — prevents dialog jitter during zoom
-      const finalL = newL;
+      // Defer scroll until wheel stops — only scroll if viewport is outside new brush range
+      const capturedL = newL;
+      const capturedR = newR;
       const N = turns.length;
       if (N > 0) {
-        deferScrollToTurn(() => scrollToTurnIndex(turns, Math.round(finalL * (N - 1))));
+        deferScrollToTurn(() => {
+          const {viewLoIdx, viewHiIdx} = useChartStore.getState();
+          const Nm1 = Math.max(N - 1, 1);
+          const vL = viewLoIdx / Nm1;
+          const vR = viewHiIdx / Nm1;
+          if (vL < capturedL) {
+            scrollToTurnIndex(turns, Math.round(capturedL * Nm1));
+          } else if (vR > capturedR) {
+            scrollToTurnIndex(turns, Math.round(capturedR * Nm1), 'bottom');
+          }
+        });
       }
     },
     [brushL, brushR, setBrush, turns],
@@ -132,16 +143,33 @@ export default function BrushOverlay() {
           setBrush(newL, newL + sp);
         }
 
-        // Defer scroll until drag stops to prevent jitter
-        const currentL = useChartStore.getState().brushL;
-        deferScrollToTurn(() => scrollToTurnIndex(turns, Math.round(currentL * (N - 1))));
+        // Defer scroll until drag stops — only if viewport outside brush
+        deferScrollToTurn(() => {
+          const {brushL: bL, brushR: bR, viewLoIdx, viewHiIdx} = useChartStore.getState();
+          const Nm1 = Math.max(N - 1, 1);
+          const vL = viewLoIdx / Nm1;
+          const vR = viewHiIdx / Nm1;
+          if (vR <= bL) {
+            // Viewport entirely left of brush — align viewport top to brush left edge
+            scrollToTurnIndex(turns, Math.round(bL * Nm1));
+          } else if (vL >= bR) {
+            // Viewport entirely right of brush — align viewport bottom to brush right edge
+            scrollToTurnIndex(turns, Math.round(bR * Nm1), 'bottom');
+          }
+        });
       };
 
       const onUp = () => {
         if (styles.dragging) overlayRef.current?.classList.remove(styles.dragging);
-        // Scroll immediately on mouse up
-        const currentL = useChartStore.getState().brushL;
-        scrollToTurnIndex(turns, Math.round(currentL * (N - 1)));
+        const {brushL: bL, brushR: bR, viewLoIdx, viewHiIdx} = useChartStore.getState();
+        const Nm1 = Math.max(N - 1, 1);
+        const vL = viewLoIdx / Nm1;
+        const vR = viewHiIdx / Nm1;
+        if (vR <= bL) {
+          scrollToTurnIndex(turns, Math.round(bL * Nm1));
+        } else if (vL >= bR) {
+          scrollToTurnIndex(turns, Math.round(bR * Nm1), 'bottom');
+        }
         window.removeEventListener('mousemove', onMove);
         window.removeEventListener('mouseup', onUp);
       };

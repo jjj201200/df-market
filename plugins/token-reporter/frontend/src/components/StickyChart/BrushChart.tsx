@@ -89,7 +89,7 @@ export default function BrushChart() {
       const mouseX = (e.clientX - rect.left) / rect.width;
 
       const span = brushR - brushL;
-      const minSpan = 0.01;
+      const minSpan = 1 / Math.max(turns.length - 1, 1);
       const maxSpan = 1;
 
       const zoomIn = e.deltaY < 0;
@@ -137,11 +137,22 @@ export default function BrushChart() {
 
       setBrush(newL, newR);
 
-      // Defer scroll until wheel stops — prevents dialog jitter during zoom
-      const finalL = newL;
+      // Defer scroll until wheel stops — only scroll if viewport is outside new brush range
+      const capturedL = newL;
+      const capturedR = newR;
       const N = turns.length;
       if (N > 0) {
-        deferScrollToTurn(() => scrollToTurnIndex(turns, Math.round(finalL * (N - 1))));
+        deferScrollToTurn(() => {
+          const {viewLoIdx, viewHiIdx} = useChartStore.getState();
+          const Nm1 = Math.max(N - 1, 1);
+          const vL = viewLoIdx / Nm1;
+          const vR = viewHiIdx / Nm1;
+          if (vL < capturedL) {
+            scrollToTurnIndex(turns, Math.round(capturedL * Nm1));
+          } else if (vR > capturedR) {
+            scrollToTurnIndex(turns, Math.round(capturedR * Nm1), 'bottom');
+          }
+        });
       }
     },
     [brushL, brushR, setBrush, turns],
