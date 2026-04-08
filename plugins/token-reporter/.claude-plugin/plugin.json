@@ -1,7 +1,7 @@
 {
   "name": "token-reporter",
   "description": "Real-time Claude Code token usage reporter. Auto-starts a local web server showing per-request token stats with interactive charts. CLI commands: token-reporter-start, token-reporter-stop, token-reporter-status, token-reporter-auto-launch-on, token-reporter-auto-launch-off.",
-  "version": "1.15.0",
+  "version": "1.15.2",
   "author": {
     "name": "jjj201200",
     "email": "jjj201200@gmail.com"
