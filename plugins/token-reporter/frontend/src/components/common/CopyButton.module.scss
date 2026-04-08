@@ -6,9 +6,9 @@
   right: 4px;
   padding: 2px 8px;
   font-size: $font-size-xs;
-  color: $muted;
-  background: $surface;
-  border: 1px solid $border;
+  color: var(--fg-muted);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
   border-radius: $radius-sm;
   cursor: pointer;
   opacity: 0.7;
@@ -20,13 +20,13 @@
 
   &:hover {
     opacity: 1;
-    background: $bg;
-    color: $text;
+    background: var(--bg-body);
+    color: var(--fg-default);
   }
 
   &.copied {
-    background: #1a3a28;
-    border-color: #3fb95044;
-    color: $green;
+    background: var(--success-muted);
+    border-color: var(--success-border);
+    color: var(--success);
   }
 }

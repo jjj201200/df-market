@@ -85,10 +85,18 @@ export interface Dims {
   cacheC: boolean;
 }
 
-/** Token type color constants (matching the original COLORS object) */
+/** Token type CSS custom property names (for Canvas, resolve via getComputedStyle) */
+export const COLOR_VARS = {
+  input: '--token-input',
+  output: '--token-output',
+  cacheR: '--token-cache-read',
+  cacheC: '--token-cache-write',
+} as const;
+
+/** Token type color constants as CSS var() references (for inline styles / legend) */
 export const COLORS = {
-  input: '#1f6feb',
-  output: '#3fb950',
-  cacheR: '#d29922',
-  cacheC: '#bc8cff',
+  input: 'var(--token-input)',
+  output: 'var(--token-output)',
+  cacheR: 'var(--token-cache-read)',
+  cacheC: 'var(--token-cache-write)',
 } as const;

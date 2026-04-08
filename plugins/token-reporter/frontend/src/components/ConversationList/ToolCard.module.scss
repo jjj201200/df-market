@@ -10,7 +10,7 @@
 .tcHead {
   display: flex;
   align-items: stretch;
-  background: #0a0e14;
+  background: var(--bg-inset);
 }
 
 .tcBand {
@@ -38,7 +38,7 @@
   flex: 1;
   min-width: 0;
   font-size: $font-size-sm;
-  color: $muted;
+  color: var(--fg-muted);
   font-family: monospace;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -54,7 +54,7 @@
 
 .tcDur {
   font-size: $font-size-sm;
-  color: $faint;
+  color: var(--fg-subtle);
   font-family: monospace;
   min-width: 44px;
   text-align: right;
@@ -62,7 +62,7 @@
 
 .tcSize {
   font-size: $font-size-sm;
-  color: $faint;
+  color: var(--fg-subtle);
   font-family: monospace;
   min-width: 40px;
   text-align: right;
@@ -76,14 +76,14 @@
   letter-spacing: 0.05em;
 
   &.ok {
-    background: #1a3a28;
-    color: $green;
-    border: 1px solid #3fb95044;
+    background: var(--success-muted);
+    color: var(--success);
+    border: 1px solid var(--success-border);
   }
   &.err {
-    background: #2a1a1a;
-    color: $red;
-    border: 1px solid #f8514944;
+    background: var(--danger-muted);
+    color: var(--danger);
+    border: 1px solid var(--danger-border);
   }
 }
 
@@ -94,14 +94,14 @@
   gap: 6px;
   padding: 3px 10px 4px 13px;
   font-size: $font-size-sm;
-  color: $faint;
-  background: #0a0e14;
+  color: var(--fg-subtle);
+  background: var(--bg-inset);
   cursor: pointer;
   user-select: none;
 
   &:hover {
-    color: $blue;
-    background: #161b2266;
+    color: var(--accent);
+    background: var(--gray-a4);
   }
 }
 
@@ -117,24 +117,24 @@
 
 .retLinesHint {
   margin-left: auto;
-  color: $faint;
+  color: var(--fg-subtle);
 }
 
 // --- Detail body ---
 .tcDetailWrap {
-  border-top: 1px solid $border;
+  border-top: 1px solid var(--border-default);
   position: relative;
 }
 
 .tcDetailBody {
   padding: 7px 10px 10px 13px;
   border-radius: 0 0 $radius-sm $radius-sm;
-  background: #0a0e14;
+  background: var(--bg-inset);
 }
 
 .tcSectionLabel {
   font-size: $font-size-sm;
-  color: $faint;
+  color: var(--fg-subtle);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   margin-bottom: 4px;
@@ -149,7 +149,7 @@
 }
 
 .tcPk {
-  color: $blue;
+  color: var(--accent);
   flex-shrink: 0;
   min-width: 76px;
   font-family: monospace;
@@ -160,19 +160,19 @@
   word-break: break-all;
 
   &.path {
-    color: #79c0ff;
+    color: var(--syntax-path);
   }
   &.cmd {
-    color: $yellow;
+    color: var(--syntax-command);
   }
   &.str {
-    color: #a8d8a8;
+    color: var(--syntax-string);
   }
   &.num {
-    color: $purple;
+    color: var(--syntax-number);
   }
   &.bool {
-    color: $orange;
+    color: var(--syntax-boolean);
   }
 }
 
@@ -180,7 +180,7 @@
 .tcResultBlock {
   margin-top: 6px;
   padding-top: 6px;
-  border-top: 1px solid $border;
+  border-top: 1px solid var(--border-default);
 }
 
 .tcResultMeta {
@@ -188,41 +188,41 @@
   align-items: center;
   gap: 10px;
   font-size: $font-size-sm;
-  color: $faint;
+  color: var(--fg-subtle);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   margin-bottom: 4px;
 }
 
 .rmBytes {
-  color: $faint;
+  color: var(--fg-subtle);
   font-family: monospace;
 }
 
 .rmLines {
-  color: $faint;
+  color: var(--fg-subtle);
   font-family: monospace;
 }
 
 .tcResultPreview {
   position: relative;
-  background: $bg;
-  border: 1px solid $border;
+  background: var(--bg-body);
+  border: 1px solid var(--border-default);
   border-radius: 3px;
 
   &.isErr {
-    border-color: #f8514933;
-    background: #160a0a;
+    border-color: var(--red-a4);
+    background: var(--red-1);
 
     .tcResultText {
-      color: $red;
+      color: var(--danger);
     }
   }
 }
 
 .tcResultText {
   font-size: $font-size-sm;
-  color: #6e7681;
+  color: var(--gray-9);
   font-family: monospace;
   white-space: pre-wrap;
   padding: 5px 8px;
@@ -235,24 +235,24 @@
   align-items: center;
   gap: 6px;
   padding: 2px 8px;
-  background: #1a1a3a;
-  border: 1px solid #a78bfa44;
+  background: var(--tool-mcp-bg);
+  border: 1px solid var(--tool-mcp-border);
   border-radius: $radius-sm;
   font-size: 11px;
   margin-right: 8px;
 }
 
 .tcMcpServer {
-  color: #a78bfa;
+  color: var(--tool-mcp);
   font-weight: 600;
 }
 
 .tcMcpSep {
-  color: $faint;
+  color: var(--fg-subtle);
 }
 
 .tcMcpMethod {
-  color: #c4b5fd;
+  color: var(--purple-10);
   font-family: monospace;
 }
 
@@ -262,16 +262,16 @@
   align-items: center;
   gap: 10px;
   padding: 4px 10px 4px 13px;
-  background: #1a2a1a;
-  border-top: 1px solid #3fb95033;
+  background: var(--green-2);
+  border-top: 1px solid var(--green-a4);
   font-size: 11px;
 }
 
 .tcSaLabel {
-  color: $green;
+  color: var(--success);
   font-weight: 600;
 }
 
 .tcSaTurns {
-  color: $muted;
+  color: var(--fg-muted);
 }

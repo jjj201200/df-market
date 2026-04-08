@@ -6,6 +6,11 @@ import {DPR, getSegs, setupCanvas} from '../../utils/canvas';
 import type {TurnItem, BarRect} from '../../types/state';
 import {suppressScrollSync} from '../../hooks/useScrollSync';
 import styles from './MainChart.module.scss';
+
+function getCSSVar(name: string): string {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
 const H = 120;
 const PL = 36;
 const PR = 8;
@@ -90,7 +95,7 @@ export default function MainChart() {
     if (!maxT) maxT = 1;
 
     // Grid + y-axis labels
-    ctx.strokeStyle = '#21262d';
+    ctx.strokeStyle = getCSSVar('--chart-grid');
     ctx.lineWidth = 0.5;
     for (let i = 0; i <= 3; i++) {
       const y = PT + plotH - (i / 3) * plotH;
@@ -98,7 +103,7 @@ export default function MainChart() {
       ctx.moveTo(PL, y);
       ctx.lineTo(W - PR, y);
       ctx.stroke();
-      ctx.fillStyle = '#484f58';
+      ctx.fillStyle = getCSSVar('--chart-label');
       ctx.font = '9px monospace';
       ctx.textAlign = 'right';
       ctx.fillText(fmt((maxT * i) / 3), PL - 3, y + 3);
@@ -119,7 +124,7 @@ export default function MainChart() {
 
       if (isHov) {
         ctx.save();
-        ctx.shadowColor = 'rgba(88,166,255,0.9)';
+        ctx.shadowColor = getCSSVar('--chart-glow');
         ctx.shadowBlur = 5;
       }
 
@@ -166,10 +171,10 @@ export default function MainChart() {
       else if (spanMs > 86400000) timeFmtStr = 'MM-DD HH:MM';
     }
 
-    ctx.fillStyle = '#484f58';
+    ctx.fillStyle = getCSSVar('--chart-label');
     ctx.font = '9px monospace';
     ctx.textAlign = 'center';
-    ctx.strokeStyle = '#30363d';
+    ctx.strokeStyle = getCSSVar('--chart-axis');
     ctx.lineWidth = 0.5;
 
     for (let i = 0; i < M; i += step) {

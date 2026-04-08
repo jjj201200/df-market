@@ -8,8 +8,8 @@
 
 // --- User message ---
 .msgUser {
-  background: $user;
-  border: 1px solid #2e2b1d;
+  background: var(--bg-user);
+  border: 1px solid var(--amber-3);
   border-radius: $radius-md $radius-md 0 $radius-md;
   overflow: hidden;
   transition:
@@ -17,14 +17,14 @@
     box-shadow 0.15s;
 
   &.barHover {
-    border-color: $blue;
+    border-color: var(--accent);
     box-shadow:
-      0 0 0 1px #58a6ff33,
-      0 0 12px #58a6ff22;
+      0 0 0 1px var(--accent-hover-shadow),
+      0 0 12px var(--blue-a2);
   }
 
   &.sidechain {
-    border-color: #f8514933;
+    border-color: var(--red-a4);
   }
 }
 
@@ -47,25 +47,25 @@
 
 .roleBadgeUser {
   @extend .roleBadge;
-  background: #d2992222;
-  color: $yellow;
-  border: 1px solid #d2992244;
+  background: var(--role-user-bg);
+  color: var(--role-user);
+  border: 1px solid var(--role-user-border);
 }
 
 .roleBadgeAsst {
   @extend .roleBadge;
-  background: #1f6feb22;
-  color: $blue;
-  border: 1px solid #1f6feb44;
+  background: var(--role-assistant-bg);
+  color: var(--role-assistant);
+  border: 1px solid var(--role-assistant-border);
 }
 
 // --- Sidechain & Agent badges ---
 .sidechainBadge {
   font-size: $font-size-xs;
   font-weight: 700;
-  background: #2a1a1a;
-  color: $red;
-  border: 1px solid #f8514944;
+  background: var(--danger-muted);
+  color: var(--danger);
+  border: 1px solid var(--danger-border);
   border-radius: 3px;
   padding: 1px 5px;
   letter-spacing: 0.05em;
@@ -74,9 +74,9 @@
 .agentBadge {
   font-size: $font-size-xs;
   font-weight: 700;
-  background: #1a2a3a;
-  color: $blue;
-  border: 1px solid #1f6feb44;
+  background: var(--blue-3);
+  color: var(--accent);
+  border: 1px solid var(--accent-border-muted);
   border-radius: 3px;
   padding: 1px 5px;
   letter-spacing: 0.05em;
@@ -86,7 +86,7 @@
 // --- Time ---
 .msgTime {
   font-size: $font-size-sm;
-  color: $muted;
+  color: var(--fg-muted);
   flex-shrink: 0;
 }
 
@@ -96,7 +96,7 @@
 }
 
 .msgText {
-  color: $text;
+  color: var(--fg-default);
   font-size: $font-size-sm;
   line-height: 1.65;
   font-family: -apple-system, 'Segoe UI', sans-serif;
@@ -111,9 +111,9 @@
   display: inline-block;
   margin-top: 4px;
   font-size: $font-size-sm;
-  color: $blue;
+  color: var(--accent);
   cursor: pointer;
-  border-bottom: 1px dashed #1f6feb55;
+  border-bottom: 1px dashed var(--accent-border);
   font-family: inherit;
   background: none;
   border-top: none;
@@ -126,9 +126,9 @@
 .msgAssistant {
   margin-left: 28px;
   margin-bottom: 6px;
-  background: $bg;
-  border: 1px solid $border;
-  border-left: 2px solid #1f6feb44;
+  background: var(--bg-body);
+  border: 1px solid var(--border-default);
+  border-left: 2px solid var(--accent-border-muted);
   border-radius: 0 0 $radius-md $radius-md;
   border-top: none;
   overflow: hidden;
@@ -137,16 +137,16 @@
     box-shadow 0.15s;
 
   &.barHover {
-    border-color: $blue;
-    border-left-color: $blue;
-    box-shadow: 0 0 0 1px #58a6ff33;
+    border-color: var(--accent);
+    border-left-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent-hover-shadow);
   }
 }
 
 // --- Assistant-led (no user input) ---
 .msgAsstLed {
-  background: #0f1318;
-  border: 1px solid #1f6feb33;
+  background: var(--gray-1);
+  border: 1px solid var(--blue-a3);
   border-radius: $radius-md;
   overflow: hidden;
   transition:
@@ -154,14 +154,14 @@
     box-shadow 0.15s;
 
   &.barHover {
-    border-color: $blue;
+    border-color: var(--accent);
     box-shadow:
-      0 0 0 1px #58a6ff33,
-      0 0 12px #58a6ff22;
+      0 0 0 1px var(--accent-hover-shadow),
+      0 0 12px var(--blue-a2);
   }
 
   .msgUserHeader {
-    background: #1f6feb0d;
+    background: var(--blue-a2);
   }
 }
 
@@ -174,9 +174,9 @@
 
 .modelTag {
   font-size: $font-size-sm;
-  color: $faint;
-  background: $model-tag-color;
-  border: 1px solid $border;
+  color: var(--fg-subtle);
+  background: var(--bg-model-tag);
+  border: 1px solid var(--border-default);
   border-radius: 3px;
   padding: 1px 6px;
 }

@@ -1,5 +1,3 @@
-@use '../../styles/variables' as *;
-
 .dimBar {
   display: flex;
   align-items: center;
@@ -10,7 +8,7 @@
 
 .dimLabel {
   font-size: 12px;
-  color: $muted;
+  color: var(--fg-muted);
   letter-spacing: 0.05em;
 }
 
@@ -36,27 +34,27 @@
 }
 
 .input {
-  background: #1f3a5f;
-  color: $blue;
-  border-color: #1f6feb55;
+  background: var(--token-input-bg);
+  color: var(--token-input);
+  border-color: var(--token-input-border);
 }
 
 .output {
-  background: #1a3a28;
-  color: $green;
-  border-color: #3fb95055;
+  background: var(--token-output-bg);
+  color: var(--token-output);
+  border-color: var(--token-output-border);
 }
 
 .cacheR {
-  background: #3a2a00;
-  color: $yellow;
-  border-color: #d2992255;
+  background: var(--token-cache-read-bg);
+  color: var(--token-cache-read);
+  border-color: var(--token-cache-read-border);
 }
 
 .cacheC {
-  background: #2a1a3a;
-  color: $purple;
-  border-color: #bc8cff55;
+  background: var(--token-cache-write-bg);
+  color: var(--token-cache-write);
+  border-color: var(--token-cache-write-border);
 }
 
 .off {

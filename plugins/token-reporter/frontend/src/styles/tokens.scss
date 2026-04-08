@@ -1,0 +1,141 @@
+// ═══════════════════════════════════════════════════════════
+// Layer 2 — Semantic Tokens (consumption layer)
+//
+// Naming: --{property}-{role}-{modifier}
+// All values reference Layer 1 palette variables.
+// Components should ONLY use tokens, never palette directly.
+// ═══════════════════════════════════════════════════════════
+
+:root {
+  // ── Surfaces ──
+  --bg-app: var(--gray-1);
+  --bg-body: var(--gray-2);
+  --bg-surface: var(--gray-surface);
+  --bg-surface-raised: var(--gray-3);
+  --bg-surface-overlay: var(--gray-4);
+  --bg-sticky: var(--gray-sticky);
+  --bg-inset: var(--gray-inset);
+  --bg-user: var(--amber-user);
+  --bg-model-tag: var(--gray-3);
+
+  // ── Foreground / Text ──
+  --fg-default: var(--gray-12);
+  --fg-muted: var(--gray-10);
+  --fg-subtle: var(--gray-8);
+  --fg-on-emphasis: var(--gray-1);
+
+  // ── Borders ──
+  --border-default: var(--gray-5);
+  --border-muted: var(--gray-a5);
+  --border-strong: var(--gray-6);
+
+  // ── Accent (interactive blue) ──
+  --accent: var(--blue-8);
+  --accent-fg: var(--blue-10);
+  --accent-muted: var(--blue-3);
+  --accent-emphasis: var(--blue-8);
+  --accent-border: var(--blue-a5);
+  --accent-border-muted: var(--blue-a4);
+  --accent-hover-shadow: var(--blue-a3);
+
+  // ── Status: Success ──
+  --success: var(--green-9);
+  --success-fg: var(--green-11);
+  --success-muted: var(--green-3);
+  --success-border: var(--green-a5);
+
+  // ── Status: Warning ──
+  --warning: var(--amber-9);
+  --warning-fg: var(--amber-11);
+  --warning-muted: var(--amber-3);
+  --warning-border: var(--amber-a5);
+
+  // ── Status: Danger ──
+  --danger: var(--red-9);
+  --danger-fg: var(--red-11);
+  --danger-muted: var(--red-3);
+  --danger-border: var(--red-a5);
+
+  // ── Token types (charts & badges) ──
+  --token-input: var(--blue-8);
+  --token-input-bg: var(--blue-3);
+  --token-input-border: var(--blue-a6);
+  --token-output: var(--green-9);
+  --token-output-bg: var(--green-3);
+  --token-output-border: var(--green-a6);
+  --token-cache-read: var(--amber-9);
+  --token-cache-read-bg: var(--amber-3);
+  --token-cache-read-border: var(--amber-a6);
+  --token-cache-write: var(--purple-9);
+  --token-cache-write-bg: var(--purple-3);
+  --token-cache-write-border: var(--purple-a6);
+
+  // ── Tool categories ──
+  // Warm = mutation, Cool = read-only (editor consensus)
+  --tool-bash: var(--amber-10);
+  --tool-bash-bg: var(--amber-3);
+  --tool-bash-border: var(--amber-a5);
+  --tool-read: var(--cyan-9);
+  --tool-read-bg: var(--cyan-3);
+  --tool-read-border: var(--cyan-a5);
+  --tool-edit: var(--orange-9);
+  --tool-edit-bg: var(--orange-3);
+  --tool-edit-border: var(--orange-a5);
+  --tool-write: var(--orange-10);
+  --tool-write-bg: var(--orange-3);
+  --tool-write-border: var(--orange-a5);
+  --tool-grep: var(--green-11);
+  --tool-grep-bg: var(--green-3);
+  --tool-grep-border: var(--green-a5);
+  --tool-glob: var(--cyan-11);
+  --tool-glob-bg: var(--cyan-3);
+  --tool-glob-border: var(--cyan-a5);
+  --tool-web: var(--blue-11);
+  --tool-web-bg: var(--blue-3);
+  --tool-web-border: var(--blue-a5);
+  --tool-agent: var(--purple-10);
+  --tool-agent-bg: var(--purple-3);
+  --tool-agent-border: var(--purple-a5);
+  --tool-mcp: var(--purple-8);
+  --tool-mcp-bg: var(--purple-3);
+  --tool-mcp-border: var(--purple-a5);
+  --tool-toolsearch: var(--purple-8);
+  --tool-toolsearch-bg: var(--purple-3);
+  --tool-toolsearch-border: var(--purple-a5);
+  --tool-other: var(--gray-10);
+  --tool-other-bg: var(--bg-surface);
+  --tool-other-border: var(--border-default);
+
+  // ── Syntax highlighting (ToolCard result previews) ──
+  --syntax-command: var(--blue-11);
+  --syntax-string: var(--green-12);
+  --syntax-number: var(--purple-9);
+  --syntax-path: var(--cyan-11);
+  --syntax-flag: var(--cyan-9);
+  --syntax-variable: var(--blue-10);
+  --syntax-boolean: var(--orange-10);
+
+  // ── Roles ──
+  --role-user: var(--amber-9);
+  --role-user-bg: var(--amber-a3);
+  --role-user-border: var(--amber-a4);
+  --role-assistant: var(--blue-8);
+  --role-assistant-bg: var(--blue-a2);
+  --role-assistant-border: var(--blue-a4);
+
+  // ── Subagent types ──
+  --agent-explore: var(--green-9);
+  --agent-plan: var(--purple-8);
+  --agent-general: var(--blue-10);
+  --agent-reviewer: var(--orange-9);
+
+  // ── Misc UI ──
+  --shimmer-from: var(--gray-3);
+  --shimmer-to: var(--gray-5);
+  --chart-grid: var(--gray-5);
+  --chart-axis: var(--gray-6);
+  --chart-label: var(--gray-8);
+  --chart-glow: rgba(88, 166, 255, 0.9);
+  --brush-selection: var(--blue-a2);
+  --shadow-drop: rgba(0, 0, 0, 0.6);
+}

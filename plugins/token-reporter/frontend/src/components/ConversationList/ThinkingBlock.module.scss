@@ -3,8 +3,8 @@
 
 .thinkingBlock {
   margin: 4px 12px 6px;
-  border: 1px solid $border2;
-  border-left: 2px solid $faint;
+  border: 1px solid var(--border-strong);
+  border-left: 2px solid var(--fg-subtle);
   border-radius: 0 $radius-sm $radius-sm 0;
   overflow: hidden;
 }
@@ -14,14 +14,14 @@
   align-items: center;
   gap: 6px;
   padding: 4px 10px;
-  background: #161b22;
+  background: var(--bg-surface-raised);
   cursor: pointer;
   user-select: none;
   font-size: $font-size-sm;
-  color: $faint;
+  color: var(--fg-subtle);
 
   &:hover {
-    color: $muted;
+    color: var(--fg-muted);
   }
 }
 
@@ -31,7 +31,7 @@
 
 .thinkingEstimate {
   font-size: $font-size-sm;
-  color: $faint;
+  color: var(--fg-subtle);
   margin-left: 4px;
 }
 
@@ -42,9 +42,9 @@
 
 .thinkingBody {
   padding: 8px 10px;
-  background: #0d1117;
+  background: var(--gray-1);
   font-size: $font-size-sm;
-  color: #6e7681;
+  color: var(--gray-9);
   line-height: 1.6;
   font-family: -apple-system, 'Segoe UI', sans-serif;
   white-space: pre-wrap;

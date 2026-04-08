@@ -7,9 +7,9 @@
   gap: 8px;
   padding: 6px 12px;
   margin-bottom: 10px;
-  background: #0f1a2e;
-  border: 1px solid #58a6ff33;
-  border-left: 3px solid $blue;
+  background: var(--blue-2);
+  border: 1px solid var(--accent-hover-shadow);
+  border-left: 3px solid var(--accent);
   border-radius: $radius-sm;
   font-size: $font-size-sm;
   flex-wrap: wrap;
@@ -18,31 +18,31 @@
 
 .evCmdIcon {
   font-size: $font-size-sm;
-  color: $blue;
+  color: var(--accent);
   flex-shrink: 0;
 }
 
 .evCmdName {
-  color: $blue;
+  color: var(--accent);
   font-weight: 700;
   font-size: $font-size-sm;
   letter-spacing: 0.04em;
 }
 
 .evCmdMsg {
-  color: $muted;
+  color: var(--fg-muted);
   font-size: $font-size-sm;
 }
 
 .evCmdTime {
-  color: $faint;
+  color: var(--fg-subtle);
   font-size: $font-size-sm;
   margin-left: auto;
 }
 
 .evCmdToggle {
   font-size: $font-size-sm;
-  color: $faint;
+  color: var(--fg-subtle);
   cursor: pointer;
   user-select: none;
   background: none;
@@ -50,7 +50,7 @@
   padding: 0;
 
   &:hover {
-    color: $blue;
+    color: var(--accent);
   }
 }
 
@@ -58,11 +58,11 @@
   width: 100%;
   margin-top: 4px;
   padding: 4px 8px;
-  background: $bg;
-  border: 1px solid $border;
+  background: var(--bg-body);
+  border: 1px solid var(--border-default);
   border-radius: 3px;
   font-size: $font-size-sm;
-  color: $muted;
+  color: var(--fg-muted);
   font-family: monospace;
   white-space: pre-wrap;
   @include scrollable(80px);

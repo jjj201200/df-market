@@ -4,9 +4,9 @@ import {fmt, fmtResetTimeAbsolute} from '../../utils/format';
 import styles from './LimitsDisplay.module.scss';
 
 function barColor(pct: number): string {
-  if (pct > 90) return '#f85149';
-  if (pct > 70) return '#d29922';
-  return '#3fb950';
+  if (pct > 90) return 'var(--danger)';
+  if (pct > 70) return 'var(--warning)';
+  return 'var(--success)';
 }
 
 interface LimitItemProps {

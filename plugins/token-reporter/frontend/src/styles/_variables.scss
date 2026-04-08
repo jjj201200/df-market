@@ -1,28 +1,9 @@
-// Color palette - dark theme (GitHub-inspired)
-$bg: #121212;
-$sticky-card-bg: #16191c;
-$user: #161406;
-$surface: #1b1b1b;
-$model-tag-color: #161b22;
-$border: #21262d;
-$border2: #30363d;
-$text: #c9d1d9;
-$muted: #8b949e;
-$faint: #484f58;
-$blue: #2665ac;
-$blue-bg: #1f3a5f;
-$blue-dim: #1f6feb;
-$green: #3fb950;
-$yellow: #d29922;
-$purple: #bc8cff;
-$red: #f85149;
-$orange: #e3b341;
-
-// Token type colors (used in charts and badges)
-$color-input: $blue-dim;
-$color-output: $green;
-$color-cache-read: $yellow;
-$color-cache-creation: $purple;
+// ═══════════════════════════════════════════════════════════
+// Non-color design tokens (SCSS variables)
+// Colors are defined as CSS custom properties in:
+//   palette.scss (Layer 1 — primitives)
+//   tokens.scss  (Layer 2 — semantic)
+// ═══════════════════════════════════════════════════════════
 
 // Typography
 $font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', monospace;
@@ -42,24 +23,3 @@ $spacing-xl: 24px;
 $radius-sm: 4px;
 $radius-md: 6px;
 $radius-lg: 8px;
-
-// CSS custom properties (runtime access)
-:root {
-  --bg: #{$bg};
-  --sticky-card-bg: #{$sticky-card-bg};
-  --surface: #{$surface};
-  --model-tag-color: #{$model-tag-color};
-  --border: #{$border};
-  --border2: #{$border2};
-  --text: #{$text};
-  --muted: #{$muted};
-  --faint: #{$faint};
-  --blue: #{$blue};
-  --blue-bg: #{$blue-bg};
-  --blue-dim: #{$blue-dim};
-  --green: #{$green};
-  --yellow: #{$yellow};
-  --purple: #{$purple};
-  --red: #{$red};
-  --orange: #{$orange};
-}

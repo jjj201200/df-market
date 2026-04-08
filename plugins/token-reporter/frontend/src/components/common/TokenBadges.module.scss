@@ -15,18 +15,18 @@
 }
 
 .tl {
-  color: $faint;
+  color: var(--fg-subtle);
 }
 
 .tvIn {
-  color: $blue;
+  color: var(--token-input);
 }
 .tvOut {
-  color: $green;
+  color: var(--token-output);
 }
 .tvCr {
-  color: $yellow;
+  color: var(--token-cache-read);
 }
 .tvCc {
-  color: $purple;
+  color: var(--token-cache-write);
 }

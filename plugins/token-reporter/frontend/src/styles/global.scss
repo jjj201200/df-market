@@ -1,4 +1,6 @@
 @use 'reset';
+@use 'palette';
+@use 'tokens';
 @use 'variables' as *;
 
 html {
@@ -6,8 +8,8 @@ html {
 }
 
 body {
-  background: $bg;
-  color: $text;
+  background: var(--bg-body);
+  color: var(--fg-default);
   font-family: $font-mono;
   font-size: $font-size-base;
   padding: 0 48px 14px;

@@ -1,21 +1,9 @@
 import React from 'react';
 import type {SubagentTurnItem} from '../../types/state';
+import {TOOL_COLORS} from '../../types/toolColors';
 import {CopyButton} from '../common/CopyButton';
 import {SubagentToolGroup} from './SubagentToolGroup';
 import s from './SubagentSummary.module.scss';
-
-const TOOL_PILL_COLORS: Record<string, string> = {
-  bash: '#e3b341',
-  read: '#58a6ff',
-  edit: '#f0883e',
-  write: '#bc8cff',
-  grep: '#3fb950',
-  glob: '#8b949e',
-  web: '#58a6ff',
-  agent: '#d2a8ff',
-  mcp: '#79c0ff',
-  other: '#484f58',
-};
 
 interface SubagentTurnProps {
   turn: SubagentTurnItem;
@@ -48,7 +36,7 @@ export const SubagentTurn: React.FC<SubagentTurnProps> = ({turn}) => {
                 <span
                   key={name}
                   className={s.saToolPill}
-                  style={{color: TOOL_PILL_COLORS[info.cls] ?? TOOL_PILL_COLORS.other}}
+                  style={{color: TOOL_COLORS[info.cls] ?? TOOL_COLORS.other}}
                 >
                   {name}
                   {info.count > 1 ? `\u00d7${info.count}` : ''}

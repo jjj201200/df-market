@@ -2,8 +2,8 @@
 
 .subagentSummary {
   margin-bottom: 16px;
-  background: $surface;
-  border: 1px solid $border;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
   border-radius: 6px;
   overflow: hidden;
 }
@@ -12,14 +12,14 @@
   display: flex;
   align-items: center;
   padding: 8px 12px;
-  background: #161b22;
-  border-bottom: 1px solid $border;
+  background: var(--bg-surface-raised);
+  border-bottom: 1px solid var(--border-default);
 }
 
 .subagentTitle {
   font-size: 12px;
   font-weight: 700;
-  color: $text;
+  color: var(--fg-default);
   letter-spacing: 0.05em;
 }
 
@@ -31,9 +31,9 @@
 }
 
 .saCard {
-  background: #040507;
-  // border: 1px solid $border;
-  border-left: 3px solid $muted;
+  background: var(--gray-1);
+  // border: 1px solid var(--border-default);
+  border-left: 3px solid var(--fg-muted);
   // border-radius: 0 0 4px 4px;
   padding: 10px 12px;
   transition:
@@ -41,20 +41,20 @@
     box-shadow 0.15s;
 
   &:hover {
-    border-color: $blue;
+    border-color: var(--accent);
   }
 
   &.saExplore {
-    border-left-color: #3fb950;
+    border-left-color: var(--agent-explore);
   }
   &.saPlan {
-    border-left-color: #a371f7;
+    border-left-color: var(--agent-plan);
   }
   &.saGeneralPurpose {
-    border-left-color: #58a6ff;
+    border-left-color: var(--agent-general);
   }
   &.saCodeReviewer {
-    border-left-color: #f0883e;
+    border-left-color: var(--agent-reviewer);
   }
 }
 
@@ -75,27 +75,27 @@
 .saType {
   font-size: 11px;
   font-weight: 700;
-  color: $text;
-  background: #21262d;
-  border: 1px solid $border;
+  color: var(--fg-default);
+  background: var(--border-default);
+  border: 1px solid var(--border-default);
   border-radius: 3px;
   padding: 2px 6px;
 }
 
 .saId {
   font-size: 11px;
-  color: $faint;
+  color: var(--fg-subtle);
   font-family: monospace;
 }
 
 .saTurnsCount {
   font-size: 11px;
-  color: $muted;
+  color: var(--fg-muted);
 }
 
 .saDesc {
   font-size: 12px;
-  color: $muted;
+  color: var(--fg-muted);
   margin-bottom: 6px;
   line-height: 1.4;
 }
@@ -113,14 +113,14 @@
   gap: 6px;
   margin-top: 8px;
   padding-top: 6px;
-  border-top: 1px solid $border;
+  border-top: 1px solid var(--border-default);
   font-size: 11px;
-  color: $faint;
+  color: var(--fg-subtle);
   cursor: pointer;
   user-select: none;
 
   &:hover {
-    color: $blue;
+    color: var(--accent);
   }
 }
 
@@ -136,7 +136,7 @@
 
 .saTurnsContainer {
   margin-top: 8px;
-  border-top: 1px solid $border;
+  border-top: 1px solid var(--border-default);
   padding-top: 8px;
 }
 
@@ -147,8 +147,8 @@
 }
 
 .saTurnBody {
-  background: $bg;
-  border: 1px solid $border;
+  background: var(--bg-body);
+  border: 1px solid var(--border-default);
   border-radius: 4px;
   overflow: hidden;
   transition:
@@ -156,10 +156,10 @@
     box-shadow 0.15s;
 
   .saTurn:hover & {
-    border-color: $blue;
+    border-color: var(--accent);
     box-shadow:
-      0 0 0 1px #58a6ff33,
-      0 0 12px #58a6ff22;
+      0 0 0 1px var(--accent-hover-shadow),
+      0 0 12px var(--blue-a2);
   }
 }
 
@@ -172,11 +172,11 @@
 
 .saTurnNum {
   font-weight: 700;
-  color: $muted;
+  color: var(--fg-muted);
 }
 
 .saTurnTime {
-  color: $faint;
+  color: var(--fg-subtle);
   font-size: 10px;
 }
 
@@ -195,14 +195,14 @@
 .saToolPill {
   padding: 1px 4px;
   letter-spacing: 0.04em;
-  color: $muted;
+  color: var(--fg-muted);
   border-radius: 3px;
   font-size: 10px;
 }
 
 .saSection {
   padding: 6px 10px;
-  border-top: 1px solid $border;
+  border-top: 1px solid var(--border-default);
   position: relative;
 }
 
@@ -214,27 +214,27 @@
   font-size: 11px;
   line-height: 1.5;
   scrollbar-width: thin;
-  scrollbar-color: $border2 transparent;
+  scrollbar-color: var(--border-strong) transparent;
 }
 
 .saSectionUser {
-  color: $muted;
+  color: var(--fg-muted);
 }
 
 .saSectionAssistant {
-  color: $text;
+  color: var(--fg-default);
 }
 
 // Subagent tools
 .saToolsGroup {
-  border-left: 1px solid $border;
+  border-left: 1px solid var(--border-default);
   padding: 3px 10px;
   margin-left: 16px;
 }
 
 .saToolsErr {
   font-size: 10px;
-  color: $red;
+  color: var(--danger);
   font-weight: 700;
   margin-bottom: 4px;
 }
@@ -244,7 +244,7 @@
   align-items: center;
   gap: 8px;
   padding: 3px 0;
-  border-bottom: 1px solid #21262d;
+  border-bottom: 1px solid var(--border-default);
   font-size: 11px;
 
   &:last-child {
@@ -255,7 +255,7 @@
 .saToolName {
   font-weight: 600;
   min-width: 60px;
-  color: $muted;
+  color: var(--fg-muted);
 }
 
 .saToolParams {
@@ -264,7 +264,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: $faint;
+  color: var(--fg-subtle);
 }
 
 .saToolMeta {
@@ -275,7 +275,7 @@
 
 .saToolDur,
 .saToolSize {
-  color: $faint;
+  color: var(--fg-subtle);
 }
 
 .saToolSt {
@@ -283,9 +283,9 @@
   font-size: 10px;
 
   &.ok {
-    color: $green;
+    color: var(--success);
   }
   &.err {
-    color: $red;
+    color: var(--danger);
   }
 }

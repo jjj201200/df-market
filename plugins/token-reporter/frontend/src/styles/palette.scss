@@ -1,0 +1,183 @@
+// ═══════════════════════════════════════════════════════════
+// Layer 1 — Palette (primitives, reference only by tokens)
+//
+// 12-step scale per Radix convention:
+//   1-2  backgrounds
+//   3-5  interactive (normal / hover / active)
+//   6-8  borders (subtle / interactive / strong)
+//   9-10 solids (primary / hover)
+//   11-12 text (low-contrast / high-contrast)
+//
+// Alpha variants: -a{step} for translucent use
+// ═══════════════════════════════════════════════════════════
+
+:root {
+  // ── Gray ──
+  --gray-1: #0d1117;
+  --gray-2: #121212;
+  --gray-3: #161b22;
+  --gray-4: #1b1f27;
+  --gray-5: #21262d;
+  --gray-6: #30363d;
+  --gray-7: #3d444d;
+  --gray-8: #484f58;
+  --gray-9: #6e7681;
+  --gray-10: #8b949e;
+  --gray-11: #b1bac4;
+  --gray-12: #c9d1d9;
+
+  // Special grays (not on the 12-step scale)
+  --gray-surface: #1b1b1b;
+  --gray-sticky: #16191c;
+  --gray-inset: #0a0e14;
+
+  --gray-a2: #c9d1d90d;
+  --gray-a3: #c9d1d915;
+  --gray-a4: #c9d1d91a;
+  --gray-a5: #c9d1d922;
+  --gray-a6: #c9d1d933;
+  --gray-a7: #c9d1d944;
+
+  // ── Blue ──
+  --blue-1: #0a1929;
+  --blue-2: #0e2040;
+  --blue-3: #122d56;
+  --blue-4: #163b6e;
+  --blue-5: #1a4a87;
+  --blue-6: #1f5ca3;
+  --blue-7: #2665ac;
+  --blue-8: #1f6feb;
+  --blue-9: #388bfd;
+  --blue-10: #58a6ff;
+  --blue-11: #79c0ff;
+  --blue-12: #a5d6ff;
+
+  --blue-a2: #58a6ff15;
+  --blue-a3: #58a6ff22;
+  --blue-a4: #58a6ff33;
+  --blue-a5: #58a6ff44;
+  --blue-a6: #58a6ff55;
+
+  // ── Green ──
+  --green-1: #071a0e;
+  --green-2: #0d2818;
+  --green-3: #1a3a28;
+  --green-4: #23503a;
+  --green-5: #2c6a4e;
+  --green-6: #2ea043;
+  --green-7: #3fb950;
+  --green-8: #56d364;
+  --green-9: #3fb950;
+  --green-10: #56d364;
+  --green-11: #7ee787;
+  --green-12: #a8d8a8;
+
+  --green-a2: #3fb95015;
+  --green-a3: #3fb95022;
+  --green-a4: #3fb95033;
+  --green-a5: #3fb95044;
+  --green-a6: #3fb95055;
+
+  // ── Amber ──
+  --amber-1: #1a1200;
+  --amber-2: #2b1d00;
+  --amber-3: #3a2a00;
+  --amber-4: #4b3700;
+  --amber-5: #5c4500;
+  --amber-6: #7a5b00;
+  --amber-7: #9e7700;
+  --amber-8: #bb8f00;
+  --amber-9: #d29922;
+  --amber-10: #e3b341;
+  --amber-11: #f0c75e;
+  --amber-12: #f8dfa1;
+
+  // Special amber
+  --amber-user: #161406;
+
+  --amber-a2: #d2992215;
+  --amber-a3: #d2992222;
+  --amber-a4: #d2992233;
+  --amber-a5: #d2992244;
+  --amber-a6: #d2992255;
+
+  // ── Purple ──
+  --purple-1: #140e2a;
+  --purple-2: #1c1535;
+  --purple-3: #2a1a3a;
+  --purple-4: #362252;
+  --purple-5: #442b6a;
+  --purple-6: #6e40c9;
+  --purple-7: #8957e5;
+  --purple-8: #a371f7;
+  --purple-9: #bc8cff;
+  --purple-10: #d2a8ff;
+  --purple-11: #e2c5ff;
+  --purple-12: #f0e0ff;
+
+  --purple-a2: #bc8cff15;
+  --purple-a3: #bc8cff22;
+  --purple-a4: #bc8cff33;
+  --purple-a5: #bc8cff44;
+  --purple-a6: #bc8cff55;
+
+  // ── Red ──
+  --red-1: #1a0a0a;
+  --red-2: #2a1212;
+  --red-3: #3d1717;
+  --red-4: #521e1e;
+  --red-5: #6b2626;
+  --red-6: #8b3535;
+  --red-7: #b34040;
+  --red-8: #da3b3b;
+  --red-9: #f85149;
+  --red-10: #ff7b72;
+  --red-11: #ffa198;
+  --red-12: #ffc8c2;
+
+  --red-a2: #f8514915;
+  --red-a3: #f8514922;
+  --red-a4: #f8514933;
+  --red-a5: #f8514944;
+  --red-a6: #f8514955;
+
+  // ── Orange ──
+  --orange-1: #1a0f00;
+  --orange-2: #2a1a05;
+  --orange-3: #3a1a00;
+  --orange-4: #4d2800;
+  --orange-5: #633600;
+  --orange-6: #8a4a00;
+  --orange-7: #b35c00;
+  --orange-8: #d47616;
+  --orange-9: #f0883e;
+  --orange-10: #ffa657;
+  --orange-11: #ffbd7a;
+  --orange-12: #ffd8a8;
+
+  --orange-a2: #f0883e15;
+  --orange-a3: #f0883e22;
+  --orange-a4: #f0883e33;
+  --orange-a5: #f0883e44;
+  --orange-a6: #f0883e55;
+
+  // ── Cyan ──
+  --cyan-1: #061a1e;
+  --cyan-2: #0b2830;
+  --cyan-3: #103844;
+  --cyan-4: #16495a;
+  --cyan-5: #1c5b70;
+  --cyan-6: #2a7a93;
+  --cyan-7: #3899b0;
+  --cyan-8: #4ec9b0;
+  --cyan-9: #56b6c2;
+  --cyan-10: #76d6e3;
+  --cyan-11: #a5e8f0;
+  --cyan-12: #ccf2f7;
+
+  --cyan-a2: #56b6c215;
+  --cyan-a3: #56b6c222;
+  --cyan-a4: #56b6c233;
+  --cyan-a5: #56b6c244;
+  --cyan-a6: #56b6c255;
+}

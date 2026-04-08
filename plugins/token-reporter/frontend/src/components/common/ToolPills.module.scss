@@ -16,57 +16,57 @@
 }
 
 .tpBash {
-  background: #3a2a00;
-  color: $yellow;
-  border: 1px solid #d2992244;
+  background: var(--tool-bash-bg);
+  color: var(--tool-bash);
+  border: 1px solid var(--tool-bash-border);
 }
 .tpRead {
-  background: #0e2040;
-  color: #79c0ff;
-  border: 1px solid #79c0ff44;
+  background: var(--tool-read-bg);
+  color: var(--tool-read);
+  border: 1px solid var(--tool-read-border);
 }
 .tpEdit {
-  background: #1a3a28;
-  color: $green;
-  border: 1px solid #3fb95044;
+  background: var(--tool-edit-bg);
+  color: var(--tool-edit);
+  border: 1px solid var(--tool-edit-border);
 }
 .tpWrite {
-  background: #1a3a28;
-  color: $green;
-  border: 1px solid #3fb95044;
+  background: var(--tool-write-bg);
+  color: var(--tool-write);
+  border: 1px solid var(--tool-write-border);
 }
 .tpGrep {
-  background: #0e2040;
-  color: #79c0ff;
-  border: 1px solid #79c0ff44;
+  background: var(--tool-grep-bg);
+  color: var(--tool-grep);
+  border: 1px solid var(--tool-grep-border);
 }
 .tpGlob {
-  background: #0e2040;
-  color: #79c0ff;
-  border: 1px solid #79c0ff44;
+  background: var(--tool-glob-bg);
+  color: var(--tool-glob);
+  border: 1px solid var(--tool-glob-border);
 }
 .tpWeb {
-  background: #2a1a3a;
-  color: $purple;
-  border: 1px solid #bc8cff44;
+  background: var(--tool-web-bg);
+  color: var(--tool-web);
+  border: 1px solid var(--tool-web-border);
 }
 .tpAgent {
-  background: #3a1a00;
-  color: $orange;
-  border: 1px solid #f0883e44;
+  background: var(--tool-agent-bg);
+  color: var(--tool-agent);
+  border: 1px solid var(--tool-agent-border);
 }
 .tpMcp {
-  background: #1a1a3a;
-  color: #a78bfa;
-  border: 1px solid #a78bfa44;
+  background: var(--tool-mcp-bg);
+  color: var(--tool-mcp);
+  border: 1px solid var(--tool-mcp-border);
 }
 .tpToolsearch {
-  background: #1a1a3a;
-  color: #a78bfa;
-  border: 1px solid #a78bfa44;
+  background: var(--tool-toolsearch-bg);
+  color: var(--tool-toolsearch);
+  border: 1px solid var(--tool-toolsearch-border);
 }
 .tpOther {
-  background: $surface;
-  color: $muted;
-  border: 1px solid $border;
+  background: var(--tool-other-bg);
+  color: var(--tool-other);
+  border: 1px solid var(--tool-other-border);
 }

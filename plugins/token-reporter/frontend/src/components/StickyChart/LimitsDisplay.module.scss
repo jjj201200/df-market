@@ -1,9 +1,7 @@
-@use '../../styles/variables' as *;
-
 .limitsDisplay {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid $border;
+  border-top: 1px solid var(--border-default);
 }
 
 .limitsRowCompact {
@@ -22,7 +20,7 @@
 
 .limitLabel {
   font-size: 11px;
-  color: $faint;
+  color: var(--fg-subtle);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   white-space: nowrap;
@@ -32,7 +30,7 @@
 .limitBar {
   width: 60px;
   height: 6px;
-  background: $border;
+  background: var(--border-default);
   border-radius: 3px;
   overflow: hidden;
   flex-shrink: 0;
@@ -48,14 +46,14 @@
 .limitPct {
   font-size: 12px;
   font-weight: 600;
-  color: $text;
+  color: var(--fg-default);
   min-width: 32px;
   margin: 0;
 }
 
 .limitDetail {
   font-size: 11px;
-  color: $faint;
+  color: var(--fg-subtle);
   white-space: nowrap;
   margin: 0;
 }

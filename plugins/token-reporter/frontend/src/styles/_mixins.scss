@@ -1,7 +1,7 @@
 @use 'variables' as *;
 
 @mixin skeleton-shimmer {
-  background: linear-gradient(90deg, #161b22 25%, #21262d 50%, #161b22 75%);
+  background: linear-gradient(90deg, var(--shimmer-from) 25%, var(--shimmer-to) 50%, var(--shimmer-from) 75%);
   background-size: 600px 100%;
   animation: shimmer 1.4s infinite linear;
   border-radius: $radius-sm;
@@ -18,7 +18,7 @@
   max-height: $max-height;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: $border2 transparent;
+  scrollbar-color: var(--border-strong) transparent;
 
   &::-webkit-scrollbar {
     width: 6px;
@@ -29,7 +29,7 @@
   }
 
   &::-webkit-scrollbar-thumb {
-    background: $border2;
+    background: var(--border-strong);
     border-radius: 3px;
   }
 }
