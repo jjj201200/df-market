@@ -58,26 +58,24 @@ export function fmtBytes(b: number): string {
   return b >= 1024 ? (b / 1024).toFixed(1) + ' KB' : b.toFixed(0) + ' B';
 }
 
+function fmtResetTime(timestamp: number, short: boolean): string {
+  if (!timestamp) return '';
+  const d = new Date(timestamp * 1000);
+  const mo = (d.getMonth() + 1).toString().padStart(2, '0');
+  const dd = d.getDate().toString().padStart(2, '0');
+  const hh = d.getHours().toString().padStart(2, '0');
+  const mm = d.getMinutes().toString().padStart(2, '0');
+  if (short) return `${mo}-${dd} ${hh}:${mm}`;
+  const ss = d.getSeconds().toString().padStart(2, '0');
+  return `${d.getFullYear()}-${mo}-${dd} ${hh}:${mm}:${ss}`;
+}
+
 /** Format reset time from unix timestamp to absolute datetime (local timezone) */
 export function fmtResetTimeAbsolute(timestamp: number): string {
-  if (!timestamp) return '';
-  const date = new Date(timestamp * 1000);
-  const year = date.getFullYear();
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const day = date.getDate().toString().padStart(2, '0');
-  const hours = date.getHours().toString().padStart(2, '0');
-  const mins = date.getMinutes().toString().padStart(2, '0');
-  const secs = date.getSeconds().toString().padStart(2, '0');
-  return `${year}-${month}-${day} ${hours}:${mins}:${secs}`;
+  return fmtResetTime(timestamp, false);
 }
 
 /** Format reset time without year: MM-DD HH:MM */
 export function fmtResetTimeShort(timestamp: number): string {
-  if (!timestamp) return '';
-  const date = new Date(timestamp * 1000);
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const day = date.getDate().toString().padStart(2, '0');
-  const hours = date.getHours().toString().padStart(2, '0');
-  const mins = date.getMinutes().toString().padStart(2, '0');
-  return `${month}-${day} ${hours}:${mins}`;
+  return fmtResetTime(timestamp, true);
 }
