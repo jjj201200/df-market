@@ -1,6 +1,7 @@
 import {useMemo} from 'react';
 import {PieChart, Pie, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid} from 'recharts';
 import {useSessionStore} from '../../../stores/sessionStore';
+import {useI18n} from '../../../i18n';
 import {computeSessionCost} from '../../../utils/cost';
 import {fmtUsd, fmtTokens, fmtPct} from '../../../utils/format';
 import {
@@ -38,19 +39,20 @@ export default function OverviewPanel() {
   const thinking = useMemo(() => computeThinkingMetrics(turns, modelBreakdown.dominantModelId), [turns, modelBreakdown.dominantModelId]);
   const sidechain = useMemo(() => computeSidechainMetrics(turns), [turns]);
   const timing = useMemo(() => computeTimingMetrics(turns, cost.total), [turns, cost.total]);
-  const recommendations = useMemo(
-    () => generateRecommendations({cache, tools, context, subagent, cost, modelBreakdown, thinking, sidechain, timing}),
-    [cache, tools, context, subagent, cost, modelBreakdown, thinking, sidechain, timing]
-  );
+  const {t} = useI18n();
 
+  const recommendations = useMemo(
+    () => generateRecommendations({cache, tools, context, subagent, cost, modelBreakdown, thinking, sidechain, timing}, t),
+    [cache, tools, context, subagent, cost, modelBreakdown, thinking, sidechain, timing, t]
+  );
   const tc = tokenColors();
 
   // Recharts reads `fill` from data entries for Pie
   const pieData = [
-    {name: 'Input', value: cost.byType.input, fill: tc.input},
-    {name: 'Output', value: cost.byType.output, fill: tc.output},
-    {name: 'Cache Read', value: cost.byType.cacheRead, fill: tc.cacheRead},
-    {name: 'Cache Create', value: cost.byType.cacheCreation, fill: tc.cacheCreation},
+    {name: t('common.input'), value: cost.byType.input, fill: tc.input},
+    {name: t('common.output'), value: cost.byType.output, fill: tc.output},
+    {name: t('common.cacheRead'), value: cost.byType.cacheRead, fill: tc.cacheRead},
+    {name: t('common.cacheCreate'), value: cost.byType.cacheCreation, fill: tc.cacheCreation},
   ].filter((d) => d.value > 0);
 
   const tlc = toolColors();
@@ -70,27 +72,27 @@ export default function OverviewPanel() {
     <Panel>
       {/* Summary Cards */}
       <CardGrid>
-        <StatCard label="Total Cost" value={fmtUsd(cost.total)} sub={`${turns.length} turns`} />
-        <StatCard label="Total Tokens" value={fmtTokens(totalTokens)} />
-        <StatCard label="Avg / Turn" value={fmtUsd(cost.avgPerTurn)} />
+        <StatCard label={t('overview.totalCost')} value={fmtUsd(cost.total)} sub={t('overview.nTurns', {count: turns.length})} />
+        <StatCard label={t('overview.totalTokens')} value={fmtTokens(totalTokens)} />
+        <StatCard label={t('overview.avgPerTurn')} value={fmtUsd(cost.avgPerTurn)} />
         <StatCard
-          label="Most Expensive Turn"
+          label={t('overview.mostExpensiveTurn')}
           value={`#${cost.maxTurnIdx + 1}`}
           sub={fmtUsd(cost.maxTurnCost)}
           color="var(--danger)"
         />
         {thinking.turnsWithThinking > 0 && (
           <StatCard
-            label="Thinking Turns"
+            label={t('overview.thinkingTurns')}
             value={`${thinking.turnsWithThinking}/${thinking.turnsTotal}`}
             sub={fmtPct(thinking.thinkingPct)}
           />
         )}
         {thinking.estimatedThinkingCost > 0 && (
           <StatCard
-            label="Est. Thinking Cost"
+            label={t('overview.estThinkingCost')}
             value={fmtUsd(thinking.estimatedThinkingCost)}
-            sub={`~${fmtTokens(thinking.estimatedThinkingTokens)} tokens`}
+            sub={t('overview.tokensEstimate', {tokens: fmtTokens(thinking.estimatedThinkingTokens)})}
             color={cost.total > 0 && thinking.estimatedThinkingCost / cost.total > 0.3 ? 'var(--danger)' : undefined}
           />
         )}
@@ -99,7 +101,7 @@ export default function OverviewPanel() {
       {/* Charts Row */}
       <ChartGrid>
         {/* Cost by Token Type (Donut) */}
-        <ChartBox title="Cost by Token Type">
+        <ChartBox title={t('overview.costByTokenType')}>
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
               <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" stroke="none" isAnimationActive={false} />
@@ -122,7 +124,7 @@ export default function OverviewPanel() {
         </ChartBox>
 
         {/* Tool Call Distribution */}
-        <ChartBox title="Tool Calls by Category">
+        <ChartBox title={t('overview.toolCallsByCategory')}>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={toolBarData} layout="vertical" margin={{top: 4, right: 12, bottom: 4, left: 50}}>
               <CartesianGrid horizontal={false} stroke={gridStroke()} strokeDasharray="3 3" />
@@ -138,7 +140,7 @@ export default function OverviewPanel() {
       {/* Model Breakdown */}
       {modelBreakdown.models.length > 1 && (
         <ChartGrid>
-          <ChartBox title="Cost by Model">
+          <ChartBox title={t('overview.costByModel')}>
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
                 <Pie
@@ -172,15 +174,15 @@ export default function OverviewPanel() {
               ))}
             </div>
           </ChartBox>
-          <ChartBox title="Model Details">
+          <ChartBox title={t('overview.modelDetails')}>
             <table className={s.modelTable}>
               <thead>
                 <tr>
-                  <th>Model</th>
-                  <th>Turns</th>
-                  <th>Tokens</th>
-                  <th>Cost</th>
-                  <th>$/Turn</th>
+                  <th>{t('overview.model')}</th>
+                  <th>{t('overview.turns')}</th>
+                  <th>{t('overview.tokens')}</th>
+                  <th>{t('overview.cost')}</th>
+                  <th>{t('overview.costPerTurn')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -197,7 +199,7 @@ export default function OverviewPanel() {
             </table>
             {modelBreakdown.modelSwitches > 0 && (
               <div className={s.modelSwitches}>
-                Model switches: {modelBreakdown.modelSwitches}
+                {t('overview.modelSwitches', {count: modelBreakdown.modelSwitches})}
               </div>
             )}
           </ChartBox>
@@ -207,7 +209,7 @@ export default function OverviewPanel() {
       {/* Recommendations */}
       {recommendations.length > 0 && (
         <div className={s.recsSection}>
-          <div className={s.recsTitle}>Recommendations</div>
+          <div className={s.recsTitle}>{t('overview.recommendations')}</div>
           <div className={s.recs}>
             {recommendations.map((r) => (
               <RecommendationCard key={r.id} rec={r} />

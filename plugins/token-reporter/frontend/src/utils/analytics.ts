@@ -1,6 +1,7 @@
 import type {TurnItem, DataItem, SubagentStats, ToolItem, CompactItem} from '../types/state';
 import {computeSessionCost, computeTurnCost, getModelPricing, getModelDisplayName, type SessionCost} from './cost';
 import {parseDur, fmtPct} from './format';
+import type {TFunction} from '../i18n';
 
 export const IDLE_THRESHOLD_MS = 60_000;
 
@@ -524,7 +525,7 @@ export interface RecommendationInput {
   timing?: TimingMetrics;
 }
 
-export function generateRecommendations(input: RecommendationInput): Recommendation[] {
+export function generateRecommendations(input: RecommendationInput, t: TFunction): Recommendation[] {
   const {cache, tools, context, subagent, cost, modelBreakdown, thinking, sidechain, timing} = input;
   const recs: Recommendation[] = [];
   const usd = (v: number) => `$${v.toFixed(4)}`;
@@ -535,10 +536,9 @@ export function generateRecommendations(input: RecommendationInput): Recommendat
       id: 'low-cache',
       severity: 'high',
       category: 'cache',
-      title: `Low cache hit rate (${fmtPct(cache.hitRate)})`,
-      detail:
-        'Cache hit rate below 30%. Structure prompts to preserve prefix stability. Avoid changing system prompts between turns. Static content should come first, dynamic content last.',
-      estimatedSavings: `Up to ${usd(cache.totalInput * 0.5 * (getModelPricing('claude-sonnet-4-6').input - getModelPricing('claude-sonnet-4-6').cacheRead) / 1_000_000)} if hit rate improves to 50%`,
+      title: t('rec.lowCache.title', {rate: fmtPct(cache.hitRate)}),
+      detail: t('rec.lowCache.detail'),
+      estimatedSavings: t('rec.lowCache.savings', {amount: usd(cache.totalInput * 0.5 * (getModelPricing('claude-sonnet-4-6').input - getModelPricing('claude-sonnet-4-6').cacheRead) / 1_000_000)}),
     });
   }
 
@@ -548,8 +548,8 @@ export function generateRecommendations(input: RecommendationInput): Recommendat
       id: 'tool-errors',
       severity: 'high',
       category: 'tools',
-      title: `${tools.totalErrors} of ${tools.totalCalls} tool calls failed (${fmtPct(tools.errorRate)})`,
-      detail: 'Failed tool calls waste tokens on both the request and the error response. Check common error patterns.',
+      title: t('rec.toolErrors.title', {errors: tools.totalErrors, total: tools.totalCalls, rate: fmtPct(tools.errorRate)}),
+      detail: t('rec.toolErrors.detail'),
     });
   }
 
@@ -560,8 +560,8 @@ export function generateRecommendations(input: RecommendationInput): Recommendat
       id: 'redundant-tools',
       severity: totalRedundant > 5 ? 'high' : 'medium',
       category: 'tools',
-      title: `${totalRedundant} redundant tool calls detected`,
-      detail: `${tools.redundantGroups.length} tool call pattern(s) repeated with identical results. Top: ${tools.redundantGroups[0]!.cls}(${tools.redundantGroups[0]!.keyParam.slice(0, 60)}) x${tools.redundantGroups[0]!.count}.`,
+      title: t('rec.redundantTools.title', {count: totalRedundant}),
+      detail: t('rec.redundantTools.detail', {groups: tools.redundantGroups.length, top: `${tools.redundantGroups[0]!.cls}(${tools.redundantGroups[0]!.keyParam.slice(0, 60)}) x${tools.redundantGroups[0]!.count}`}),
     });
   }
 
@@ -574,9 +574,8 @@ export function generateRecommendations(input: RecommendationInput): Recommendat
         id: 'frequent-compact',
         severity: 'medium',
         category: 'context',
-        title: `Context compacted ${context.compactEvents.length} times (avg every ${Math.round(avgTurns)} turns)`,
-        detail:
-          'Sessions hitting context limits quickly. Consider more targeted file reads (use offset/limit), more specific grep patterns, and delegating verbose tasks to subagents.',
+        title: t('rec.frequentCompact.title', {count: context.compactEvents.length, avgTurns: Math.round(avgTurns)}),
+        detail: t('rec.frequentCompact.detail'),
       });
     }
   }
@@ -589,8 +588,8 @@ export function generateRecommendations(input: RecommendationInput): Recommendat
         id: 'high-output',
         severity: 'medium',
         category: 'cost',
-        title: `Output tokens account for ${fmtPct(outputPct)} of cost`,
-        detail: 'Output tokens are 5x more expensive than input. Consider asking for concise responses or reducing verbose explanations.',
+        title: t('rec.highOutput.title', {pct: fmtPct(outputPct)}),
+        detail: t('rec.highOutput.detail'),
       });
     }
   }
@@ -601,8 +600,8 @@ export function generateRecommendations(input: RecommendationInput): Recommendat
       id: 'large-returns',
       severity: 'medium',
       category: 'tools',
-      title: `${tools.largeCalls.length} tool calls returned >50KB`,
-      detail: `Large tool returns inflate context. Use offset/limit for Read, more specific grep patterns, or pipe through head/tail for bash. Largest: ${tools.largeCalls[0]!.toolName} (${tools.largeCalls[0]!.retSize}).`,
+      title: t('rec.largeReturns.title', {count: tools.largeCalls.length}),
+      detail: t('rec.largeReturns.detail', {toolName: tools.largeCalls[0]!.toolName, retSize: tools.largeCalls[0]!.retSize}),
     });
   }
 
@@ -612,9 +611,9 @@ export function generateRecommendations(input: RecommendationInput): Recommendat
       id: 'subagent-cost',
       severity: 'medium',
       category: 'cost',
-      title: `Subagents consumed ${fmtPct(subagent.subagentCostPct)} of total cost`,
-      detail: 'Verify that subagent delegations are worthwhile. Consider using Haiku model for exploration subagents.',
-      estimatedSavings: `${usd(subagent.totalSubagentCost * 0.8)} if subagents used Haiku`,
+      title: t('rec.subagentCost.title', {pct: fmtPct(subagent.subagentCostPct)}),
+      detail: t('rec.subagentCost.detail'),
+      estimatedSavings: t('rec.subagentCost.savings', {amount: usd(subagent.totalSubagentCost * 0.8)}),
     });
   }
 
@@ -624,8 +623,8 @@ export function generateRecommendations(input: RecommendationInput): Recommendat
       id: 'good-cache',
       severity: 'low',
       category: 'cache',
-      title: `Good cache hit rate (${fmtPct(cache.hitRate)})`,
-      detail: `Cache is working well. Saved approximately ${usd(cache.estimatedSavings)} this session.`,
+      title: t('rec.goodCache.title', {rate: fmtPct(cache.hitRate)}),
+      detail: t('rec.goodCache.detail', {amount: usd(cache.estimatedSavings)}),
     });
   }
 
@@ -635,8 +634,8 @@ export function generateRecommendations(input: RecommendationInput): Recommendat
       id: 'high-idle',
       severity: 'medium',
       category: 'cost',
-      title: `${fmtPct(timing.idlePct)} of session time was idle`,
-      detail: 'More time was spent idle than active. Consider batching requests or planning prompts before starting a session.',
+      title: t('rec.highIdle.title', {pct: fmtPct(timing.idlePct)}),
+      detail: t('rec.highIdle.detail'),
     });
   }
 
@@ -648,8 +647,8 @@ export function generateRecommendations(input: RecommendationInput): Recommendat
           id: `slow-tool-${cls}`,
           severity: 'medium',
           category: 'tools',
-          title: `${cls} tools average ${(dur.avgMs / 1000).toFixed(1)}s per call`,
-          detail: `${dur.count} ${cls} calls averaged over 5s. Long-running commands inflate session time. Consider running them outside Claude Code.`,
+          title: t('rec.slowTool.title', {cls, time: (dur.avgMs / 1000).toFixed(1)}),
+          detail: t('rec.slowTool.detail', {count: dur.count, cls}),
         });
         break; // Only report the slowest class
       }
@@ -662,8 +661,8 @@ export function generateRecommendations(input: RecommendationInput): Recommendat
       id: 'high-thinking',
       severity: 'medium',
       category: 'cost',
-      title: `Extended thinking ~${fmtPct(thinking.estimatedThinkingCost / cost.total)} of output cost`,
-      detail: `Thinking tokens (~${Math.round(thinking.estimatedThinkingTokens / 1000)}K est.) are charged at output rates. For straightforward tasks, consider shorter prompts or models without extended thinking.`,
+      title: t('rec.highThinking.title', {pct: fmtPct(thinking.estimatedThinkingCost / cost.total)}),
+      detail: t('rec.highThinking.detail', {tokens: Math.round(thinking.estimatedThinkingTokens / 1000)}),
     });
   }
 
@@ -675,8 +674,8 @@ export function generateRecommendations(input: RecommendationInput): Recommendat
         id: 'opus-simple-tasks',
         severity: 'medium',
         category: 'cost',
-        title: `Opus used for ${opusEntry.turns} turns with short outputs`,
-        detail: `Average output is only ${Math.round(opusEntry.avgOutputPerTurn)} tokens/turn on Opus. These may be simple tasks better suited for Sonnet (5x cheaper).`,
+        title: t('rec.opusSimple.title', {turns: opusEntry.turns}),
+        detail: t('rec.opusSimple.detail', {tokens: Math.round(opusEntry.avgOutputPerTurn)}),
         estimatedSavings: usd(opusEntry.cost * 0.8),
       });
     }
@@ -688,8 +687,8 @@ export function generateRecommendations(input: RecommendationInput): Recommendat
       id: 'high-sidechain',
       severity: 'medium',
       category: 'cost',
-      title: `Sidechain operations: ${fmtPct(sidechain.sidechainCostPct)} of total cost`,
-      detail: `${sidechain.sidechainTurns} sidechain turns consumed ${usd(sidechain.sidechainCost)}. Review whether all sidechain tool executions are necessary.`,
+      title: t('rec.highSidechain.title', {pct: fmtPct(sidechain.sidechainCostPct)}),
+      detail: t('rec.highSidechain.detail', {turns: sidechain.sidechainTurns, amount: usd(sidechain.sidechainCost)}),
     });
   }
 
