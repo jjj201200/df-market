@@ -1,4 +1,5 @@
 "use strict";
+const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
@@ -113,6 +114,26 @@ async function main() {
     await new Promise((r) => setTimeout(r, 100));
     if (fs.existsSync(PID_PATH)) break;
   }
+
+  // 8. Notify server of new session (fire-and-forget)
+  const sessionId = process.env.CLAUDE_SESSION_ID || "";
+  const port = config.port || 3737;
+  const body = JSON.stringify({ sessionId });
+  const notifyReq = http.request(
+    {
+      hostname: "127.0.0.1",
+      port,
+      path: "/notify-new-session",
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(body),
+      },
+    },
+    () => {},
+  );
+  notifyReq.on("error", () => {});
+  notifyReq.end(body);
 
   process.exit(0);
 }
