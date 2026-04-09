@@ -106,16 +106,17 @@ async function main() {
     process.exit(1);
   }
 
-  // Spawn server process
+  // Spawn server process as detached background daemon
   const child = spawn(process.execPath, [SERVER_PATH], {
-    detached: false,
-    stdio: 'inherit',
+    detached: true,
+    stdio: 'ignore',
     env: {
       ...process.env,
       TOKEN_REPORTER_PLUGIN_ROOT: PLUGIN_ROOT,
       TOKEN_REPORTER_DATA_DIR: DATA_DIR,
     },
   });
+  child.unref();
 
   // Wait for server to start with adaptive timeout
   // Base wait: 3 seconds, add 2 seconds per port retry (max 10 ports = 20s extra)
