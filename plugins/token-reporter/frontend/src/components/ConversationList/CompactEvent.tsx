@@ -2,6 +2,7 @@ import React from 'react';
 import type {CompactItem} from '../../types/state';
 import {useI18n} from '../../i18n';
 import {fmt} from '../../utils/format';
+import {IconBolt} from '@tabler/icons-react';
 
 const styles: Record<string, React.CSSProperties> = {
   wrap: {
@@ -47,7 +48,7 @@ export const CompactEvent: React.FC<CompactEventProps> = React.memo(({item}) => 
   const {t} = useI18n();
   return (
     <div style={styles.wrap}>
-      <span style={styles.bolt}>&#9889;</span>
+      <IconBolt size={14} stroke={1.5} style={styles.bolt} />
       <span style={styles.label}>{t('compact.label')}</span>
       <span style={styles.detail}>{t('compact.description')}</span>
       <span style={styles.meta}>

@@ -8,6 +8,7 @@ import {ToolPills} from '../common/ToolPills';
 import {ToolStatsPanel} from './ToolStatsPanel';
 import {ToolCard} from './ToolCard';
 import s from './ToolGroup.module.scss';
+import {IconChevronRight} from '@tabler/icons-react';
 
 interface ToolGroupProps {
   turn: TurnItem;
@@ -52,7 +53,7 @@ export const ToolGroup: React.FC<ToolGroupProps> = React.memo(({turn, subagents}
   return (
     <div className={s.tcGroup}>
       <div className={s.tcToggle} onClick={handleToggle}>
-        <span className={clsx(s.arrow, expanded && s.open)}>▶</span>
+        <span className={clsx(s.arrow, expanded && s.open)}><IconChevronRight size={14} stroke={1.5} /></span>
         <span className={s.tcBadge}>
           {total} {total === 1 ? t('conversation.toolCall') : t('conversation.toolCalls')}
         </span>

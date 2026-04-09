@@ -2,6 +2,7 @@ import React, {useCallback} from 'react';
 import {useI18n} from '../../i18n';
 import {useUIStore} from '../../stores/uiStore';
 import s from './ThinkingBlock.module.scss';
+import {IconBrain, IconChevronDown, IconChevronRight} from '@tabler/icons-react';
 
 interface ThinkingBlockProps {
   id: string;
@@ -22,10 +23,15 @@ export const ThinkingBlock: React.FC<ThinkingBlockProps> = React.memo(({id, text
   return (
     <div className={s.thinkingBlock}>
       <div className={s.thinkingHeader} onClick={handleToggle}>
-        <span className={s.thinkingIcon}>🧠</span>
+        <span className={s.thinkingIcon}><IconBrain size={14} stroke={1.5} /></span>
         <span>{t('conversation.internalReasoning')}</span>
         <span className={s.thinkingEstimate}>{t('conversation.tokensEst', {count: estimatedTokens})}</span>
-        <span className={s.thinkingToggle}>{expanded ? `▼ ${t('common.collapse')}` : `▶ ${t('common.expand')}`}</span>
+        <span className={s.thinkingToggle}>
+            {expanded
+              ? <><IconChevronDown size={12} stroke={1.5} style={{verticalAlign: 'middle'}} /> {t('common.collapse')}</>
+              : <><IconChevronRight size={12} stroke={1.5} style={{verticalAlign: 'middle'}} /> {t('common.expand')}</>
+            }
+          </span>
       </div>
       {expanded && <div className={s.thinkingBody}>{text}</div>}
     </div>

@@ -5,6 +5,7 @@ import {useI18n} from '../../i18n';
 import Tooltip from '../common/Tooltip';
 import AnalyticsPage from './AnalyticsPage';
 import s from './AnalyticsDrawer.module.scss';
+import {IconX, IconLayoutColumns, IconLayoutSidebarRight} from '@tabler/icons-react';
 
 export default function AnalyticsDrawer() {
   const drawerOpen = useAnalyticsStore((st) => st.drawerOpen);
@@ -44,12 +45,12 @@ export default function AnalyticsDrawer() {
           <div className={s.headerActions}>
             <Tooltip content={t('nav.exitSplitView')}>
               <button className={s.closeBtn} onClick={toggleSplitView}>
-                ⊞
+                <IconLayoutColumns size={16} stroke={1.5} />
               </button>
             </Tooltip>
             <Tooltip content={t('common.close')}>
               <button className={s.closeBtn} onClick={closeDrawer}>
-                ✕
+                <IconX size={16} stroke={1.5} />
               </button>
             </Tooltip>
           </div>
@@ -73,12 +74,12 @@ export default function AnalyticsDrawer() {
           <div className={s.headerActions}>
             <Tooltip content={t('nav.splitView')}>
               <button className={s.closeBtn} onClick={toggleSplitView}>
-                ⊟
+                <IconLayoutSidebarRight size={16} stroke={1.5} />
               </button>
             </Tooltip>
             <Tooltip content={t('common.close')}>
               <button className={s.closeBtn} onClick={closeDrawer}>
-                ✕
+                <IconX size={16} stroke={1.5} />
               </button>
             </Tooltip>
           </div>

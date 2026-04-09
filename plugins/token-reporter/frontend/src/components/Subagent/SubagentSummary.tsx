@@ -5,6 +5,7 @@ import {ToolPills} from '../common/ToolPills';
 import {TokenBadges} from '../common/TokenBadges';
 import {SubagentTurn} from './SubagentTurn';
 import s from './SubagentSummary.module.scss';
+import {IconChevronRight} from '@tabler/icons-react';
 
 const AGENT_TYPE_CLASS: Record<string, string> = {
   explore: 'saExplore',
@@ -67,7 +68,7 @@ function SubagentCardItem({agentId, stats}: {agentId: string; stats: SubagentSta
 
       {hasTurns && (
         <div className={s.saExpandRow} onClick={() => setExpanded(!expanded)}>
-          <span className={clsx(s.arrow, expanded && s.open)}>&#x25B6;</span>
+          <span className={clsx(s.arrow, expanded && s.open)}><IconChevronRight size={14} stroke={1.5} /></span>
           <span>View {stats.totalTurns} turns</span>
         </div>
       )}

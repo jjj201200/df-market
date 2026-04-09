@@ -6,6 +6,7 @@ import {useUIStore} from '../../stores/uiStore';
 import {TokenBadges} from '../common/TokenBadges';
 import {ThinkingBlock} from './ThinkingBlock';
 import s from './TurnItem.module.scss';
+import {IconChevronUp, IconChevronDown} from '@tabler/icons-react';
 
 interface AssistantMessageProps {
   turn: TurnItem;
@@ -50,7 +51,10 @@ export const AssistantMessage: React.FC<AssistantMessageProps> = React.memo(({tu
           <div ref={textRef} className={clsx(s.msgText, !expanded && s.clamped)}>{assistantText}</div>
           {overflows && (
             <span className={s.expandBtn} onClick={handleToggle}>
-              {expanded ? `▲ ${t('common.collapse')}` : `▼ ${t('common.expandAll')}`}
+              {expanded
+                  ? <><IconChevronUp size={12} stroke={1.5} style={{verticalAlign: 'middle'}} /> {t('common.collapse')}</>
+                  : <><IconChevronDown size={12} stroke={1.5} style={{verticalAlign: 'middle'}} /> {t('common.expandAll')}</>
+                }
             </span>
           )}
         </div>

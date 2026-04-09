@@ -5,6 +5,7 @@ import {useI18n} from '../../i18n';
 import {useUIStore} from '../../stores/uiStore';
 import {TokenBadges} from '../common/TokenBadges';
 import s from './TurnItem.module.scss';
+import {IconChevronUp, IconChevronDown} from '@tabler/icons-react';
 
 interface UserMessageProps {
   turn: TurnItem;
@@ -47,7 +48,10 @@ export const UserMessage: React.FC<UserMessageProps> = React.memo(({turn, isHove
         <div ref={textRef} className={clsx(s.msgText, !expanded && s.clamped)}>{userText}</div>
         {overflows && (
           <span className={s.expandBtn} onClick={handleToggle}>
-            {expanded ? `▲ ${t('common.collapse')}` : `▼ ${t('common.expandAll')}`}
+            {expanded
+                ? <><IconChevronUp size={12} stroke={1.5} style={{verticalAlign: 'middle'}} /> {t('common.collapse')}</>
+                : <><IconChevronDown size={12} stroke={1.5} style={{verticalAlign: 'middle'}} /> {t('common.expandAll')}</>
+              }
           </span>
         )}
       </div>

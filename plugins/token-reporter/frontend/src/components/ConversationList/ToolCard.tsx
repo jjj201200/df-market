@@ -7,6 +7,7 @@ import {useUIStore} from '../../stores/uiStore';
 import {CopyButton} from '../common/CopyButton';
 import {SubagentCard} from '../Subagent/SubagentCard';
 import s from './ToolCard.module.scss';
+import {IconArrowRight, IconChevronRight} from '@tabler/icons-react';
 
 /** Map vc (value-class) string to CSS module class */
 function getVcClass(vc: string): string {
@@ -72,7 +73,7 @@ export const ToolCard: React.FC<ToolCardProps> = React.memo(({tool, detailId, tu
           {tool.mcp && (
             <div className={s.tcMcpInfo}>
               <span className={s.tcMcpServer}>{tool.mcp.server}</span>
-              <span className={s.tcMcpSep}>&rarr;</span>
+              <span className={s.tcMcpSep}><IconArrowRight size={12} stroke={1.5} style={{verticalAlign: 'middle'}} /></span>
               <span className={s.tcMcpMethod}>{tool.mcp.method}</span>
             </div>
           )}
@@ -90,7 +91,7 @@ export const ToolCard: React.FC<ToolCardProps> = React.memo(({tool, detailId, tu
 
       {/* Expand row */}
       <div className={clsx(s.tcExpandRow, expanded && s.open)} onClick={handleToggle}>
-        <span className={s.arrow}>▶</span>
+        <span className={s.arrow}><IconChevronRight size={14} stroke={1.5} /></span>
         <span>{t('conversation.expandParams')}</span>
         {tool.retLines && tool.retLines !== '—' && <span className={s.retLinesHint}>{tool.retLines}</span>}
       </div>

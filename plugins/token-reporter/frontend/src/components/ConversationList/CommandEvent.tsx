@@ -4,6 +4,7 @@ import type {CommandItem} from '../../types/state';
 import {useI18n} from '../../i18n';
 import {useUIStore} from '../../stores/uiStore';
 import s from './CommandEvent.module.scss';
+import {IconCommand, IconChevronRight} from '@tabler/icons-react';
 
 interface CommandEventProps {
   item: CommandItem;
@@ -25,14 +26,14 @@ export const CommandEvent: React.FC<CommandEventProps> = React.memo(({item}) => 
   return (
     <div className={s.eventCommand}>
       <div className={s.evCmdHead}>
-        <span className={s.evCmdIcon}>&#8984;</span>
+        <span className={s.evCmdIcon}><IconCommand size={14} stroke={1.5} /></span>
         <span className={s.evCmdName}>{item.command}</span>
         {showMessage && <span className={s.evCmdMsg}>{item.message}</span>}
         <span className={s.evCmdTime}>{item.time}</span>
       </div>
       {hasOutput && (
         <div className={clsx(s.evCmdExpandRow, expanded && s.open)} onClick={handleToggle}>
-          <span className={s.arrow}>&#9654;</span>
+          <span className={s.arrow}><IconChevronRight size={14} stroke={1.5} /></span>
           <span>{t('conversation.commandOutput')}</span>
         </div>
       )}

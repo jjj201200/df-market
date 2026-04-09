@@ -12,14 +12,17 @@ import SessionBar from './SessionBar';
 import MainChart from './MainChart';
 import BrushChart from './BrushChart';
 import BrushOverlay from './BrushOverlay';
+import {brushToFirstIdx, brushToLastIdx} from '../../utils/brushCoords';
 // import ChartLegend from './ChartLegend';
 import LimitsDisplay from './LimitsDisplay';
 import styles from './StickyChart.module.scss';
+import {IconExternalLink} from '@tabler/icons-react';
 
 export default function StickyChart() {
   const {t, locale} = useI18n();
   const setLocale = useI18nStore((s) => s.setLocale);
   const turns = useSessionStore((s) => s.turns);
+  const sessionLoading = useSessionStore((s) => s.sessionLoading);
 
   const langOptions: DropdownOption[] = useMemo(
     () => [
@@ -36,8 +39,8 @@ export default function StickyChart() {
   const rangeLabel = useMemo(() => {
     const N = turns.length;
     if (N === 0) return '';
-    const lo = Math.round(brushL * (N - 1));
-    const hi = Math.round(brushR * (N - 1));
+    const lo = brushToFirstIdx(brushL, N);
+    const hi = brushToLastIdx(brushR, N);
     const first = turns[lo];
     const last = turns[hi];
     if (!first || !last) return '';
@@ -73,33 +76,56 @@ export default function StickyChart() {
       </div>
       <Tooltip content={t('nav.sessionAnalytics')} placement="bottom">
         <button className={styles.analyticsBtn} onClick={toggleDrawer}>
-          {t('nav.analytics')} ↗
+          {t('nav.analytics')} <IconExternalLink size={12} stroke={1.5} style={{verticalAlign: 'middle'}} />
         </button>
       </Tooltip>
       <SessionBar />
 
-      <div className={styles.chartHeader}>
-        <span className={styles.chartTitleText}>{t('chart.tokenUsage')}</span>
-        {rangeLabel && <span className={styles.rangeLabel}>{rangeLabel}</span>}
-      </div>
+      {sessionLoading ? (
+        <>
+          <div className={styles.chartHeader}>
+            <span className={styles.chartTitleText}>{t('chart.tokenUsage')}</span>
+            <div className={styles.skChartHeader} />
+          </div>
+          <div className={styles.chartArea}>
+            <div className={styles.mainChartScroll}>
+              <div className={styles.skMainChart} />
+            </div>
+            <div className={styles.skBrushWrap}>
+              <div className={styles.skBrushChart} />
+            </div>
+          </div>
+          <div className={styles.bottomRow}>
+            <div className={styles.skLimits} />
+            <DimBar />
+          </div>
+        </>
+      ) : (
+        <>
+          <div className={styles.chartHeader}>
+            <span className={styles.chartTitleText}>{t('chart.tokenUsage')}</span>
+            {rangeLabel && <span className={styles.rangeLabel}>{rangeLabel}</span>}
+          </div>
 
-      <div ref={chartAreaRef} className={styles.chartArea}>
-        <div className={styles.mainChartScroll}>
-          <MainChart />
-        </div>
+          <div ref={chartAreaRef} className={styles.chartArea}>
+            <div className={styles.mainChartScroll}>
+              <MainChart />
+            </div>
 
-        <div className={styles.brushWrap}>
-          <BrushChart />
-          <BrushOverlay />
-        </div>
-      </div>
+            <div className={styles.brushWrap}>
+              <BrushChart />
+              <BrushOverlay />
+            </div>
+          </div>
 
-      {/* <ChartLegend /> */}
+          {/* <ChartLegend /> */}
 
-      <div className={styles.bottomRow}>
-        <LimitsDisplay />
-        <DimBar />
-      </div>
+          <div className={styles.bottomRow}>
+            <LimitsDisplay />
+            <DimBar />
+          </div>
+        </>
+      )}
     </div>
   );
 }
