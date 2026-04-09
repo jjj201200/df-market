@@ -106,6 +106,50 @@
   border-top: 1px solid var(--border-default);
 }
 
+@keyframes shimmer {
+  0% {
+    background-position: -600px 0;
+  }
+  100% {
+    background-position: 600px 0;
+  }
+}
+
+.skBlock {
+  background: linear-gradient(90deg, var(--shimmer-from) 25%, var(--shimmer-to) 50%, var(--shimmer-from) 75%);
+  background-size: 600px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 4px;
+}
+
+.skChartHeader {
+  composes: skBlock;
+  height: 16px;
+  width: 80px;
+}
+
+.skMainChart {
+  composes: skBlock;
+  height: 120px;
+  width: 100%;
+}
+
+.skBrushWrap {
+  margin-top: 16px;
+}
+
+.skBrushChart {
+  composes: skBlock;
+  height: 40px;
+  width: 100%;
+}
+
+.skLimits {
+  composes: skBlock;
+  height: 20px;
+  width: 200px;
+}
+
 @mixin compact {
   .stickyChart {
     padding: 42px 10px 6px;
@@ -113,6 +157,7 @@
 
   .bottomRow {
     gap: 8px;
+    flex-wrap: wrap;
   }
 
   .chartHeader {
@@ -126,7 +171,7 @@
   }
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1500px) {
   @include compact;
 }
 
