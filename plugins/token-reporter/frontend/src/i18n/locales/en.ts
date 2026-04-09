@@ -52,11 +52,6 @@ export const en = {
     copyId: 'Copy ID',
     copySessionId: 'Copy session ID',
     copiedId: 'Copied!',
-    in: 'In',
-    out: 'Out',
-    cr: 'CR',
-    cc: 'CC',
-    turns: 'Turns',
   },
 
   limits: {

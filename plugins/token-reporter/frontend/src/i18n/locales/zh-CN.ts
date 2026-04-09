@@ -2,10 +2,10 @@ import type {Translation} from './en';
 
 export const zhCN: Translation = {
   common: {
-    input: '输入',
-    output: '输出',
-    cacheRead: '缓存读取',
-    cacheCreate: '缓存创建',
+    input: 'Input',
+    output: 'Output',
+    cacheRead: 'Cache Read',
+    cacheCreate: 'Cache Create',
     inputShort: 'In',
     outputShort: 'Out',
     cacheReadShort: 'CR',
@@ -47,25 +47,20 @@ export const zhCN: Translation = {
 
   chart: {
     tokenUsage: 'Token 用量',
-    requestRange: '请求 #{first} \u2013 #{last}',
+    requestRange: 'Request #{first} \u2013 #{last}',
   },
 
   session: {
     copyId: '复制 ID',
     copySessionId: '复制会话 ID',
     copiedId: '已复制!',
-    in: '输入',
-    out: '输出',
-    cr: '缓读',
-    cc: '缓创',
-    turns: '轮次',
   },
 
   limits: {
     title: '限额',
-    session: '会话',
-    fiveHour: '5小时',
-    sevenDay: '7天',
+    session: 'Session',
+    fiveHour: '5H',
+    sevenDay: '7D',
     reset: '重置于 {time}',
   },
 
@@ -195,9 +190,9 @@ export const zhCN: Translation = {
   },
 
   conversation: {
-    assistant: '助手',
+    assistant: 'Assistant',
     sidechain: '侧链',
-    user: '用户',
+    user: 'User',
     internalReasoning: '内部推理',
     tokensEst: '{count} tokens (预估)',
     toolCall: '次工具调用',
