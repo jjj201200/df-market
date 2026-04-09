@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@floating-ui/react": "^0.27.19",
+    "@tabler/icons-react": "^3.41.1",
     "@tanstack/react-virtual": "^3.13.23",
     "clsx": "^2.1.1",
     "react": "^19.0.0",
