@@ -94,6 +94,19 @@ async function handleRequest(req, res) {
     return;
   }
 
+  if (url.pathname === "/notify-new-session" && req.method === "POST") {
+    let body = "";
+    req.on("data", (d) => (body += d));
+    req.on("end", () => {
+      try {
+        const { sessionId } = JSON.parse(body);
+        broadcast({ type: "new_session", sessionId: sessionId || "" });
+      } catch {}
+      res.writeHead(200).end("ok");
+    });
+    return;
+  }
+
   // Receive real-time limits data from status line wrapper
   if (url.pathname === "/api/limits" && req.method === "POST") {
     let body = "";
