@@ -15,16 +15,9 @@
   min-width: 0;
 }
 
-.sessionSelect {
+.sessionDropdown {
   min-width: 0;
-  background: var(--bg-model-tag);
-  border: 1px solid var(--border-default);
-  border-radius: 5px;
-  padding: 2px 10px;
-  color: var(--accent);
-  font-size: 12px;
-  cursor: pointer;
-  font-family: inherit;
+  flex: 1;
 }
 
 .sessionCopyBtn {

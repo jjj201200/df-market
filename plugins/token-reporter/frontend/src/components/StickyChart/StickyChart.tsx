@@ -1,7 +1,11 @@
-import {useMemo, useRef, useEffect} from 'react';
+import {useMemo, useRef, useEffect, useCallback} from 'react';
 import {useChartStore} from '../../stores/chartStore';
 import {useSessionStore} from '../../stores/sessionStore';
 import {useAnalyticsStore} from '../../stores/analyticsStore';
+import {useI18n} from '../../i18n';
+import {useI18nStore} from '../../stores/i18nStore';
+import Dropdown from '../common/Dropdown';
+import type {DropdownOption} from '../common/Dropdown';
 import DimBar from './DimBar';
 import SessionBar from './SessionBar';
 import MainChart from './MainChart';
@@ -12,7 +16,18 @@ import LimitsDisplay from './LimitsDisplay';
 import styles from './StickyChart.module.scss';
 
 export default function StickyChart() {
+  const {t, locale} = useI18n();
+  const setLocale = useI18nStore((s) => s.setLocale);
   const turns = useSessionStore((s) => s.turns);
+
+  const langOptions: DropdownOption[] = useMemo(
+    () => [
+      {value: 'en', label: 'EN'},
+      {value: 'zh-CN', label: '中文'},
+    ],
+    [],
+  );
+  const handleLocaleChange = useCallback((val: string) => setLocale(val as 'en' | 'zh-CN'), [setLocale]);
   const brushL = useChartStore((s) => s.brushL);
   const brushR = useChartStore((s) => s.brushR);
   const toggleDrawer = useAnalyticsStore((s) => s.toggleDrawer);
@@ -25,8 +40,8 @@ export default function StickyChart() {
     const first = turns[lo];
     const last = turns[hi];
     if (!first || !last) return '';
-    return `Request #${first.id} \u2013 #${last.id}`;
-  }, [turns, brushL, brushR]);
+    return t('chart.requestRange', {first: first.id, last: last.id});
+  }, [turns, brushL, brushR, t]);
 
   const chartAreaRef = useRef<HTMLDivElement>(null);
 
@@ -47,14 +62,21 @@ export default function StickyChart() {
       <div className={styles.title}>
         TOKEN REPORTER ❤️ <span>DF</span>
         <span className={styles.version}>v{__PLUGIN_VERSION__}</span>
+        <Dropdown
+          options={langOptions}
+          value={locale}
+          onChange={handleLocaleChange}
+          size="sm"
+          className={styles.langDropdown}
+        />
       </div>
       <button className={styles.analyticsBtn} onClick={toggleDrawer}>
-        Analytics ↗
+        {t('nav.analytics')} ↗
       </button>
       <SessionBar />
 
       <div className={styles.chartHeader}>
-        <span className={styles.chartTitleText}>Token Usage</span>
+        <span className={styles.chartTitleText}>{t('chart.tokenUsage')}</span>
         {rangeLabel && <span className={styles.rangeLabel}>{rangeLabel}</span>}
       </div>
 

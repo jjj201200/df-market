@@ -3,9 +3,13 @@ import clsx from 'clsx';
 import {useSessionStore} from '../../stores/sessionStore';
 import {useChartStore} from '../../stores/chartStore';
 import {fmt} from '../../utils/format';
+import {useI18n} from '../../i18n';
+import Dropdown from '../common/Dropdown';
+import type {DropdownOption} from '../common/Dropdown';
 import styles from './SessionBar.module.scss';
 
 export default function SessionBar() {
+  const {t} = useI18n();
   const sessions = useSessionStore((s) => s.sessions);
   const activeSessionId = useSessionStore((s) => s.activeSessionId);
   const loadSession = useSessionStore((s) => s.loadSession);
@@ -15,9 +19,20 @@ export default function SessionBar() {
 
   const [copied, setCopied] = useState(false);
 
-  const handleChange = useCallback(
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
-      loadSession(e.target.value);
+  const sessionOptions: DropdownOption[] = useMemo(
+    () =>
+      sessions.map((s) => {
+        const time = `${s.mtime.slice(0, 10)} ${s.mtime.slice(11, 16)}`;
+        const title = s.customTitle || s.slug || s.sessionId;
+        const shortId = s.sessionId.slice(0, 8);
+        return {value: s.sessionId, label: `${time} \u00b7 ${title}`, sub: shortId};
+      }),
+    [sessions],
+  );
+
+  const handleSessionChange = useCallback(
+    (val: string) => {
+      loadSession(val);
     },
     [loadSession],
   );
@@ -52,46 +67,43 @@ export default function SessionBar() {
   return (
     <div className={styles.sessionBar}>
       <div className={styles.sessionSelectContainer}>
-        <select className={styles.sessionSelect} value={activeSessionId ?? ''} onChange={handleChange}>
-          {sessions.map((s) => {
-            const time = `${s.mtime.slice(0, 10)} ${s.mtime.slice(11, 16)}`;
-            const title = s.customTitle || s.slug || s.sessionId;
-            const shortId = s.sessionId.slice(0, 8);
-            return (
-              <option key={s.sessionId} value={s.sessionId}>
-                {`${time} · ${title} (${shortId})`}
-              </option>
-            );
-          })}
-        </select>
+        <Dropdown
+          options={sessionOptions}
+          value={activeSessionId ?? ''}
+          onChange={handleSessionChange}
+          size="md"
+          maxHeight={320}
+          matchWidth
+          className={styles.sessionDropdown}
+        />
         <button
           className={clsx(styles.sessionCopyBtn, copied && styles.copied)}
           onClick={handleCopy}
-          title="Copy session ID"
+          title={t('session.copySessionId')}
         >
-          {copied ? 'Copied!' : 'Copy ID'}
+          {copied ? t('session.copiedId') : t('session.copyId')}
         </button>
       </div>
 
       <div className={styles.sessionMeta}>
         <span className={styles.smeta}>
-          <span className={styles.smetaL}>In </span>
+          <span className={styles.smetaL}>{t('session.in')} </span>
           <span className={clsx(styles.smetaV, styles.in)}>{fmt(totals.tIn)}</span>
         </span>
         <span className={styles.smeta}>
-          <span className={styles.smetaL}>Out </span>
+          <span className={styles.smetaL}>{t('session.out')} </span>
           <span className={clsx(styles.smetaV, styles.out)}>{fmt(totals.tOut)}</span>
         </span>
         <span className={styles.smeta}>
-          <span className={styles.smetaL}>CR </span>
+          <span className={styles.smetaL}>{t('session.cr')} </span>
           <span className={clsx(styles.smetaV, styles.cr)}>{fmt(totals.tCR)}</span>
         </span>
         <span className={styles.smeta}>
-          <span className={styles.smetaL}>CC </span>
+          <span className={styles.smetaL}>{t('session.cc')} </span>
           <span className={clsx(styles.smetaV, styles.cc)}>{fmt(totals.tCC)}</span>
         </span>
         <span className={styles.smeta}>
-          <span className={styles.smetaL}>Turns </span>
+          <span className={styles.smetaL}>{t('session.turns')} </span>
           <span className={styles.smetaV}>{totals.count}</span>
         </span>
       </div>
