@@ -18,6 +18,7 @@ export interface DropdownOption {
   value: string;
   label: string;
   sub?: string;
+  isNew?: boolean;
 }
 
 interface DropdownProps {
@@ -136,6 +137,7 @@ export default function Dropdown({
                       >
                         <span className={styles.optLabel}>{opt.label}</span>
                         {opt.sub && <span className={styles.optSub}>{opt.sub}</span>}
+                        {opt.isNew && <span className={styles.optNew}>NEW</span>}
                       </button>
                     );
                   })}
@@ -149,6 +151,7 @@ export default function Dropdown({
                   >
                     <span className={styles.optLabel}>{opt.label}</span>
                     {opt.sub && <span className={styles.optSub}>{opt.sub}</span>}
+                    {opt.isNew && <span className={styles.optNew}>NEW</span>}
                   </button>
                 ))
               )}
