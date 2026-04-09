@@ -1,6 +1,7 @@
 import {useMemo, useRef, useEffect} from 'react';
 import {useChartStore} from '../../stores/chartStore';
 import {useSessionStore} from '../../stores/sessionStore';
+import {useAnalyticsStore} from '../../stores/analyticsStore';
 import DimBar from './DimBar';
 import SessionBar from './SessionBar';
 import MainChart from './MainChart';
@@ -14,6 +15,7 @@ export default function StickyChart() {
   const turns = useSessionStore((s) => s.turns);
   const brushL = useChartStore((s) => s.brushL);
   const brushR = useChartStore((s) => s.brushR);
+  const toggleDrawer = useAnalyticsStore((s) => s.toggleDrawer);
 
   const rangeLabel = useMemo(() => {
     const N = turns.length;
@@ -46,6 +48,9 @@ export default function StickyChart() {
         TOKEN REPORTER ❤️ <span>DF</span>
         <span className={styles.version}>v{__PLUGIN_VERSION__}</span>
       </div>
+      <button className={styles.analyticsBtn} onClick={toggleDrawer}>
+        Analytics ↗
+      </button>
       <SessionBar />
 
       <div className={styles.chartHeader}>

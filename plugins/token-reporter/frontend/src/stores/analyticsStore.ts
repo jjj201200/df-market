@@ -1,18 +1,19 @@
 import {create} from 'zustand';
 
-export type AnalyticsView = 'session' | 'analytics';
 export type AnalyticsTab = 'overview' | 'cache' | 'tools' | 'context' | 'subagents';
 
 interface AnalyticsStore {
-  activeView: AnalyticsView;
+  drawerOpen: boolean;
   activeTab: AnalyticsTab;
-  setActiveView: (v: AnalyticsView) => void;
+  toggleDrawer: () => void;
+  closeDrawer: () => void;
   setActiveTab: (t: AnalyticsTab) => void;
 }
 
 export const useAnalyticsStore = create<AnalyticsStore>((set) => ({
-  activeView: 'session',
+  drawerOpen: false,
   activeTab: 'overview',
-  setActiveView: (activeView) => set({activeView}),
+  toggleDrawer: () => set((s) => ({drawerOpen: !s.drawerOpen})),
+  closeDrawer: () => set({drawerOpen: false}),
   setActiveTab: (activeTab) => set({activeTab}),
 }));
