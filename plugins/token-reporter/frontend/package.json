@@ -11,6 +11,8 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx,scss}\""
   },
   "dependencies": {
+    "@floating-ui/react": "^0.27.19",
+    "@tanstack/react-virtual": "^3.13.23",
     "clsx": "^2.1.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

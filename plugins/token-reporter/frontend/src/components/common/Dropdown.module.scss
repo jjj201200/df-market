@@ -1,0 +1,143 @@
+@use '../../styles/variables' as *;
+
+.dropdown {
+  display: inline-flex;
+  position: relative;
+}
+
+/* ─── Trigger button ──────────────────────────── */
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-model-tag);
+  border: 1px solid var(--border-default);
+  border-radius: $radius-sm;
+  color: var(--accent);
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+
+  &:hover,
+  &.open {
+    border-color: var(--accent);
+    background: var(--bg-surface);
+  }
+
+  &.sm {
+    font-size: $font-size-xs;
+    padding: 2px 6px;
+  }
+
+  &.md {
+    font-size: $font-size-sm;
+    padding: 2px 10px;
+  }
+}
+
+.triggerLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.triggerSub {
+  color: var(--fg-subtle);
+  margin-left: 4px;
+}
+
+.chevron {
+  font-size: 10px;
+  color: var(--fg-subtle);
+  transition: transform 0.15s;
+  flex-shrink: 0;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+/* ─── Popover (floating) ─────────────────────── */
+
+.popover {
+  z-index: 1000;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: $radius-md;
+  box-shadow: 0 8px 24px var(--shadow-drop);
+  overflow: hidden;
+}
+
+.listWrap {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  /* Minimal scrollbar */
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--gray-a5);
+    border-radius: 2px;
+  }
+}
+
+/* ─── Option items ───────────────────────────── */
+
+.option {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: var(--fg-default);
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  white-space: nowrap;
+  transition:
+    background 0.1s,
+    color 0.1s;
+
+  &:hover {
+    background: var(--gray-a3);
+  }
+
+  &.active {
+    color: var(--accent-fg);
+    background: var(--blue-a3);
+  }
+
+  &.sm {
+    font-size: $font-size-xs;
+    padding: 4px 8px;
+  }
+
+  &.md {
+    font-size: $font-size-sm;
+    padding: 6px 10px;
+  }
+}
+
+.optLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.optSub {
+  color: var(--fg-subtle);
+  font-size: $font-size-xs;
+  margin-left: auto;
+  flex-shrink: 0;
+}
