@@ -16,7 +16,7 @@
 
 .sessionDropdown {
   min-width: 0;
-  flex: 1;
+  width: 100%;
 }
 
 .sessionCopyBtn {
@@ -48,6 +48,20 @@
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+@keyframes shimmer {
+  0% { background-position: -600px 0; }
+  100% { background-position: 600px 0; }
+}
+
+.sessionMetaSkeleton {
+  height: 16px;
+  width: 220px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--shimmer-from) 25%, var(--shimmer-to) 50%, var(--shimmer-from) 75%);
+  background-size: 600px 100%;
+  animation: shimmer 1.4s infinite linear;
 }
 
 .smeta {
@@ -96,7 +110,7 @@
   }
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1500px) {
   @include compact;
 }
 
@@ -108,4 +122,30 @@
   .sessionMeta {
     gap: 4px 8px;
   }
+}
+
+.sessionDropdownWrap {
+  position: relative;
+  min-width: 0;
+  flex: 1;
+}
+
+.newBadge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: var(--color-danger, #e53e3e);
+  color: #fff;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 10;
+  line-height: 1;
 }
