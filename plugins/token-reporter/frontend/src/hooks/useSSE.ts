@@ -10,6 +10,8 @@ const ERROR_THROTTLE = 1000;
 export function useSSE() {
   const refreshCurrentSession = useSessionStore((s) => s.refreshCurrentSession);
   const setLimits = useLimitsStore((s) => s.setLimits);
+  const fetchSessionsQuietly = useSessionStore((s) => s.fetchSessionsQuietly);
+  const addNewSessionId = useSessionStore((s) => s.addNewSessionId);
   const connRef = useRef<EventSource | null>(null);
   const attemptsRef = useRef(0);
   const delayRef = useRef(3000);
@@ -65,6 +67,11 @@ export function useSSE() {
               await refreshCurrentSession();
             } else if (msg.type === 'limits_update' && msg.sessionId && msg.payload) {
               setLimits(msg.sessionId, msg.payload as Parameters<typeof setLimits>[1]);
+            } else if (msg.type === 'new_session') {
+              await fetchSessionsQuietly();
+              if (msg.sessionId) {
+                addNewSessionId(msg.sessionId);
+              }
             }
           } catch {
             /* ignore parse errors */
@@ -130,5 +137,5 @@ export function useSSE() {
         connRef.current = null;
       }
     };
-  }, [refreshCurrentSession, setLimits]);
+  }, [refreshCurrentSession, setLimits, fetchSessionsQuietly, addNewSessionId]);
 }
