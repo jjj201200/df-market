@@ -21,6 +21,10 @@ interface SessionStore {
   fetchSessions: () => Promise<void>;
   loadSession: (id: string, opts?: {preserveScroll?: boolean}) => Promise<void>;
   refreshCurrentSession: () => Promise<void>;
+  newSessionIds: Set<string>;
+  addNewSessionId: (id: string) => void;
+  clearNewSessionId: (id: string) => void;
+  fetchSessionsQuietly: () => Promise<void>;
 }
 
 export const useSessionStore = create<SessionStore>((set, get) => ({
@@ -33,6 +37,7 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
   subagents: {},
   sessionLoading: false,
   sessionError: null,
+  newSessionIds: new Set<string>(),
 
   fetchSessions: async () => {
     set({sessionsLoading: true, sessionsError: null});
@@ -82,6 +87,7 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
       });
 
       localStorage.setItem(LAST_SESSION_KEY, sessionId);
+      get().clearNewSessionId(sessionId);
 
       // Always keep turnCount in sync for brush snapping
       useChartStore.getState().setTurnCount(turns.length);
@@ -115,6 +121,28 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
     const {activeSessionId} = get();
     if (activeSessionId) {
       await get().loadSession(activeSessionId, {preserveScroll: true});
+    }
+  },
+
+  addNewSessionId: (id) => {
+    if (!id) return;
+    set((s) => ({ newSessionIds: new Set([...s.newSessionIds, id]) }));
+  },
+
+  clearNewSessionId: (id) => {
+    set((s) => {
+      const next = new Set(s.newSessionIds);
+      next.delete(id);
+      return { newSessionIds: next };
+    });
+  },
+
+  fetchSessionsQuietly: async () => {
+    try {
+      const list = await getSessions();
+      set({ sessions: list });
+    } catch {
+      // Silent failure — don't disrupt the current session view
     }
   },
 }));
