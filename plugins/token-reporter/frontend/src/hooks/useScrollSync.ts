@@ -117,15 +117,17 @@ function updateViewRange() {
       if (loIdx < 0) {
         loIdx = i;
         // Sub-index precision: how much of this turn is hidden above the viewport
+        // Offset by -0.5 so the indicator starts at the bar's left edge
         const h = rect.height || 1;
         const hiddenAbove = Math.max(0, viewTop - top);
-        loPct = (i + hiddenAbove / h) / Nm1;
+        loPct = (i - 0.5 + hiddenAbove / h) / Nm1;
       }
       hiIdx = i;
       // Sub-index precision: how much of this turn is hidden below the viewport
+      // Offset by +0.5 so the indicator ends at the bar's right edge
       const h = rect.height || 1;
       const hiddenBelow = Math.max(0, bottom - viewBottom);
-      hiPct = (i - hiddenBelow / h) / Nm1;
+      hiPct = (i + 0.5 - hiddenBelow / h) / Nm1;
     }
   }
 
@@ -139,15 +141,16 @@ function updateViewRange() {
   return {loIdx, hiIdx, loPct, hiPct};
 }
 
+let _brushInitialized = false;
+
 export function useScrollSync(splitView?: boolean) {
   useEffect(() => {
     const container = getScrollContainer();
 
     // Initialize brush width based on actual viewport size after DOM is ready
-    // Only runs once on mount when turns are loaded
-    let initialized = false;
+    // Only runs once across the entire app lifecycle (not on splitView toggles)
     const initBrushFromViewport = () => {
-      if (initialized) return;
+      if (_brushInitialized) return;
       const turns = useSessionStore.getState().turns;
       if (turns.length > 0) {
         const viewportTurnCount = estimateViewportTurnCount();
@@ -155,7 +158,7 @@ export function useScrollSync(splitView?: boolean) {
         if (Math.abs(viewportTurnCount - 20) > 3) {
           useChartStore.getState().initBrushForTurnCount(turns.length, viewportTurnCount);
         }
-        initialized = true;
+        _brushInitialized = true;
       }
     };
 
@@ -179,8 +182,10 @@ export function useScrollSync(splitView?: boolean) {
       if (N === 0 || loIdx < 0) return;
 
       const Nm1 = Math.max(N - 1, 1);
-      const viewL = loIdx / Nm1;
-      const viewR = hiIdx / Nm1;
+      const half = 0.5 / Nm1;
+      // Use inter-bar gap boundaries to match brush snap positions
+      const viewL = loIdx / Nm1 - half;
+      const viewR = hiIdx / Nm1 + half;
       const {brushL, brushR, setBrush} = useChartStore.getState();
       const span = brushR - brushL;
 
@@ -188,17 +193,13 @@ export function useScrollSync(splitView?: boolean) {
       const viewSpan = viewR - viewL;
       if (viewSpan > span) {
         // Viewport is larger than brush — expand brush to cover viewport
-        const newL = Math.max(0, viewL);
-        const newR = Math.min(1, viewR);
-        setBrush(newL, newR);
+        setBrush(viewL, viewR);
       } else if (viewR > brushR) {
         // Viewport overflows right — push brush right
-        const newL = Math.min(viewR - span, 1 - span);
-        setBrush(newL, newL + span);
+        setBrush(viewR - span, viewR);
       } else if (viewL < brushL) {
         // Viewport overflows left — push brush left
-        const newL = Math.max(viewL, 0);
-        setBrush(newL, newL + span);
+        setBrush(viewL, viewL + span);
       }
     }
 
