@@ -3,7 +3,7 @@ import {useChartStore} from '../../stores/chartStore';
 import {useSessionStore} from '../../stores/sessionStore';
 import {scrollToTurnIndex} from './MainChart';
 import {lockBrushDriving, deferScrollToTurn} from '../../hooks/useScrollSync';
-import {brushToPixelPct, pixelToBrushPct} from '../../utils/brushCoords';
+import {brushToPixelPct, pixelToBrushPct, brushToFirstIdx, brushToLastIdx} from '../../utils/brushCoords';
 import styles from './BrushOverlay.module.scss';
 
 const ZOOM_FACTOR = 0.05; // 5% zoom per wheel tick
@@ -19,6 +19,7 @@ export default function BrushOverlay() {
   const viewHiPct = useChartStore((s) => s.viewHiPct);
   const turns = useSessionStore((s) => s.turns);
 
+  const resizeTick = useChartStore((s) => s.resizeTick);
   const overlayRef = useRef<HTMLDivElement>(null);
   const lastWheelTime = useRef<number>(0);
   const [overlayWidth, setOverlayWidth] = useState<number>(0);
@@ -40,7 +41,7 @@ export default function BrushOverlay() {
       window.removeEventListener('resize', measure);
       clearTimeout(timer);
     };
-  }, []);
+  }, [resizeTick]);
 
   // Zoom towards mouse position (like map zoom, throttled)
   // When already at min span, pans towards mouse instead
@@ -112,17 +113,14 @@ export default function BrushOverlay() {
       setBrush(newL, newR);
 
       // Defer scroll until wheel stops — only scroll if viewport is outside new brush range
-      const capturedL = newL;
-      const capturedR = newR;
       const N = turns.length;
       if (N > 0) {
         deferScrollToTurn(() => {
-          const {viewLoPct: vL, viewHiPct: vR} = useChartStore.getState();
-          const Nm1 = Math.max(N - 1, 1);
-          if (vL < capturedL) {
-            scrollToTurnIndex(turns, Math.round(capturedL * Nm1));
-          } else if (vR > capturedR) {
-            scrollToTurnIndex(turns, Math.round(capturedR * Nm1), 'bottom');
+          const {brushL: bL, brushR: bR, viewLoPct: vL, viewHiPct: vR} = useChartStore.getState();
+          if (vL < bL) {
+            scrollToTurnIndex(turns, brushToFirstIdx(bL, N));
+          } else if (vR > bR) {
+            scrollToTurnIndex(turns, brushToLastIdx(bR, N), 'bottom');
           }
         });
       }
@@ -170,13 +168,10 @@ export default function BrushOverlay() {
         // Defer scroll until drag stops — if viewport partially outside brush
         deferScrollToTurn(() => {
           const {brushL: bL, brushR: bR, viewLoPct: vL, viewHiPct: vR} = useChartStore.getState();
-          const Nm1 = Math.max(N - 1, 1);
           if (vR > bR) {
-            // Viewport right edge beyond brush right — align viewport bottom to brush right edge
-            scrollToTurnIndex(turns, Math.round(bR * Nm1), 'bottom');
+            scrollToTurnIndex(turns, brushToLastIdx(bR, N), 'bottom');
           } else if (vL < bL) {
-            // Viewport left edge before brush left — align viewport top to brush left edge
-            scrollToTurnIndex(turns, Math.round(bL * Nm1));
+            scrollToTurnIndex(turns, brushToFirstIdx(bL, N));
           }
         });
       };
@@ -184,11 +179,10 @@ export default function BrushOverlay() {
       const onUp = () => {
         if (styles.dragging) overlayRef.current?.classList.remove(styles.dragging);
         const {brushL: bL, brushR: bR, viewLoPct: vL, viewHiPct: vR} = useChartStore.getState();
-        const Nm1 = Math.max(N - 1, 1);
         if (vR > bR) {
-          scrollToTurnIndex(turns, Math.round(bR * Nm1), 'bottom');
+          scrollToTurnIndex(turns, brushToLastIdx(bR, N), 'bottom');
         } else if (vL < bL) {
-          scrollToTurnIndex(turns, Math.round(bL * Nm1));
+          scrollToTurnIndex(turns, brushToFirstIdx(bL, N));
         }
         window.removeEventListener('mousemove', onMove);
         window.removeEventListener('mouseup', onUp);

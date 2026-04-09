@@ -5,7 +5,15 @@ import {fmt} from '../../utils/format';
 import {DPR, getSegs, setupCanvas} from '../../utils/canvas';
 import type {TurnItem, BarRect} from '../../types/state';
 import {lockBrushDriving, deferScrollToTurn, getScrollContainer} from '../../hooks/useScrollSync';
+import {brushToFirstIdx, brushToLastIdx} from '../../utils/brushCoords';
 import styles from './MainChart.module.scss';
+
+const ANIM_DURATION = 250; // ms
+
+interface BarState {
+  height: number;
+  segs: {key: string; ratio: number; col: string}[];
+}
 
 function getCSSVar(name: string): string {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -73,36 +81,26 @@ export default function MainChart() {
   const setBarRects = useChartStore((s) => s.setBarRects);
   const resizeTick = useChartStore((s) => s.resizeTick);
 
-  // Draw effect
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || turns.length === 0) return;
+  // Animation state persisted across renders
+  const currentBars = useRef<BarState[]>([]);
+  const animFrameRef = useRef<number>(0);
+  // Ref for hoveredId to avoid re-creating drawBars on hover change
+  const hoveredIdRef = useRef(hoveredId);
+  hoveredIdRef.current = hoveredId;
 
-    const N = turns.length;
+  // Shared draw function: renders bars using currentBars heights
+  const drawBars = useCallback((maxT: number, vis: TurnItem[], M: number) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const hovered = hoveredIdRef.current;
+
     const parentW = canvas.parentElement?.clientWidth ?? 400;
     const W = parentW;
     const ctx = setupCanvas(canvas, W, H, DPR);
 
-    const lo = Math.round(brushL * (N - 1));
-    const hi = Math.round(brushR * (N - 1));
-    const vis = turns.slice(lo, hi + 1);
-    const M = vis.length;
-    if (M === 0) return;
-
     const plotW = W - PL - PR;
     const plotH = H - PT - PB;
-
-    // Calculate max token sum for visible turns
-    let maxT = 0;
-    for (const d of vis) {
-      const t =
-        (dims.input ? d.input : 0) +
-        (dims.output ? d.output : 0) +
-        (dims.cacheR ? d.cacheR : 0) +
-        (dims.cacheC ? d.cacheC : 0);
-      if (t > maxT) maxT = t;
-    }
-    if (!maxT) maxT = 1;
 
     // Grid + y-axis labels
     ctx.strokeStyle = getCSSVar('--chart-grid');
@@ -126,11 +124,11 @@ export default function MainChart() {
 
     for (let i = 0; i < M; i++) {
       const d = vis[i]!;
+      const bar = currentBars.current[i];
+      if (!bar || bar.height <= 0) continue;
+
       const cx = PL + gap * (i + 0.5);
-      const segs = getSegs(d, dims);
-      const total = segs.reduce((s, x) => s + x.val, 0);
-      const barH = (total / maxT) * plotH;
-      const isHov = hoveredId === d.id;
+      const isHov = hovered === d.id;
 
       if (isHov) {
         ctx.save();
@@ -139,10 +137,10 @@ export default function MainChart() {
       }
 
       const bW = isHov ? barW + 2 : barW;
-
       let y = PT + plotH;
-      for (const seg of segs) {
-        const sh = (seg.val / total) * barH;
+
+      for (const seg of bar.segs) {
+        const sh = seg.ratio * bar.height;
         ctx.fillStyle = isHov ? seg.col + 'ff' : seg.col + 'cc';
         ctx.fillRect(cx - bW / 2, y - sh, bW, sh);
         y -= sh;
@@ -153,9 +151,9 @@ export default function MainChart() {
       rects.push({
         id: d.id,
         x: cx - barW / 2,
-        y: PT + plotH - barH,
+        y: PT + plotH - bar.height,
         w: barW,
-        h: barH,
+        h: bar.height,
       });
     }
 
@@ -204,7 +202,108 @@ export default function MainChart() {
     }
 
     setBarRects(rects);
-  }, [turns, brushL, brushR, hoveredId, dims, setBarRects, resizeTick]);
+  }, [setBarRects]);
+
+  // Animate bar heights when data or brush changes
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || turns.length === 0) return;
+
+    const N = turns.length;
+    const lo = brushToFirstIdx(brushL, N);
+    const hi = brushToLastIdx(brushR, N);
+    const vis = turns.slice(lo, hi + 1);
+    const M = vis.length;
+    if (M === 0) return;
+
+    const plotH = H - PT - PB;
+
+    // Calculate max token sum for visible turns
+    let maxT = 0;
+    for (const d of vis) {
+      const t =
+        (dims.input ? d.input : 0) +
+        (dims.output ? d.output : 0) +
+        (dims.cacheR ? d.cacheR : 0) +
+        (dims.cacheC ? d.cacheC : 0);
+      if (t > maxT) maxT = t;
+    }
+    if (!maxT) maxT = 1;
+
+    const targetBars: BarState[] = vis.map((d) => {
+      const segs = getSegs(d, dims);
+      const total = segs.reduce((s, x) => s + x.val, 0);
+      const height = total > 0 ? (total / maxT) * plotH : 0;
+      const segRatios = total > 0
+        ? segs.map((seg) => ({key: seg.key, ratio: seg.val / total, col: seg.col}))
+        : [];
+      return {height, segs: segRatios};
+    });
+
+    // Initialize if empty or length changed — no animation
+    if (currentBars.current.length !== M) {
+      currentBars.current = targetBars.map((b) => ({...b}));
+      drawBars(maxT, vis, M);
+      return;
+    }
+
+    const startBars = currentBars.current.map((b) => ({...b}));
+    const startTime = performance.now();
+
+    if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+
+    function tick(now: number) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / ANIM_DURATION, 1);
+      const ease = 1 - Math.pow(1 - progress, 3);
+
+      currentBars.current = startBars.map((s, i) => {
+        const target = targetBars[i]!;
+        return {
+          height: s.height + (target.height - s.height) * ease,
+          segs: target.segs.length > 0 ? target.segs : s.segs,
+        };
+      });
+
+      drawBars(maxT, vis, M);
+
+      if (progress < 1) {
+        animFrameRef.current = requestAnimationFrame(tick);
+      }
+    }
+
+    animFrameRef.current = requestAnimationFrame(tick);
+
+    return () => {
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    };
+  }, [turns, brushL, brushR, dims, resizeTick, drawBars]);
+
+  // Instant redraw on hover change — no animation
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || turns.length === 0) return;
+
+    const N = turns.length;
+    const lo = brushToFirstIdx(brushL, N);
+    const hi = brushToLastIdx(brushR, N);
+    const vis = turns.slice(lo, hi + 1);
+    const M = vis.length;
+    if (M === 0) return;
+
+    let maxT = 0;
+    for (const d of vis) {
+      const t =
+        (dims.input ? d.input : 0) +
+        (dims.output ? d.output : 0) +
+        (dims.cacheR ? d.cacheR : 0) +
+        (dims.cacheC ? d.cacheC : 0);
+      if (t > maxT) maxT = t;
+    }
+    if (!maxT) maxT = 1;
+
+    drawBars(maxT, vis, M);
+  }, [hoveredId, turns, brushL, brushR, dims, drawBars]);
 
   // Mouse handlers
   const handleMouseDown = useCallback(
@@ -234,13 +333,13 @@ export default function MainChart() {
         const offset = -(dx / W) * span;
         const newL = Math.max(0, Math.min(dr.startL + offset, 1 - span));
         setBrush(newL, newL + span);
-        const Nm1 = Math.max(turns.length - 1, 1);
+        const N = turns.length;
         deferScrollToTurn(() => {
           const {brushL: bL, brushR: bR, viewLoPct: vL, viewHiPct: vR} = useChartStore.getState();
           if (vL < bL) {
-            scrollToTurnIndex(turns, Math.round(bL * Nm1));
+            scrollToTurnIndex(turns, brushToFirstIdx(bL, N));
           } else if (vR > bR) {
-            scrollToTurnIndex(turns, Math.round(bR * Nm1), 'bottom');
+            scrollToTurnIndex(turns, brushToLastIdx(bR, N), 'bottom');
           }
         });
       };
@@ -248,12 +347,12 @@ export default function MainChart() {
       const onUp = () => {
         dragRef.current.active = false;
         if (styles.dragging) canvasRef.current?.classList.remove(styles.dragging);
-        const Nm1 = Math.max(turns.length - 1, 1);
+        const N = turns.length;
         const {brushL: bL, brushR: bR, viewLoPct: vL, viewHiPct: vR} = useChartStore.getState();
         if (vL < bL) {
-          scrollToTurnIndex(turns, Math.round(bL * Nm1));
+          scrollToTurnIndex(turns, brushToFirstIdx(bL, N));
         } else if (vR > bR) {
-          scrollToTurnIndex(turns, Math.round(bR * Nm1), 'bottom');
+          scrollToTurnIndex(turns, brushToLastIdx(bR, N), 'bottom');
         }
         window.removeEventListener('mousemove', onMove);
         window.removeEventListener('mouseup', onUp);

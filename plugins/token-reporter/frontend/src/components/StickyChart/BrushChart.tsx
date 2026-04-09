@@ -4,9 +4,12 @@ import {useSessionStore} from '../../stores/sessionStore';
 import {DPR, getSegs, setupCanvas} from '../../utils/canvas';
 import {scrollToTurnIndex} from './MainChart';
 import {lockBrushDriving, deferScrollToTurn} from '../../hooks/useScrollSync';
-import {pixelToBrushPct} from '../../utils/brushCoords';
+import {pixelToBrushPct, brushToFirstIdx, brushToLastIdx} from '../../utils/brushCoords';
 import styles from './BrushChart.module.scss';
-const BRUSH_H = 32;
+const BAR_H = 32;
+const CONV_LINE_GAP = 4;  // gap between bars and conversation lines
+const CONV_LINE_H = 4;    // height of conversation line area
+const BRUSH_H = BAR_H + CONV_LINE_GAP + CONV_LINE_H;
 const ZOOM_FACTOR = 0.05;
 const WHEEL_THROTTLE_MS = 80; // 节流间隔，防止惯性滚动触发过快
 const ANIM_DURATION = 250; // ms
@@ -27,11 +30,11 @@ export default function BrushChart() {
   const setBrush = useChartStore((s) => s.setBrush);
   const resizeTick = useChartStore((s) => s.resizeTick);
   const hoveredId = useChartStore((s) => s.hoveredId);
-
   // Animation state persisted across renders
   const currentBars = useRef<BarState[]>([]);
   const animFrameRef = useRef<number>(0);
   const accentColorRef = useRef<string>('#3b82f6');
+  const mutedColorRef = useRef<string>('#888');
 
   // Shared draw function: renders bars using currentBars heights
   const drawBars = useCallback(() => {
@@ -51,7 +54,7 @@ export default function BrushChart() {
       if (!bar || bar.height <= 0) continue;
 
       const cx = gap * (i + 0.5);
-      let y = BRUSH_H;
+      let y = BAR_H;
       const isHovered = i === hIdx;
 
       if (isHovered) {
@@ -71,6 +74,43 @@ export default function BrushChart() {
         ctx.restore();
       }
     }
+
+    // Draw conversation segment lines at bottom
+    const lineY = BAR_H + CONV_LINE_GAP + CONV_LINE_H / 2;
+    const lineColor = mutedColorRef.current;
+    const {viewLoPct, viewHiPct} = useChartStore.getState();
+    const Nm1 = Math.max(N - 1, 1);
+    // Convert viewport pct to continuous index (fractional), using midpoint between turns as boundary
+    const viewLoF = viewLoPct * Nm1;
+    const viewHiF = viewHiPct * Nm1;
+
+    ctx.lineCap = 'round';
+
+    let convStart = 0;
+    for (let i = 1; i <= N; i++) {
+      const isNewConv = i < N && (turns[i]!.user || '').trim().length > 0;
+      if (isNewConv || i === N) {
+        const convEnd = i - 1;
+        const x1 = gap * (convStart + 0.5) - barW / 2;
+        const x2 = gap * (convEnd + 0.5) + barW / 2;
+
+        // Highlight if viewport overlaps this conversation range
+        // Use midpoints between turns as boundaries: turn i occupies [i-0.5, i+0.5]
+        const rangeLoF = convStart - 0.5;
+        const rangeHiF = convEnd + 0.5;
+        const overlaps = rangeHiF > viewLoF && rangeLoF < viewHiF;
+        ctx.strokeStyle = lineColor;
+        ctx.lineWidth = 1.5;
+        ctx.globalAlpha = overlaps ? 0.8 : 0.25;
+
+        ctx.beginPath();
+        ctx.moveTo(x1, lineY);
+        ctx.lineTo(x2, lineY);
+        ctx.stroke();
+        convStart = i;
+      }
+    }
+    ctx.globalAlpha = 1;
   }, [turns, hoveredId]);
 
   // Animate bar heights when data or dims change
@@ -79,7 +119,9 @@ export default function BrushChart() {
     if (!canvas || turns.length === 0) return;
 
     const N = turns.length;
-    accentColorRef.current = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#3b82f6';
+    const rootStyle = getComputedStyle(document.documentElement);
+    accentColorRef.current = rootStyle.getPropertyValue('--accent').trim() || '#3b82f6';
+    mutedColorRef.current = rootStyle.getPropertyValue('--fg-muted').trim() || '#888';
 
     let maxT = 0;
     for (const d of turns) {
@@ -95,7 +137,7 @@ export default function BrushChart() {
     const targetBars: BarState[] = turns.map((d) => {
       const segs = getSegs(d, dims);
       const total = segs.reduce((s, x) => s + x.val, 0);
-      const height = total > 0 ? (total / maxT) * (BRUSH_H - 2) : 0;
+      const height = total > 0 ? (total / maxT) * (BAR_H - 2) : 0;
       const segRatios = total > 0
         ? segs.map((seg) => ({key: seg.key, ratio: seg.val / total, col: seg.col}))
         : [];
@@ -146,6 +188,19 @@ export default function BrushChart() {
     drawBars();
   }, [hoveredId, drawBars]);
 
+  // Redraw when viewport range changes (without causing component re-render)
+  useEffect(() => {
+    let prevLo = useChartStore.getState().viewLoIdx;
+    let prevHi = useChartStore.getState().viewHiIdx;
+    return useChartStore.subscribe((s) => {
+      if (s.viewLoIdx !== prevLo || s.viewHiIdx !== prevHi) {
+        prevLo = s.viewLoIdx;
+        prevHi = s.viewHiIdx;
+        drawBars();
+      }
+    });
+  }, [drawBars]);
+
   // Click handler: center brush at click position
   const handleClick = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -158,7 +213,7 @@ export default function BrushChart() {
       let newL = ratio - span / 2;
       newL = Math.max(0, Math.min(newL, 1 - span));
       setBrush(newL, newL + span);
-      scrollToTurnIndex(turns, Math.round(newL * (N - 1)));
+      scrollToTurnIndex(turns, brushToFirstIdx(newL, N));
     },
     [turns, brushL, brushR, setBrush],
   );
@@ -231,17 +286,14 @@ export default function BrushChart() {
       setBrush(newL, newR);
 
       // Defer scroll until wheel stops — only scroll if viewport is outside new brush range
-      const capturedL = newL;
-      const capturedR = newR;
       const N = turns.length;
       if (N > 0) {
         deferScrollToTurn(() => {
-          const {viewLoPct: vL, viewHiPct: vR} = useChartStore.getState();
-          const Nm1 = Math.max(N - 1, 1);
-          if (vL < capturedL) {
-            scrollToTurnIndex(turns, Math.round(capturedL * Nm1));
-          } else if (vR > capturedR) {
-            scrollToTurnIndex(turns, Math.round(capturedR * Nm1), 'bottom');
+          const {brushL: bL, brushR: bR, viewLoPct: vL, viewHiPct: vR} = useChartStore.getState();
+          if (vL < bL) {
+            scrollToTurnIndex(turns, brushToFirstIdx(bL, N));
+          } else if (vR > bR) {
+            scrollToTurnIndex(turns, brushToLastIdx(bR, N), 'bottom');
           }
         });
       }
