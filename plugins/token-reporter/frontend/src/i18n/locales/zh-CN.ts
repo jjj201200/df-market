@@ -1,0 +1,269 @@
+import type {Translation} from './en';
+
+export const zhCN: Translation = {
+  common: {
+    input: '输入',
+    output: '输出',
+    cacheRead: '缓存读取',
+    cacheCreate: '缓存创建',
+    turns: '轮次',
+    turn: '轮次',
+    total: '总计',
+    cost: '费用',
+    loading: '正在加载会话数据...',
+    copy: '复制',
+    copied: '已复制',
+    collapse: '收起',
+    expand: '展开',
+    expandAll: '展开全部',
+    noOutput: '(无输出)',
+  },
+
+  error: {
+    failedLoadSessions: '加载会话列表失败',
+    failedLoadSession: '加载会话失败',
+    noSessions: '暂无可用会话',
+    noData: '此会话暂无数据',
+    noSessionData: '未加载会话数据。请选择一个会话进行分析。',
+  },
+
+  nav: {
+    overview: '概览',
+    cache: '缓存',
+    tools: '工具',
+    context: '上下文',
+    subagents: '子代理',
+    timing: '时间',
+    analytics: '分析',
+    sessionAnalytics: '会话分析',
+  },
+
+  chart: {
+    tokenUsage: 'Token 用量',
+    requestRange: '请求 #{first} \u2013 #{last}',
+  },
+
+  session: {
+    copyId: '复制 ID',
+    copySessionId: '复制会话 ID',
+    copiedId: '已复制!',
+    in: '输入',
+    out: '输出',
+    cr: '缓读',
+    cc: '缓创',
+    turns: '轮次',
+  },
+
+  limits: {
+    title: '限额',
+    session: '会话',
+    fiveHour: '5小时',
+    sevenDay: '7天',
+    reset: '重置于 {time}',
+  },
+
+  dim: {
+    toggleShow: '切换显示',
+  },
+
+  overview: {
+    totalCost: '总费用',
+    totalTokens: '总 Token',
+    avgPerTurn: '平均/轮',
+    mostExpensiveTurn: '最贵轮次',
+    thinkingTurns: '思考轮次',
+    estThinkingCost: '预估思考费用',
+    tokensEstimate: '~{tokens} tokens',
+    nTurns: '{count} 轮',
+    costByTokenType: '按 Token 类型的费用',
+    toolCallsByCategory: '按类别的工具调用',
+    costByModel: '按模型的费用',
+    modelDetails: '模型详情',
+    model: '模型',
+    turns: '轮次',
+    tokens: 'Tokens',
+    cost: '费用',
+    costPerTurn: '$/轮',
+    modelSwitches: '模型切换: {count} 次',
+    recommendations: '优化建议',
+  },
+
+  cache: {
+    hitRate: '缓存命中率',
+    efficiencyRatio: '效率比',
+    readsPerCreation: '每次创建的读取次数',
+    estimatedSavings: '预估节省',
+    readTokens: '缓存读取 Token',
+    createTokens: '缓存创建 Token',
+    target: '目标: 60-80%',
+    hitRatePerTurn: '每轮缓存命中率',
+    compact: '压缩',
+  },
+
+  tools: {
+    totalCalls: '工具调用总数',
+    errorRate: '错误率',
+    nFailed: '{count} 次失败',
+    redundantGroups: '冗余分组',
+    largeReturns: '大返回 (>50KB)',
+    callsAndErrors: '按类别的工具调用与错误',
+    total: '总计',
+    errors: '错误',
+    redundantCalls: '冗余工具调用',
+    timesCount: 'x{count}',
+    turnsLabel: '轮次: {ids}',
+    largeToolReturns: '大工具返回 (>50KB)',
+    turnNumber: '轮次 #{id}',
+    sidechainCalls: '侧链调用',
+    sidechainTurns: '侧链轮次',
+    pctOfTotal: '占总计 {pct}%',
+    sidechainCost: '侧链费用',
+  },
+
+  toolStats: {
+    total: '总计',
+    ok: '成功',
+    err: '错误',
+    duration: '耗时',
+    slowest: '最慢',
+    totalRet: '总返回',
+    largest: '最大',
+  },
+
+  context: {
+    cumulativeTokens: '累计 Token',
+    avgGrowth: '平均增长/轮',
+    compactionEvents: '压缩事件',
+    contextWindowGrowth: '上下文窗口增长',
+    cumulative: '累计',
+    compactWithTokens: '压缩 ({tokens})',
+    tokensAddedPerTurn: '每轮新增 Token',
+    delta: '增量',
+    thinkingEst: '思考 (预估)',
+  },
+
+  subagents: {
+    mainSessionCost: '主会话费用',
+    nTurns: '{count} 轮',
+    totalSubagentCost: '子代理总费用',
+    nAgents: '{count} 个代理',
+    subagentCostPct: '子代理费用占比',
+    noSubagents: '此会话无子代理。',
+    agent: '代理',
+    type: '类型',
+    turns: '轮次',
+    input: '输入',
+    output: '输出',
+    cacheR: '缓读',
+    cacheC: '缓创',
+    cost: '费用',
+    tokPerTurn: 'Tok/轮',
+    mainSession: '主会话',
+    na: '-',
+  },
+
+  timing: {
+    sessionDuration: '会话时长',
+    costPerMinute: '费用/分钟',
+    idleTime: '空闲时间',
+    avgTurnInterval: '平均轮次间隔',
+    totalToolTime: '工具总耗时',
+    turnIntervals: '轮次间隔 (秒)',
+    idleThreshold: '空闲阈值 ({seconds}s)',
+    interval: '间隔',
+    avgToolDuration: '按类别的平均工具耗时',
+    avgDuration: '平均耗时',
+    totalToolDuration: '按类别的工具总耗时',
+    totalDuration: '总耗时',
+    slowestToolCalls: '最慢工具调用',
+    tool: '工具',
+    turn: '轮次',
+    duration: '耗时',
+  },
+
+  compact: {
+    label: '压缩',
+    description: '上下文窗口已压缩',
+    detail: '{time} \u00b7 {trigger} \u00b7 压缩前 {tokens} tokens',
+  },
+
+  conversation: {
+    assistant: '助手',
+    sidechain: '侧链',
+    user: '用户',
+    internalReasoning: '内部推理',
+    tokensEst: '{count} tokens (预估)',
+    toolCall: '次工具调用',
+    toolCalls: '次工具调用',
+    nErr: '{count} 错误',
+    expandParams: '展开参数与输出',
+    inputLabel: '输入',
+    outputLabel: '输出',
+    commandOutput: '输出',
+    viewTurns: '查看 {count} 轮',
+  },
+
+  rec: {
+    potentialSavings: '潜在节省: {amount}',
+    lowCache: {
+      title: '缓存命中率低 ({rate})',
+      detail:
+        '缓存命中率低于 30%。请调整 prompt 结构以保持前缀稳定性。避免在轮次之间更改系统提示。静态内容应放在前面，动态内容放在后面。',
+      savings: '如命中率提升至 50%，最多可节省 {amount}',
+    },
+    toolErrors: {
+      title: '{total} 次工具调用中 {errors} 次失败 ({rate})',
+      detail: '失败的工具调用会在请求和错误响应上浪费 token。请检查常见错误模式。',
+    },
+    redundantTools: {
+      title: '检测到 {count} 次冗余工具调用',
+      detail: '{groups} 个工具调用模式重复且结果相同。最多: {top}。',
+    },
+    frequentCompact: {
+      title: '上下文压缩了 {count} 次 (平均每 {avgTurns} 轮)',
+      detail:
+        '会话频繁触达上下文限制。建议使用更精确的文件读取（使用 offset/limit）、更具体的 grep 模式，以及将冗长任务委托给子代理。',
+    },
+    highOutput: {
+      title: '输出 token 占费用的 {pct}',
+      detail: '输出 token 的价格是输入的 5 倍。考虑要求更简洁的回复或减少冗长的解释。',
+    },
+    largeReturns: {
+      title: '{count} 次工具调用返回超过 50KB',
+      detail:
+        '大返回值会膨胀上下文。Read 工具请使用 offset/limit，grep 请使用更精确的模式，bash 请通过 head/tail 截取。最大: {toolName} ({retSize})。',
+    },
+    subagentCost: {
+      title: '子代理消耗了总费用的 {pct}',
+      detail: '请确认子代理委托是否值得。考虑对探索型子代理使用 Haiku 模型。',
+      savings: '如子代理使用 Haiku 可节省 {amount}',
+    },
+    goodCache: {
+      title: '缓存命中率良好 ({rate})',
+      detail: '缓存运行良好。本次会话约节省了 {amount}。',
+    },
+    highIdle: {
+      title: '会话 {pct} 的时间处于空闲状态',
+      detail: '空闲时间超过活跃时间。考虑批量发送请求或在开始会话前规划 prompt。',
+    },
+    slowTool: {
+      title: '{cls} 工具平均每次调用耗时 {time}s',
+      detail:
+        '{count} 次 {cls} 调用平均超过 5s。长时间运行的命令会拉长会话时间。考虑在 Claude Code 外运行它们。',
+    },
+    highThinking: {
+      title: '扩展思考约占输出费用的 {pct}',
+      detail:
+        '思考 token (~{tokens}K 预估) 按输出费率计费。对于简单任务，考虑使用更短的 prompt 或不带扩展思考的模型。',
+    },
+    opusSimple: {
+      title: 'Opus 用于 {turns} 轮短输出任务',
+      detail:
+        'Opus 上平均每轮仅输出 {tokens} tokens。这些可能是更适合 Sonnet（便宜 5 倍）的简单任务。',
+    },
+    highSidechain: {
+      title: '侧链操作: 占总费用的 {pct}',
+      detail: '{turns} 轮侧链消耗了 {amount}。请检查是否所有侧链工具执行都是必要的。',
+    },
+  },
+} as const;
