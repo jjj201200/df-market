@@ -6,6 +6,7 @@ import CachePanel from './CachePanel/CachePanel';
 import ToolsPanel from './ToolsPanel/ToolsPanel';
 import ContextPanel from './ContextPanel/ContextPanel';
 import SubagentPanel from './SubagentPanel/SubagentPanel';
+import TimingPanel from './TimingPanel/TimingPanel';
 import s from './AnalyticsPage.module.scss';
 
 export default function AnalyticsPage() {
@@ -29,6 +30,7 @@ export default function AnalyticsPage() {
         {activeTab === 'tools' && <ToolsPanel />}
         {activeTab === 'context' && <ContextPanel />}
         {activeTab === 'subagents' && <SubagentPanel />}
+        {activeTab === 'timing' && <TimingPanel />}
       </div>
     </div>
   );

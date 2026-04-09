@@ -1,5 +1,8 @@
 import type {TurnItem, DataItem, SubagentStats, ToolItem, CompactItem} from '../types/state';
-import {computeSessionCost, getModelPricing, type SessionCost} from './cost';
+import {computeSessionCost, computeTurnCost, getModelPricing, getModelDisplayName, type SessionCost} from './cost';
+import {parseDur, fmtPct} from './format';
+
+export const IDLE_THRESHOLD_MS = 60_000;
 
 // ─── Cache Metrics ───────────────────────────────────────
 
@@ -269,6 +272,235 @@ export function computeSubagentEfficiency(
   };
 }
 
+// ─── Model Breakdown ────────────────────────────────────
+
+export interface ModelBreakdownEntry {
+  model: string;
+  displayName: string;
+  turns: number;
+  tokens: {input: number; output: number; cacheR: number; cacheC: number};
+  cost: number;
+  costPct: number;
+  avgCostPerTurn: number;
+  avgOutputPerTurn: number;
+}
+
+export interface ModelBreakdown {
+  models: ModelBreakdownEntry[];
+  modelSwitches: number;
+  dominantModel: string;      // display name
+  dominantModelId: string;    // raw model ID for pricing lookups
+}
+
+export function computeModelBreakdown(turns: TurnItem[]): ModelBreakdown {
+  const byModel = new Map<string, {turns: number; tokens: {input: number; output: number; cacheR: number; cacheC: number}; cost: number}>();
+
+  for (const t of turns) {
+    const key = t.model || 'unknown';
+    if (!byModel.has(key)) byModel.set(key, {turns: 0, tokens: {input: 0, output: 0, cacheR: 0, cacheC: 0}, cost: 0});
+    const entry = byModel.get(key)!;
+    entry.turns++;
+    entry.tokens.input += t.input;
+    entry.tokens.output += t.output;
+    entry.tokens.cacheR += t.cacheR;
+    entry.tokens.cacheC += t.cacheC;
+    entry.cost += computeTurnCost(t);
+  }
+
+  const totalCost = Array.from(byModel.values()).reduce((s, e) => s + e.cost, 0);
+
+  const models: ModelBreakdownEntry[] = Array.from(byModel.entries()).map(([model, e]) => ({
+    model,
+    displayName: getModelDisplayName(model),
+    turns: e.turns,
+    tokens: e.tokens,
+    cost: e.cost,
+    costPct: totalCost > 0 ? e.cost / totalCost : 0,
+    avgCostPerTurn: e.turns > 0 ? e.cost / e.turns : 0,
+    avgOutputPerTurn: e.turns > 0 ? e.tokens.output / e.turns : 0,
+  }));
+  models.sort((a, b) => b.cost - a.cost);
+
+  let modelSwitches = 0;
+  for (let i = 1; i < turns.length; i++) {
+    if (turns[i]!.model !== turns[i - 1]!.model) modelSwitches++;
+  }
+
+  const dominant = models.length > 0 ? models.reduce((a, b) => (a.turns >= b.turns ? a : b)) : null;
+  const dominantModel = dominant?.displayName ?? '';
+  const dominantModelId = dominant?.model ?? '';
+
+  return {models, modelSwitches, dominantModel, dominantModelId};
+}
+
+// ─── Thinking Metrics ───────────────────────────────────
+
+export interface ThinkingMetrics {
+  turnsWithThinking: number;
+  turnsTotal: number;
+  thinkingPct: number;
+  totalThinkingChars: number;
+  avgThinkingLength: number;
+  estimatedThinkingTokens: number;
+  estimatedThinkingCost: number;
+  perTurn: {turnId: number; chars: number}[];
+}
+
+export function computeThinkingMetrics(turns: TurnItem[], dominantModel?: string): ThinkingMetrics {
+  let turnsWithThinking = 0;
+  let totalThinkingChars = 0;
+  const perTurn: {turnId: number; chars: number}[] = [];
+
+  for (const t of turns) {
+    const chars = t.thinking ? t.thinking.length : 0;
+    perTurn.push({turnId: t.id, chars});
+    if (chars > 0) {
+      turnsWithThinking++;
+      totalThinkingChars += chars;
+    }
+  }
+
+  const estimatedThinkingTokens = Math.round(totalThinkingChars / 4);
+  const p = getModelPricing(dominantModel ?? turns[0]?.model ?? '');
+  const estimatedThinkingCost = (estimatedThinkingTokens * p.output) / 1_000_000;
+
+  return {
+    turnsWithThinking,
+    turnsTotal: turns.length,
+    thinkingPct: turns.length > 0 ? turnsWithThinking / turns.length : 0,
+    totalThinkingChars,
+    avgThinkingLength: turnsWithThinking > 0 ? totalThinkingChars / turnsWithThinking : 0,
+    estimatedThinkingTokens,
+    estimatedThinkingCost,
+    perTurn,
+  };
+}
+
+// ─── Sidechain Metrics ──────────────────────────────────
+
+export interface SidechainMetrics {
+  mainTurns: number;
+  sidechainTurns: number;
+  sidechainPct: number;
+  mainCost: number;
+  sidechainCost: number;
+  sidechainCostPct: number;
+  sidechainToolCounts: Record<string, number>;
+}
+
+export function computeSidechainMetrics(turns: TurnItem[]): SidechainMetrics {
+  let mainCost = 0;
+  let sidechainCost = 0;
+  let mainTurns = 0;
+  let sidechainTurns = 0;
+  const sidechainToolCounts: Record<string, number> = {};
+
+  for (const t of turns) {
+    const cost = computeTurnCost(t);
+    if (t.isSidechain) {
+      sidechainTurns++;
+      sidechainCost += cost;
+      for (const tool of t.tools) {
+        sidechainToolCounts[tool.cls] = (sidechainToolCounts[tool.cls] ?? 0) + 1;
+      }
+    } else {
+      mainTurns++;
+      mainCost += cost;
+    }
+  }
+
+  const total = mainCost + sidechainCost;
+  return {
+    mainTurns,
+    sidechainTurns,
+    sidechainPct: turns.length > 0 ? sidechainTurns / turns.length : 0,
+    mainCost,
+    sidechainCost,
+    sidechainCostPct: total > 0 ? sidechainCost / total : 0,
+    sidechainToolCounts,
+  };
+}
+
+// ─── Timing Metrics ─────────────────────────────────────
+
+export interface TimingMetrics {
+  sessionDurationMs: number;
+  totalToolDurationMs: number;
+  avgTurnIntervalMs: number;
+  idleTimeMs: number;
+  idlePct: number;
+  costPerMinute: number;
+  toolDurByClass: Record<string, {totalMs: number; count: number; avgMs: number}>;
+  slowestTools: {turnId: number; toolName: string; durationMs: number}[];
+  turnIntervals: {turnId: number; intervalMs: number; isIdle: boolean}[];
+}
+
+export function computeTimingMetrics(turns: TurnItem[], totalCost: number): TimingMetrics {
+  // Session duration from timestamps
+  let sessionDurationMs = 0;
+  if (turns.length >= 2) {
+    const first = new Date(turns[0]!.timestamp).getTime();
+    const last = new Date(turns[turns.length - 1]!.timestamp).getTime();
+    sessionDurationMs = last - first;
+  }
+
+  // Turn intervals
+  const turnIntervals: TimingMetrics['turnIntervals'] = [];
+  let idleTimeMs = 0;
+
+  for (let i = 1; i < turns.length; i++) {
+    const prev = new Date(turns[i - 1]!.timestamp).getTime();
+    const curr = new Date(turns[i]!.timestamp).getTime();
+    const intervalMs = curr - prev;
+    const isIdle = intervalMs > IDLE_THRESHOLD_MS;
+    if (isIdle) idleTimeMs += intervalMs;
+    turnIntervals.push({turnId: turns[i]!.id, intervalMs, isIdle});
+  }
+
+  const avgTurnIntervalMs = turnIntervals.length > 0
+    ? turnIntervals.reduce((s, t) => s + t.intervalMs, 0) / turnIntervals.length
+    : 0;
+
+  // Tool durations
+  const toolDurByClass: Record<string, {totalMs: number; count: number; avgMs: number}> = {};
+  const allTools: {turnId: number; toolName: string; durationMs: number}[] = [];
+  let totalToolDurationMs = 0;
+
+  for (const t of turns) {
+    for (const tool of t.tools) {
+      const ms = parseDur(tool.dur);
+      if (ms > 0) {
+        totalToolDurationMs += ms;
+        if (!toolDurByClass[tool.cls]) toolDurByClass[tool.cls] = {totalMs: 0, count: 0, avgMs: 0};
+        toolDurByClass[tool.cls]!.totalMs += ms;
+        toolDurByClass[tool.cls]!.count++;
+        allTools.push({turnId: t.id, toolName: tool.name, durationMs: ms});
+      }
+    }
+  }
+
+  for (const v of Object.values(toolDurByClass)) {
+    v.avgMs = v.count > 0 ? v.totalMs / v.count : 0;
+  }
+
+  allTools.sort((a, b) => b.durationMs - a.durationMs);
+  const slowestTools = allTools.slice(0, 10);
+
+  const costPerMinute = sessionDurationMs > 0 ? totalCost / (sessionDurationMs / 60_000) : 0;
+
+  return {
+    sessionDurationMs,
+    totalToolDurationMs,
+    avgTurnIntervalMs,
+    idleTimeMs,
+    idlePct: sessionDurationMs > 0 ? idleTimeMs / sessionDurationMs : 0,
+    costPerMinute,
+    toolDurByClass,
+    slowestTools,
+    turnIntervals,
+  };
+}
+
 // ─── Recommendations ─────────────────────────────────────
 
 export interface Recommendation {
@@ -280,15 +512,21 @@ export interface Recommendation {
   estimatedSavings?: string;
 }
 
-export function generateRecommendations(
-  cache: CacheMetrics,
-  tools: ToolEfficiency,
-  context: ContextGrowth,
-  subagent: SubagentEfficiency,
-  cost: SessionCost
-): Recommendation[] {
+export interface RecommendationInput {
+  cache: CacheMetrics;
+  tools: ToolEfficiency;
+  context: ContextGrowth;
+  subagent: SubagentEfficiency;
+  cost: SessionCost;
+  modelBreakdown?: ModelBreakdown;
+  thinking?: ThinkingMetrics;
+  sidechain?: SidechainMetrics;
+  timing?: TimingMetrics;
+}
+
+export function generateRecommendations(input: RecommendationInput): Recommendation[] {
+  const {cache, tools, context, subagent, cost, modelBreakdown, thinking, sidechain, timing} = input;
   const recs: Recommendation[] = [];
-  const pct = (v: number) => `${(v * 100).toFixed(1)}%`;
   const usd = (v: number) => `$${v.toFixed(4)}`;
 
   // R1: Low cache hit rate
@@ -297,7 +535,7 @@ export function generateRecommendations(
       id: 'low-cache',
       severity: 'high',
       category: 'cache',
-      title: `Low cache hit rate (${pct(cache.hitRate)})`,
+      title: `Low cache hit rate (${fmtPct(cache.hitRate)})`,
       detail:
         'Cache hit rate below 30%. Structure prompts to preserve prefix stability. Avoid changing system prompts between turns. Static content should come first, dynamic content last.',
       estimatedSavings: `Up to ${usd(cache.totalInput * 0.5 * (getModelPricing('claude-sonnet-4-6').input - getModelPricing('claude-sonnet-4-6').cacheRead) / 1_000_000)} if hit rate improves to 50%`,
@@ -310,7 +548,7 @@ export function generateRecommendations(
       id: 'tool-errors',
       severity: 'high',
       category: 'tools',
-      title: `${tools.totalErrors} of ${tools.totalCalls} tool calls failed (${pct(tools.errorRate)})`,
+      title: `${tools.totalErrors} of ${tools.totalCalls} tool calls failed (${fmtPct(tools.errorRate)})`,
       detail: 'Failed tool calls waste tokens on both the request and the error response. Check common error patterns.',
     });
   }
@@ -351,7 +589,7 @@ export function generateRecommendations(
         id: 'high-output',
         severity: 'medium',
         category: 'cost',
-        title: `Output tokens account for ${pct(outputPct)} of cost`,
+        title: `Output tokens account for ${fmtPct(outputPct)} of cost`,
         detail: 'Output tokens are 5x more expensive than input. Consider asking for concise responses or reducing verbose explanations.',
       });
     }
@@ -374,7 +612,7 @@ export function generateRecommendations(
       id: 'subagent-cost',
       severity: 'medium',
       category: 'cost',
-      title: `Subagents consumed ${pct(subagent.subagentCostPct)} of total cost`,
+      title: `Subagents consumed ${fmtPct(subagent.subagentCostPct)} of total cost`,
       detail: 'Verify that subagent delegations are worthwhile. Consider using Haiku model for exploration subagents.',
       estimatedSavings: `${usd(subagent.totalSubagentCost * 0.8)} if subagents used Haiku`,
     });
@@ -386,8 +624,72 @@ export function generateRecommendations(
       id: 'good-cache',
       severity: 'low',
       category: 'cache',
-      title: `Good cache hit rate (${pct(cache.hitRate)})`,
+      title: `Good cache hit rate (${fmtPct(cache.hitRate)})`,
       detail: `Cache is working well. Saved approximately ${usd(cache.estimatedSavings)} this session.`,
+    });
+  }
+
+  // R9: High idle ratio
+  if (timing && timing.idlePct > 0.5 && timing.turnIntervals.length > 10) {
+    recs.push({
+      id: 'high-idle',
+      severity: 'medium',
+      category: 'cost',
+      title: `${fmtPct(timing.idlePct)} of session time was idle`,
+      detail: 'More time was spent idle than active. Consider batching requests or planning prompts before starting a session.',
+    });
+  }
+
+  // R10: Slow tool class
+  if (timing) {
+    for (const [cls, dur] of Object.entries(timing.toolDurByClass)) {
+      if (dur.avgMs > 5000 && dur.count > 3) {
+        recs.push({
+          id: `slow-tool-${cls}`,
+          severity: 'medium',
+          category: 'tools',
+          title: `${cls} tools average ${(dur.avgMs / 1000).toFixed(1)}s per call`,
+          detail: `${dur.count} ${cls} calls averaged over 5s. Long-running commands inflate session time. Consider running them outside Claude Code.`,
+        });
+        break; // Only report the slowest class
+      }
+    }
+  }
+
+  // R11: High thinking cost
+  if (thinking && cost.total > 0 && thinking.estimatedThinkingCost / cost.total > 0.3) {
+    recs.push({
+      id: 'high-thinking',
+      severity: 'medium',
+      category: 'cost',
+      title: `Extended thinking ~${fmtPct(thinking.estimatedThinkingCost / cost.total)} of output cost`,
+      detail: `Thinking tokens (~${Math.round(thinking.estimatedThinkingTokens / 1000)}K est.) are charged at output rates. For straightforward tasks, consider shorter prompts or models without extended thinking.`,
+    });
+  }
+
+  // R12: Expensive model for simple tasks
+  if (modelBreakdown) {
+    const opusEntry = modelBreakdown.models.find((m) => m.model.includes('opus'));
+    if (opusEntry && opusEntry.turns > 5 && opusEntry.avgOutputPerTurn < 500) {
+      recs.push({
+        id: 'opus-simple-tasks',
+        severity: 'medium',
+        category: 'cost',
+        title: `Opus used for ${opusEntry.turns} turns with short outputs`,
+        detail: `Average output is only ${Math.round(opusEntry.avgOutputPerTurn)} tokens/turn on Opus. These may be simple tasks better suited for Sonnet (5x cheaper).`,
+        estimatedSavings: usd(opusEntry.cost * 0.8),
+      });
+    }
+  }
+
+  // R13: High sidechain cost
+  if (sidechain && sidechain.sidechainCostPct > 0.4 && sidechain.sidechainTurns > 0) {
+    recs.push({
+      id: 'high-sidechain',
+      severity: 'medium',
+      category: 'cost',
+      title: `Sidechain operations: ${fmtPct(sidechain.sidechainCostPct)} of total cost`,
+      detail: `${sidechain.sidechainTurns} sidechain turns consumed ${usd(sidechain.sidechainCost)}. Review whether all sidechain tool executions are necessary.`,
     });
   }
 

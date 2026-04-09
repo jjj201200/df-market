@@ -1,6 +1,6 @@
 import {create} from 'zustand';
 
-export type AnalyticsTab = 'overview' | 'cache' | 'tools' | 'context' | 'subagents';
+export type AnalyticsTab = 'overview' | 'cache' | 'tools' | 'context' | 'subagents' | 'timing';
 
 interface AnalyticsStore {
   drawerOpen: boolean;

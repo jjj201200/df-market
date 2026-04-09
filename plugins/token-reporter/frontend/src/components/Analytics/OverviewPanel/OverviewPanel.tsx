@@ -2,41 +2,27 @@ import {useMemo} from 'react';
 import {PieChart, Pie, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid} from 'recharts';
 import {useSessionStore} from '../../../stores/sessionStore';
 import {computeSessionCost} from '../../../utils/cost';
+import {fmtUsd, fmtTokens, fmtPct} from '../../../utils/format';
 import {
   computeCacheMetrics,
   computeToolEfficiency,
   computeContextGrowth,
   computeSubagentEfficiency,
+  computeModelBreakdown,
+  computeThinkingMetrics,
+  computeSidechainMetrics,
+  computeTimingMetrics,
   generateRecommendations,
 } from '../../../utils/analytics';
-import {tokenColors, toolColors, tooltipStyle, tooltipLabelStyle, tooltipItemStyle, cursorStyle, gridStroke, axisTickStyle} from '../../../utils/chartTheme';
+import {tokenColors, toolColors, MODEL_COLORS, tooltipStyle, tooltipLabelStyle, tooltipItemStyle, cursorStyle, gridStroke, axisTickStyle} from '../../../utils/chartTheme';
+import Panel from '../common/Panel';
+import CardGrid from '../common/CardGrid';
+import ChartGrid from '../common/ChartGrid';
+import ChartBox from '../common/ChartBox';
 import StatCard from '../common/StatCard';
+import ColoredBar from '../common/ColoredBar';
 import RecommendationCard from './RecommendationCard';
 import s from './OverviewPanel.module.scss';
-
-function fmtUsd(v: number): string {
-  if (v < 0.01) return `$${v.toFixed(4)}`;
-  return `$${v.toFixed(2)}`;
-}
-
-function fmtTokens(v: number): string {
-  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`;
-  if (v >= 1_000) return `${(v / 1_000).toFixed(1)}K`;
-  return String(v);
-}
-
-// Custom bar shape that reads fill from data entry
-function ColoredBar(props: Record<string, unknown>) {
-  const {fill, x, y, width, height, color} = props as {
-    fill: string;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    color?: string;
-  };
-  return <rect x={x} y={y} width={width} height={height} rx={4} fill={color ?? fill} />;
-}
 
 export default function OverviewPanel() {
   const turns = useSessionStore((st) => st.turns);
@@ -48,9 +34,13 @@ export default function OverviewPanel() {
   const tools = useMemo(() => computeToolEfficiency(turns), [turns]);
   const context = useMemo(() => computeContextGrowth(data, turns), [data, turns]);
   const subagent = useMemo(() => computeSubagentEfficiency(subagents, turns), [subagents, turns]);
+  const modelBreakdown = useMemo(() => computeModelBreakdown(turns), [turns]);
+  const thinking = useMemo(() => computeThinkingMetrics(turns, modelBreakdown.dominantModelId), [turns, modelBreakdown.dominantModelId]);
+  const sidechain = useMemo(() => computeSidechainMetrics(turns), [turns]);
+  const timing = useMemo(() => computeTimingMetrics(turns, cost.total), [turns, cost.total]);
   const recommendations = useMemo(
-    () => generateRecommendations(cache, tools, context, subagent, cost),
-    [cache, tools, context, subagent, cost]
+    () => generateRecommendations({cache, tools, context, subagent, cost, modelBreakdown, thinking, sidechain, timing}),
+    [cache, tools, context, subagent, cost, modelBreakdown, thinking, sidechain, timing]
   );
 
   const tc = tokenColors();
@@ -77,9 +67,9 @@ export default function OverviewPanel() {
   const totalTokens = turns.reduce((sum, t) => sum + t.input + t.output + t.cacheR + t.cacheC, 0);
 
   return (
-    <div className={s.panel}>
+    <Panel>
       {/* Summary Cards */}
-      <div className={s.cards}>
+      <CardGrid>
         <StatCard label="Total Cost" value={fmtUsd(cost.total)} sub={`${turns.length} turns`} />
         <StatCard label="Total Tokens" value={fmtTokens(totalTokens)} />
         <StatCard label="Avg / Turn" value={fmtUsd(cost.avgPerTurn)} />
@@ -89,13 +79,27 @@ export default function OverviewPanel() {
           sub={fmtUsd(cost.maxTurnCost)}
           color="var(--danger)"
         />
-      </div>
+        {thinking.turnsWithThinking > 0 && (
+          <StatCard
+            label="Thinking Turns"
+            value={`${thinking.turnsWithThinking}/${thinking.turnsTotal}`}
+            sub={fmtPct(thinking.thinkingPct)}
+          />
+        )}
+        {thinking.estimatedThinkingCost > 0 && (
+          <StatCard
+            label="Est. Thinking Cost"
+            value={fmtUsd(thinking.estimatedThinkingCost)}
+            sub={`~${fmtTokens(thinking.estimatedThinkingTokens)} tokens`}
+            color={cost.total > 0 && thinking.estimatedThinkingCost / cost.total > 0.3 ? 'var(--danger)' : undefined}
+          />
+        )}
+      </CardGrid>
 
       {/* Charts Row */}
-      <div className={s.charts}>
+      <ChartGrid>
         {/* Cost by Token Type (Donut) */}
-        <div className={s.chartBox}>
-          <div className={s.chartTitle}>Cost by Token Type</div>
+        <ChartBox title="Cost by Token Type">
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
               <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" stroke="none" isAnimationActive={false} />
@@ -115,11 +119,10 @@ export default function OverviewPanel() {
               </span>
             ))}
           </div>
-        </div>
+        </ChartBox>
 
         {/* Tool Call Distribution */}
-        <div className={s.chartBox}>
-          <div className={s.chartTitle}>Tool Calls by Category</div>
+        <ChartBox title="Tool Calls by Category">
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={toolBarData} layout="vertical" margin={{top: 4, right: 12, bottom: 4, left: 50}}>
               <CartesianGrid horizontal={false} stroke={gridStroke()} strokeDasharray="3 3" />
@@ -129,13 +132,82 @@ export default function OverviewPanel() {
               <Bar dataKey="count" shape={<ColoredBar />} />
             </BarChart>
           </ResponsiveContainer>
-        </div>
-      </div>
+        </ChartBox>
+      </ChartGrid>
+
+      {/* Model Breakdown */}
+      {modelBreakdown.models.length > 1 && (
+        <ChartGrid>
+          <ChartBox title="Cost by Model">
+            <ResponsiveContainer width="100%" height={200}>
+              <PieChart>
+                <Pie
+                  data={modelBreakdown.models.map((m, i) => ({
+                    name: m.displayName,
+                    value: m.cost,
+                    fill: MODEL_COLORS[i % MODEL_COLORS.length],
+                  }))}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={50}
+                  outerRadius={80}
+                  dataKey="value"
+                  stroke="none"
+                  isAnimationActive={false}
+                />
+                <Tooltip
+                  contentStyle={tooltipStyle()}
+                  labelStyle={tooltipLabelStyle()}
+                  itemStyle={tooltipItemStyle()}
+                  formatter={(value) => fmtUsd(Number(value))}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className={s.legend}>
+              {modelBreakdown.models.map((m, i) => (
+                <span key={m.model} className={s.legendItem}>
+                  <span className={s.dot} style={{background: MODEL_COLORS[i % MODEL_COLORS.length]}} />
+                  {m.displayName}: {fmtUsd(m.cost)} ({fmtPct(m.costPct)})
+                </span>
+              ))}
+            </div>
+          </ChartBox>
+          <ChartBox title="Model Details">
+            <table className={s.modelTable}>
+              <thead>
+                <tr>
+                  <th>Model</th>
+                  <th>Turns</th>
+                  <th>Tokens</th>
+                  <th>Cost</th>
+                  <th>$/Turn</th>
+                </tr>
+              </thead>
+              <tbody>
+                {modelBreakdown.models.map((m) => (
+                  <tr key={m.model}>
+                    <td className={s.modelName}>{m.displayName}</td>
+                    <td>{m.turns}</td>
+                    <td>{fmtTokens(m.tokens.input + m.tokens.output + m.tokens.cacheR + m.tokens.cacheC)}</td>
+                    <td>{fmtUsd(m.cost)}</td>
+                    <td>{fmtUsd(m.avgCostPerTurn)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {modelBreakdown.modelSwitches > 0 && (
+              <div className={s.modelSwitches}>
+                Model switches: {modelBreakdown.modelSwitches}
+              </div>
+            )}
+          </ChartBox>
+        </ChartGrid>
+      )}
 
       {/* Recommendations */}
       {recommendations.length > 0 && (
         <div className={s.recsSection}>
-          <div className={s.chartTitle}>Recommendations</div>
+          <div className={s.recsTitle}>Recommendations</div>
           <div className={s.recs}>
             {recommendations.map((r) => (
               <RecommendationCard key={r.id} rec={r} />
@@ -143,6 +215,6 @@ export default function OverviewPanel() {
           </div>
         </div>
       )}
-    </div>
+    </Panel>
   );
 }

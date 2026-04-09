@@ -1,41 +1,3 @@
-.panel {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 8px;
-}
-
-.charts {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-
-  @media (max-width: 600px) {
-    grid-template-columns: 1fr;
-  }
-}
-
-.chartBox {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-default);
-  border-radius: 8px;
-  padding: 12px;
-}
-
-.chartTitle {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--fg-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
-}
-
 .legend {
   display: flex;
   flex-wrap: wrap;
@@ -58,8 +20,58 @@
   border-radius: 50%;
 }
 
+.modelTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+
+  th, td {
+    padding: 4px 8px;
+    text-align: right;
+  }
+
+  th {
+    color: var(--fg-subtle);
+    font-weight: 600;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border-default);
+  }
+
+  td {
+    color: var(--fg-muted);
+    border-bottom: 1px solid var(--border-default);
+  }
+
+  th:first-child, td:first-child {
+    text-align: left;
+  }
+}
+
+.modelName {
+  font-weight: 600;
+  color: var(--fg-default) !important;
+}
+
+.modelSwitches {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--fg-subtle);
+  text-align: center;
+}
+
 .recsSection {
   margin-top: 4px;
+}
+
+.recsTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fg-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
 }
 
 .recs {

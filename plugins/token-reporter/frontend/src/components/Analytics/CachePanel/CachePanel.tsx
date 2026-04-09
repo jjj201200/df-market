@@ -13,23 +13,12 @@ import {
 import {useSessionStore} from '../../../stores/sessionStore';
 import {computeCacheMetrics} from '../../../utils/analytics';
 import {tokenColors, tooltipStyle, tooltipLabelStyle, tooltipItemStyle, gridStroke, axisTickStyle, cssVar} from '../../../utils/chartTheme';
+import {fmtUsd, fmtTokens, fmtPct as pct} from '../../../utils/format';
+import Panel from '../common/Panel';
+import CardGrid from '../common/CardGrid';
+import ChartBox from '../common/ChartBox';
 import StatCard from '../common/StatCard';
 import s from './CachePanel.module.scss';
-
-function pct(v: number): string {
-  return `${(v * 100).toFixed(1)}%`;
-}
-
-function fmtUsd(v: number): string {
-  if (v < 0.01) return `$${v.toFixed(4)}`;
-  return `$${v.toFixed(2)}`;
-}
-
-function fmtTokens(v: number): string {
-  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`;
-  if (v >= 1_000) return `${(v / 1_000).toFixed(1)}K`;
-  return String(v);
-}
 
 function hitRateLevel(rate: number): 'good' | 'ok' | 'bad' {
   if (rate >= 0.6) return 'good';
@@ -69,8 +58,8 @@ export default function CachePanel() {
     level === 'good' ? 'var(--success)' : level === 'ok' ? 'var(--warning)' : 'var(--danger)';
 
   return (
-    <div className={s.panel}>
-      <div className={s.cards}>
+    <Panel>
+      <CardGrid minWidth={130}>
         <StatCard label="Cache Hit Rate" value={pct(cache.hitRate)} color={levelColor} />
         <StatCard
           label="Efficiency Ratio"
@@ -80,11 +69,11 @@ export default function CachePanel() {
         <StatCard label="Estimated Savings" value={fmtUsd(cache.estimatedSavings)} color="var(--success)" />
         <StatCard label="Cache Read Tokens" value={fmtTokens(cache.totalCacheR)} color={tc.cacheRead} />
         <StatCard label="Cache Create Tokens" value={fmtTokens(cache.totalCacheC)} color={tc.cacheCreation} />
-      </div>
+      </CardGrid>
 
       {/* Gauge visualization */}
       <div className={s.gaugeBox}>
-        <div className={s.chartTitle}>Cache Hit Rate</div>
+        <div className={s.gaugeTitle}>Cache Hit Rate</div>
         <div className={s.gauge}>
           <div className={s.gaugeBg}>
             <div className={clsx(s.gaugeFill, s[level])} style={{width: pct(Math.min(cache.hitRate, 1))}} />
@@ -98,8 +87,7 @@ export default function CachePanel() {
       </div>
 
       {/* Per-turn hit rate chart */}
-      <div className={s.chartBox}>
-        <div className={s.chartTitle}>Cache Hit Rate per Turn</div>
+      <ChartBox title="Cache Hit Rate per Turn">
         <ResponsiveContainer width="100%" height={220}>
           <LineChart data={chartData} margin={{top: 8, right: 12, bottom: 4, left: 0}}>
             <CartesianGrid stroke={gridStroke()} strokeDasharray="3 3" />
@@ -128,7 +116,7 @@ export default function CachePanel() {
             <ReferenceLine y={80} stroke={cssVar('--success') || '#3fb950'} strokeDasharray="3 3" />
           </LineChart>
         </ResponsiveContainer>
-      </div>
-    </div>
+      </ChartBox>
+    </Panel>
   );
 }

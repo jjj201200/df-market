@@ -8,10 +8,13 @@ export function fmtF(n: number): string {
   return (n || 0).toLocaleString();
 }
 
-/** Parse duration string like "123ms" to number */
+/** Parse duration string like "123ms" or "1.2s" to milliseconds */
 export function parseDur(s: string): number {
-  if (!s) return 0;
-  return parseInt(s.replace(/,/g, '')) || 0;
+  if (!s || s === '—') return 0;
+  const m = s.match(/([\d.]+)\s*(ms|s)/i);
+  if (!m) return parseInt(s.replace(/,/g, '')) || 0;
+  const val = parseFloat(m[1]!);
+  return m[2]!.toLowerCase() === 's' ? val * 1000 : val;
 }
 
 /** Parse size string like "1.2 KB" to bytes */
@@ -22,9 +25,30 @@ export function parseSize(s: string): number {
   return m[2] && m[2].toUpperCase() === 'KB' ? parseFloat(m[1]!) * 1024 : parseFloat(m[1]!);
 }
 
-/** Format milliseconds: >=1000 -> "1.2s", else "123ms" */
+/** Format milliseconds: hours, minutes, seconds, or ms */
 export function fmtDur(ms: number): string {
-  return ms >= 1000 ? (ms / 1000).toFixed(1) + 's' : ms + 'ms';
+  if (ms >= 3_600_000) return (ms / 3_600_000).toFixed(1) + 'h';
+  if (ms >= 60_000) return (ms / 60_000).toFixed(1) + 'm';
+  if (ms >= 1_000) return (ms / 1_000).toFixed(1) + 's';
+  return Math.round(ms) + 'ms';
+}
+
+/** Format USD: <$0.01 shows 4 decimals, else 2 */
+export function fmtUsd(v: number): string {
+  if (v < 0.01) return `$${v.toFixed(4)}`;
+  return `$${v.toFixed(2)}`;
+}
+
+/** Format token count: M/K/raw */
+export function fmtTokens(v: number): string {
+  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`;
+  if (v >= 1_000) return `${(v / 1_000).toFixed(1)}K`;
+  return String(Math.round(v));
+}
+
+/** Format a 0-1 ratio as percentage string */
+export function fmtPct(v: number): string {
+  return `${(v * 100).toFixed(1)}%`;
 }
 
 /** Format bytes: >=1024 -> "1.2 KB", else "123 B" */

@@ -9,6 +9,7 @@ const TABS: {key: AnalyticsTab; label: string; icon: string}[] = [
   {key: 'tools', label: 'Tools', icon: '\u2692'},
   {key: 'context', label: 'Context', icon: '\u2191'},
   {key: 'subagents', label: 'Subagents', icon: '\u2442'},
+  {key: 'timing', label: 'Timing', icon: '\u23F1'},
 ];
 
 export default function AnalyticsNav() {

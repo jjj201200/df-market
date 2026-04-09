@@ -10,33 +10,33 @@ import {
   ReferenceLine,
 } from 'recharts';
 import {useSessionStore} from '../../../stores/sessionStore';
-import {computeContextGrowth} from '../../../utils/analytics';
+import {computeContextGrowth, computeThinkingMetrics} from '../../../utils/analytics';
 import {tooltipStyle, tooltipLabelStyle, tooltipItemStyle, cursorStyle, gridStroke, axisTickStyle, cssVar} from '../../../utils/chartTheme';
+import {fmtTokens} from '../../../utils/format';
+import Panel from '../common/Panel';
+import CardGrid from '../common/CardGrid';
+import ChartBox from '../common/ChartBox';
 import StatCard from '../common/StatCard';
-import s from './ContextPanel.module.scss';
-
-function fmtTokens(v: number): string {
-  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`;
-  if (v >= 1_000) return `${(v / 1_000).toFixed(1)}K`;
-  return String(Math.round(v));
-}
 
 export default function ContextPanel() {
   const turns = useSessionStore((st) => st.turns);
   const data = useSessionStore((st) => st.data);
   const context = useMemo(() => computeContextGrowth(data, turns), [data, turns]);
+  const thinking = useMemo(() => computeThinkingMetrics(turns), [turns]);
+  const hasThinking = thinking.turnsWithThinking > 0;
 
-  const chartData = context.points.map((p) => ({
+  const chartData = context.points.map((p, i) => ({
     turn: `#${p.turnId}`,
     cumulative: p.cumulative,
     delta: p.delta,
+    thinkingEst: hasThinking ? Math.round((thinking.perTurn[i]?.chars ?? 0) / 4) : 0,
   }));
 
   const totalTokens = context.points.length > 0 ? context.points[context.points.length - 1]!.cumulative : 0;
 
   return (
-    <div className={s.panel}>
-      <div className={s.cards}>
+    <Panel>
+      <CardGrid>
         <StatCard label="Cumulative Tokens" value={fmtTokens(totalTokens)} />
         <StatCard label="Avg Growth / Turn" value={fmtTokens(context.avgGrowthPerTurn)} />
         <StatCard
@@ -44,10 +44,9 @@ export default function ContextPanel() {
           value={String(context.compactEvents.length)}
           color={context.compactEvents.length > 2 ? 'var(--warning)' : undefined}
         />
-      </div>
+      </CardGrid>
 
-      <div className={s.chartBox}>
-        <div className={s.chartTitle}>Context Window Growth</div>
+      <ChartBox title="Context Window Growth">
         <ResponsiveContainer width="100%" height={280}>
           <AreaChart data={chartData} margin={{top: 8, right: 12, bottom: 4, left: 8}}>
             <defs>
@@ -91,11 +90,10 @@ export default function ContextPanel() {
             ))}
           </AreaChart>
         </ResponsiveContainer>
-      </div>
+      </ChartBox>
 
       {/* Per-turn delta */}
-      <div className={s.chartBox}>
-        <div className={s.chartTitle}>Tokens Added per Turn</div>
+      <ChartBox title="Tokens Added per Turn">
         <ResponsiveContainer width="100%" height={160}>
           <AreaChart data={chartData} margin={{top: 8, right: 12, bottom: 4, left: 8}}>
             <CartesianGrid stroke={gridStroke()} strokeDasharray="3 3" />
@@ -117,9 +115,20 @@ export default function ContextPanel() {
               strokeWidth={1.5}
               name="Delta"
             />
+            {hasThinking && (
+              <Area
+                type="monotone"
+                dataKey="thinkingEst"
+                stroke={cssVar('--token-cache-write') || '#a371f7'}
+                fill={cssVar('--token-cache-write') || '#a371f7'}
+                fillOpacity={0.2}
+                strokeWidth={1.5}
+                name="Thinking (est.)"
+              />
+            )}
           </AreaChart>
         </ResponsiveContainer>
-      </div>
-    </div>
+      </ChartBox>
+    </Panel>
   );
 }

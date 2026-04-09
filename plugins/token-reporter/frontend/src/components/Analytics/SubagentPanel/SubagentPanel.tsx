@@ -1,23 +1,11 @@
 import {useMemo} from 'react';
 import {useSessionStore} from '../../../stores/sessionStore';
 import {computeSubagentEfficiency} from '../../../utils/analytics';
+import {fmtUsd, fmtTokens, fmtPct as pct} from '../../../utils/format';
+import Panel from '../common/Panel';
+import CardGrid from '../common/CardGrid';
 import StatCard from '../common/StatCard';
 import s from './SubagentPanel.module.scss';
-
-function fmtUsd(v: number): string {
-  if (v < 0.01) return `$${v.toFixed(4)}`;
-  return `$${v.toFixed(2)}`;
-}
-
-function fmtTokens(v: number): string {
-  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`;
-  if (v >= 1_000) return `${(v / 1_000).toFixed(1)}K`;
-  return String(Math.round(v));
-}
-
-function pct(v: number): string {
-  return `${(v * 100).toFixed(1)}%`;
-}
 
 export default function SubagentPanel() {
   const turns = useSessionStore((st) => st.turns);
@@ -26,15 +14,15 @@ export default function SubagentPanel() {
 
   if (sa.agents.length === 0) {
     return (
-      <div className={s.panel}>
+      <Panel>
         <div className={s.empty}>No subagents in this session.</div>
-      </div>
+      </Panel>
     );
   }
 
   return (
-    <div className={s.panel}>
-      <div className={s.cards}>
+    <Panel>
+      <CardGrid>
         <StatCard label="Main Session Cost" value={fmtUsd(sa.mainTokens.cost)} sub={`${sa.mainTokens.turns} turns`} />
         <StatCard label="Total Subagent Cost" value={fmtUsd(sa.totalSubagentCost)} sub={`${sa.agents.length} agents`} />
         <StatCard
@@ -42,7 +30,7 @@ export default function SubagentPanel() {
           value={pct(sa.subagentCostPct)}
           color={sa.subagentCostPct > 0.5 ? 'var(--warning)' : undefined}
         />
-      </div>
+      </CardGrid>
 
       <div className={s.tableWrap}>
         <table className={s.table}>
@@ -94,6 +82,6 @@ export default function SubagentPanel() {
           </tbody>
         </table>
       </div>
-    </div>
+    </Panel>
   );
 }

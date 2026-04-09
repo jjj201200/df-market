@@ -57,6 +57,9 @@ export function tokenColors() {
   };
 }
 
+/** Model colors for multi-model charts */
+export const MODEL_COLORS = ['#a371f7', '#58a6ff', '#3fb950', '#d29922', '#f0883e', '#f85149'];
+
 /** Tool class colors resolved from CSS vars */
 export function toolColors() {
   return {

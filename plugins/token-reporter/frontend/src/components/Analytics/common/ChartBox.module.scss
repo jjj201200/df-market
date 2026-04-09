@@ -1,23 +1,11 @@
-.panel {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 8px;
-}
-
-.chartBox {
+.box {
   background: var(--bg-surface);
   border: 1px solid var(--border-default);
   border-radius: 8px;
   padding: 12px;
 }
 
-.chartTitle {
+.title {
   font-size: 12px;
   font-weight: 600;
   color: var(--fg-muted);

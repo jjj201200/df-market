@@ -24,6 +24,14 @@ const PRICING: Record<string, ModelPricing> = {
 /** Default to Sonnet pricing when model is unknown */
 const DEFAULT_PRICING: ModelPricing = PRICING['claude-sonnet-4-6']!;
 
+/** Extract a short display name from a model ID */
+export function getModelDisplayName(model: string): string {
+  if (model.includes('opus')) return 'Opus';
+  if (model.includes('haiku')) return 'Haiku';
+  if (model.includes('sonnet')) return 'Sonnet';
+  return model.split('-').slice(0, 2).join(' ') || model;
+}
+
 export function getModelPricing(model: string): ModelPricing {
   // Try exact match first
   if (PRICING[model]) return PRICING[model];
