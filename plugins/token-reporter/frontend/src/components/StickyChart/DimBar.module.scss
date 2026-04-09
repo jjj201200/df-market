@@ -68,6 +68,45 @@
   border-color: var(--token-cache-write-border);
 }
 
+.fullLabel {
+  display: inline;
+}
+
+.shortLabel {
+  display: none;
+}
+
 .off {
   opacity: 0.3;
+}
+
+@mixin compact {
+  .toggleTip {
+    display: none;
+  }
+
+  .dimBar {
+    gap: 4px;
+  }
+
+  .fullLabel {
+    display: none;
+  }
+
+  .shortLabel {
+    display: inline;
+  }
+
+  .dimChip {
+    padding: 2px 7px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 1200px) {
+  @include compact;
+}
+
+:global(.split-view) {
+  @include compact;
 }

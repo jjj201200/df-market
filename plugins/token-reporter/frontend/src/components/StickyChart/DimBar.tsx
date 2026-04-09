@@ -5,11 +5,11 @@ import type {TranslationKey} from '../../i18n';
 import type {Dims} from '../../types/state';
 import styles from './DimBar.module.scss';
 
-const CHIPS: {key: keyof Dims; labelKey: TranslationKey; variant: string}[] = [
-  {key: 'input', labelKey: 'common.input', variant: 'input'},
-  {key: 'output', labelKey: 'common.output', variant: 'output'},
-  {key: 'cacheR', labelKey: 'common.cacheRead', variant: 'cacheR'},
-  {key: 'cacheC', labelKey: 'common.cacheCreate', variant: 'cacheC'},
+const CHIPS: {key: keyof Dims; labelKey: TranslationKey; shortKey: TranslationKey; variant: string}[] = [
+  {key: 'input', labelKey: 'common.input', shortKey: 'common.inputShort', variant: 'input'},
+  {key: 'output', labelKey: 'common.output', shortKey: 'common.outputShort', variant: 'output'},
+  {key: 'cacheR', labelKey: 'common.cacheRead', shortKey: 'common.cacheReadShort', variant: 'cacheR'},
+  {key: 'cacheC', labelKey: 'common.cacheCreate', shortKey: 'common.cacheCreateShort', variant: 'cacheC'},
 ];
 
 export default function DimBar() {
@@ -27,7 +27,8 @@ export default function DimBar() {
           onClick={() => toggleDim(chip.key)}
         >
           <span className={styles.dot} />
-          {t(chip.labelKey)}
+          <span className={styles.fullLabel}>{t(chip.labelKey)}</span>
+          <span className={styles.shortLabel}>{t(chip.shortKey)}</span>
         </span>
       ))}
     </div>

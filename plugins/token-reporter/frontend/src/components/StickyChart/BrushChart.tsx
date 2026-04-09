@@ -9,6 +9,12 @@ import styles from './BrushChart.module.scss';
 const BRUSH_H = 32;
 const ZOOM_FACTOR = 0.05;
 const WHEEL_THROTTLE_MS = 80; // 节流间隔，防止惯性滚动触发过快
+const ANIM_DURATION = 250; // ms
+
+interface BarState {
+  height: number;
+  segs: {key: string; ratio: number; col: string}[];
+}
 
 export default function BrushChart() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -22,8 +28,13 @@ export default function BrushChart() {
   const resizeTick = useChartStore((s) => s.resizeTick);
   const hoveredId = useChartStore((s) => s.hoveredId);
 
-  // Draw brush chart
-  useEffect(() => {
+  // Animation state persisted across renders
+  const currentBars = useRef<BarState[]>([]);
+  const animFrameRef = useRef<number>(0);
+  const accentColorRef = useRef<string>('#3b82f6');
+
+  // Shared draw function: renders bars using currentBars heights
+  const drawBars = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas || turns.length === 0) return;
 
@@ -31,40 +42,26 @@ export default function BrushChart() {
     const parentW = canvas.parentElement?.clientWidth ?? 400;
     const W = parentW;
     const ctx = setupCanvas(canvas, W, BRUSH_H, DPR);
-
-    let maxT = 0;
-    for (const d of turns) {
-      const t = d.input + d.output + d.cacheR + d.cacheC;
-      if (t > maxT) maxT = t;
-    }
-    if (!maxT) maxT = 1;
-
     const barW = Math.max(2, (W / N) * 0.6);
     const gap = W / N;
-
-    // Find hovered turn index
-    const hoveredIndex = hoveredId !== null ? turns.findIndex((t) => t.id === hoveredId) : -1;
+    const hIdx = hoveredId !== null ? turns.findIndex((turn) => turn.id === hoveredId) : -1;
 
     for (let i = 0; i < N; i++) {
-      const d = turns[i]!;
-      const cx = gap * (i + 0.5);
-      const segs = getSegs(d, dims);
-      const total = segs.reduce((s, x) => s + x.val, 0);
-      if (total === 0) continue;
-      const bH = (total / maxT) * (BRUSH_H - 2);
-      let y = BRUSH_H;
+      const bar = currentBars.current[i];
+      if (!bar || bar.height <= 0) continue;
 
-      // Check if this turn is hovered
-      const isHovered = i === hoveredIndex;
+      const cx = gap * (i + 0.5);
+      let y = BRUSH_H;
+      const isHovered = i === hIdx;
+
       if (isHovered) {
         ctx.save();
-        ctx.shadowColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#3b82f6';
+        ctx.shadowColor = accentColorRef.current;
         ctx.shadowBlur = 8;
       }
 
-      for (const seg of segs) {
-        const sh = (seg.val / total) * bH;
-        // Use brighter color for hovered bar
+      for (const seg of bar.segs) {
+        const sh = seg.ratio * bar.height;
         ctx.fillStyle = isHovered ? seg.col + 'ff' : seg.col + '77';
         ctx.fillRect(cx - barW / 2, y - sh, barW, sh);
         y -= sh;
@@ -74,7 +71,80 @@ export default function BrushChart() {
         ctx.restore();
       }
     }
-  }, [turns, dims, resizeTick, hoveredId]);
+  }, [turns, hoveredId]);
+
+  // Animate bar heights when data or dims change
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || turns.length === 0) return;
+
+    const N = turns.length;
+    accentColorRef.current = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#3b82f6';
+
+    let maxT = 0;
+    for (const d of turns) {
+      const t =
+        (dims.input ? d.input : 0) +
+        (dims.output ? d.output : 0) +
+        (dims.cacheR ? d.cacheR : 0) +
+        (dims.cacheC ? d.cacheC : 0);
+      if (t > maxT) maxT = t;
+    }
+    if (!maxT) maxT = 1;
+
+    const targetBars: BarState[] = turns.map((d) => {
+      const segs = getSegs(d, dims);
+      const total = segs.reduce((s, x) => s + x.val, 0);
+      const height = total > 0 ? (total / maxT) * (BRUSH_H - 2) : 0;
+      const segRatios = total > 0
+        ? segs.map((seg) => ({key: seg.key, ratio: seg.val / total, col: seg.col}))
+        : [];
+      return {height, segs: segRatios};
+    });
+
+    // Initialize if empty or length changed — no animation
+    if (currentBars.current.length !== N) {
+      currentBars.current = targetBars.map((b) => ({...b}));
+      drawBars();
+      return;
+    }
+
+    const startBars = currentBars.current.map((b) => ({...b}));
+    const startTime = performance.now();
+
+    if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+
+    function tick(now: number) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / ANIM_DURATION, 1);
+      const ease = 1 - Math.pow(1 - progress, 3);
+
+      currentBars.current = startBars.map((s, i) => {
+        const target = targetBars[i]!;
+        return {
+          height: s.height + (target.height - s.height) * ease,
+          segs: target.segs.length > 0 ? target.segs : s.segs,
+        };
+      });
+
+      drawBars();
+
+      if (progress < 1) {
+        animFrameRef.current = requestAnimationFrame(tick);
+      }
+    }
+
+    animFrameRef.current = requestAnimationFrame(tick);
+
+    return () => {
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    };
+  }, [turns, dims, resizeTick, drawBars]);
+
+  // Instant redraw on hover change — no animation
+  useEffect(() => {
+    drawBars();
+  }, [hoveredId, drawBars]);
 
   // Click handler: center brush at click position
   const handleClick = useCallback(

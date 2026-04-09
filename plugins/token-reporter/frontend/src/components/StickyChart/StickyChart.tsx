@@ -6,6 +6,7 @@ import {useI18n} from '../../i18n';
 import {useI18nStore} from '../../stores/i18nStore';
 import Dropdown from '../common/Dropdown';
 import type {DropdownOption} from '../common/Dropdown';
+import Tooltip from '../common/Tooltip';
 import DimBar from './DimBar';
 import SessionBar from './SessionBar';
 import MainChart from './MainChart';
@@ -70,9 +71,11 @@ export default function StickyChart() {
           className={styles.langDropdown}
         />
       </div>
-      <button className={styles.analyticsBtn} onClick={toggleDrawer}>
-        {t('nav.analytics')} ↗
-      </button>
+      <Tooltip content={t('nav.sessionAnalytics')} placement="bottom">
+        <button className={styles.analyticsBtn} onClick={toggleDrawer}>
+          {t('nav.analytics')} ↗
+        </button>
+      </Tooltip>
       <SessionBar />
 
       <div className={styles.chartHeader}>

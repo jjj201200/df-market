@@ -1,19 +1,18 @@
 import {useMemo} from 'react';
 import clsx from 'clsx';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-  ReferenceLine,
-} from 'recharts';
+import {LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine} from 'recharts';
 import {useSessionStore} from '../../../stores/sessionStore';
 import {useI18n} from '../../../i18n';
 import {computeCacheMetrics} from '../../../utils/analytics';
-import {tokenColors, tooltipStyle, tooltipLabelStyle, tooltipItemStyle, gridStroke, axisTickStyle, cssVar} from '../../../utils/chartTheme';
+import {
+  tokenColors,
+  tooltipStyle,
+  tooltipLabelStyle,
+  tooltipItemStyle,
+  gridStroke,
+  axisTickStyle,
+  cssVar,
+} from '../../../utils/chartTheme';
 import {fmtUsd, fmtTokens, fmtPct as pct} from '../../../utils/format';
 import Panel from '../common/Panel';
 import CardGrid from '../common/CardGrid';
@@ -56,8 +55,7 @@ export default function CachePanel() {
 
   const tc = tokenColors();
   const level = hitRateLevel(cache.hitRate);
-  const levelColor =
-    level === 'good' ? 'var(--success)' : level === 'ok' ? 'var(--warning)' : 'var(--danger)';
+  const levelColor = level === 'good' ? 'var(--success)' : level === 'ok' ? 'var(--warning)' : 'var(--danger)';
 
   return (
     <Panel>
@@ -75,7 +73,7 @@ export default function CachePanel() {
 
       {/* Gauge visualization */}
       <div className={s.gaugeBox}>
-        <div className={s.gaugeTitle}>{t('cache.hitRate')}</div>
+        <div className={s.gaugeTitle}>{`${t('cache.hitRate')} ${pct(cache.hitRate)}`}</div>
         <div className={s.gauge}>
           <div className={s.gaugeBg}>
             <div className={clsx(s.gaugeFill, s[level])} style={{width: pct(Math.min(cache.hitRate, 1))}} />
@@ -110,7 +108,12 @@ export default function CachePanel() {
                 x={`#${id}`}
                 stroke={cssVar('--danger') || '#f85149'}
                 strokeDasharray="4 4"
-                label={{value: t('cache.compact'), fill: cssVar('--danger') || '#f85149', fontSize: 10, position: 'top'}}
+                label={{
+                  value: t('cache.compact'),
+                  fill: cssVar('--danger') || '#f85149',
+                  fontSize: 10,
+                  position: 'top',
+                }}
               />
             ))}
             {/* Target zone */}

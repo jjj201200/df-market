@@ -4,6 +4,10 @@ export const en = {
     output: 'Output',
     cacheRead: 'Cache Read',
     cacheCreate: 'Cache Create',
+    inputShort: 'In',
+    outputShort: 'Out',
+    cacheReadShort: 'CR',
+    cacheCreateShort: 'CC',
     turns: 'turns',
     turn: 'turn',
     total: 'Total',
@@ -15,6 +19,7 @@ export const en = {
     expand: 'Expand',
     expandAll: 'Expand all',
     noOutput: '(no output)',
+    close: 'Close',
   },
 
   error: {
@@ -34,6 +39,8 @@ export const en = {
     timing: 'Timing',
     analytics: 'Analytics',
     sessionAnalytics: 'Session Analytics',
+    splitView: 'Split View',
+    exitSplitView: 'Exit Split View',
   },
 
   chart: {

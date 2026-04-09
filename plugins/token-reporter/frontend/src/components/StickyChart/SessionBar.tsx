@@ -6,6 +6,7 @@ import {fmt} from '../../utils/format';
 import {useI18n} from '../../i18n';
 import Dropdown from '../common/Dropdown';
 import type {DropdownOption} from '../common/Dropdown';
+import Tooltip from '../common/Tooltip';
 import styles from './SessionBar.module.scss';
 
 export default function SessionBar() {
@@ -76,13 +77,14 @@ export default function SessionBar() {
           matchWidth
           className={styles.sessionDropdown}
         />
-        <button
-          className={clsx(styles.sessionCopyBtn, copied && styles.copied)}
-          onClick={handleCopy}
-          title={t('session.copySessionId')}
-        >
-          {copied ? t('session.copiedId') : t('session.copyId')}
-        </button>
+        <Tooltip content={t('session.copySessionId')}>
+          <button
+            className={clsx(styles.sessionCopyBtn, copied && styles.copied)}
+            onClick={handleCopy}
+          >
+            {copied ? t('session.copiedId') : t('session.copyId')}
+          </button>
+        </Tooltip>
       </div>
 
       <div className={styles.sessionMeta}>

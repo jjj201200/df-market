@@ -1,6 +1,8 @@
 /** Format large numbers: 1000+ -> "1.0k" */
 export function fmt(n: number): string {
-  return n >= 1000 ? (n / 1000).toFixed(1) + 'k' : String(n || 0);
+  if (n >= 1000) return (n / 1000).toFixed(1) + 'k';
+  if (!n) return '0';
+  return Number.isInteger(n) ? String(n) : n.toFixed(2);
 }
 
 /** Format with locale string */
@@ -67,4 +69,15 @@ export function fmtResetTimeAbsolute(timestamp: number): string {
   const mins = date.getMinutes().toString().padStart(2, '0');
   const secs = date.getSeconds().toString().padStart(2, '0');
   return `${year}-${month}-${day} ${hours}:${mins}:${secs}`;
+}
+
+/** Format reset time without year: MM-DD HH:MM */
+export function fmtResetTimeShort(timestamp: number): string {
+  if (!timestamp) return '';
+  const date = new Date(timestamp * 1000);
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  const hours = date.getHours().toString().padStart(2, '0');
+  const mins = date.getMinutes().toString().padStart(2, '0');
+  return `${month}-${day} ${hours}:${mins}`;
 }

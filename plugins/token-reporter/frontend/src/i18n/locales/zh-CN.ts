@@ -6,6 +6,10 @@ export const zhCN: Translation = {
     output: '输出',
     cacheRead: '缓存读取',
     cacheCreate: '缓存创建',
+    inputShort: 'In',
+    outputShort: 'Out',
+    cacheReadShort: 'CR',
+    cacheCreateShort: 'CC',
     turns: '轮次',
     turn: '轮次',
     total: '总计',
@@ -17,6 +21,7 @@ export const zhCN: Translation = {
     expand: '展开',
     expandAll: '展开全部',
     noOutput: '(无输出)',
+    close: '关闭',
   },
 
   error: {
@@ -36,6 +41,8 @@ export const zhCN: Translation = {
     timing: '时间',
     analytics: '分析',
     sessionAnalytics: '会话分析',
+    splitView: '分栏视图',
+    exitSplitView: '退出分栏',
   },
 
   chart: {
@@ -248,18 +255,15 @@ export const zhCN: Translation = {
     },
     slowTool: {
       title: '{cls} 工具平均每次调用耗时 {time}s',
-      detail:
-        '{count} 次 {cls} 调用平均超过 5s。长时间运行的命令会拉长会话时间。考虑在 Claude Code 外运行它们。',
+      detail: '{count} 次 {cls} 调用平均超过 5s。长时间运行的命令会拉长会话时间。考虑在 Claude Code 外运行它们。',
     },
     highThinking: {
       title: '扩展思考约占输出费用的 {pct}',
-      detail:
-        '思考 token (~{tokens}K 预估) 按输出费率计费。对于简单任务，考虑使用更短的 prompt 或不带扩展思考的模型。',
+      detail: '思考 token (~{tokens}K 预估) 按输出费率计费。对于简单任务，考虑使用更短的 prompt 或不带扩展思考的模型。',
     },
     opusSimple: {
       title: 'Opus 用于 {turns} 轮短输出任务',
-      detail:
-        'Opus 上平均每轮仅输出 {tokens} tokens。这些可能是更适合 Sonnet（便宜 5 倍）的简单任务。',
+      detail: 'Opus 上平均每轮仅输出 {tokens} tokens。这些可能是更适合 Sonnet（便宜 5 倍）的简单任务。',
     },
     highSidechain: {
       title: '侧链操作: 占总费用的 {pct}',

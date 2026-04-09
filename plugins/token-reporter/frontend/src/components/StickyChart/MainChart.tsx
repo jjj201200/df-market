@@ -4,7 +4,7 @@ import {useSessionStore} from '../../stores/sessionStore';
 import {fmt} from '../../utils/format';
 import {DPR, getSegs, setupCanvas} from '../../utils/canvas';
 import type {TurnItem, BarRect} from '../../types/state';
-import {lockBrushDriving, deferScrollToTurn} from '../../hooks/useScrollSync';
+import {lockBrushDriving, deferScrollToTurn, getScrollContainer} from '../../hooks/useScrollSync';
 import styles from './MainChart.module.scss';
 
 function getCSSVar(name: string): string {
@@ -24,17 +24,20 @@ export function scrollToTurnIndex(turns: TurnItem[], idx: number, align: 'top' |
   const el = document.getElementById('turn-' + t.id);
   if (!el) return;
 
+  const container = getScrollContainer();
   const stickyEl = document.getElementById('stickyChart');
   const stickyH = stickyEl?.offsetHeight || 0;
+  const elRect = el.getBoundingClientRect();
+  const containerRect = container.getBoundingClientRect();
   let top: number;
   if (align === 'bottom') {
-    // Place the turn's bottom edge at the viewport bottom
-    top = el.getBoundingClientRect().bottom + window.scrollY - window.innerHeight + 8;
+    // Place the turn's bottom edge at the container viewport bottom
+    top = container.scrollTop + (elRect.bottom - containerRect.bottom) + 8;
   } else {
-    top = el.getBoundingClientRect().top + window.scrollY - stickyH - 8;
+    top = container.scrollTop + (elRect.top - containerRect.top) - stickyH - 8;
   }
   lockBrushDriving();
-  window.scrollTo({top, behavior: 'auto'});
+  container.scrollTo({top, behavior: 'auto'});
 }
 
 function fmtTs(ts: string | undefined, timeFmt: string): string {
@@ -140,7 +143,7 @@ export default function MainChart() {
       let y = PT + plotH;
       for (const seg of segs) {
         const sh = (seg.val / total) * barH;
-        ctx.fillStyle = isHov ? seg.col + 'ff' : seg.col + (dims.input ? 'cc' : '66');
+        ctx.fillStyle = isHov ? seg.col + 'ff' : seg.col + 'cc';
         ctx.fillRect(cx - bW / 2, y - sh, bW, sh);
         y -= sh;
       }

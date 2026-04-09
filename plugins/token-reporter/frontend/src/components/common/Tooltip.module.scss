@@ -1,0 +1,21 @@
+.tooltip {
+  background: var(--bg-tooltip);
+  color: var(--fg-tooltip);
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 4px 8px;
+  border-radius: 4px;
+  z-index: 1000;
+  pointer-events: none;
+  max-width: 240px;
+  word-wrap: break-word;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.arrow {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: inherit;
+  transform: rotate(45deg);
+}

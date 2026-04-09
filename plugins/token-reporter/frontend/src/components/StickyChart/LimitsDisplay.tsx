@@ -1,6 +1,6 @@
 import {useLimitsStore} from '../../stores/limitsStore';
 import {useSessionStore} from '../../stores/sessionStore';
-import {fmt, fmtResetTimeAbsolute} from '../../utils/format';
+import {fmt, fmtResetTimeAbsolute, fmtResetTimeShort} from '../../utils/format';
 import {useI18n} from '../../i18n';
 import styles from './LimitsDisplay.module.scss';
 
@@ -14,9 +14,10 @@ interface LimitItemProps {
   label: string;
   pct: number;
   detail?: string;
+  shortDetail?: string;
 }
 
-function LimitItem({label, pct, detail}: LimitItemProps) {
+function LimitItem({label, pct, detail, shortDetail}: LimitItemProps) {
   const width = Math.min(100, Math.max(0, pct));
   return (
     <div className={styles.limitItemCompact}>
@@ -26,6 +27,7 @@ function LimitItem({label, pct, detail}: LimitItemProps) {
       </div>
       <span className={styles.limitPct}>{Math.round(pct)}%</span>
       {detail && <span className={styles.limitDetail}>{detail}</span>}
+      {shortDetail && <span className={styles.limitDetailShort}>{shortDetail}</span>}
     </div>
   );
 }
@@ -82,10 +84,10 @@ export default function LimitsDisplay() {
     <div className={styles.limitGroup}>
       <span className={styles.limitBarTip}>{t('limits.title')}</span>
       <div className={styles.limitsRowCompact}>
-        <LimitItem label={t('limits.session')} pct={ctxPct} detail={ctxDetail || undefined} />
-        {hasFive && <LimitItem label={t('limits.fiveHour')} pct={fivePct} detail={t('limits.reset', {time: fmtResetTimeAbsolute(fiveHourResetsAt!)})} />}
+        <LimitItem label={t('limits.session')} pct={ctxPct} detail={ctxDetail || undefined} shortDetail={ctxDetail || undefined} />
+        {hasFive && <LimitItem label={t('limits.fiveHour')} pct={fivePct} detail={t('limits.reset', {time: fmtResetTimeAbsolute(fiveHourResetsAt!)})} shortDetail={t('limits.reset', {time: fmtResetTimeShort(fiveHourResetsAt!)})} />}
         {hasSeven && (
-          <LimitItem label={t('limits.sevenDay')} pct={sevenPct} detail={t('limits.reset', {time: fmtResetTimeAbsolute(sevenDayResetsAt!)})} />
+          <LimitItem label={t('limits.sevenDay')} pct={sevenPct} detail={t('limits.reset', {time: fmtResetTimeAbsolute(sevenDayResetsAt!)})} shortDetail={t('limits.reset', {time: fmtResetTimeShort(sevenDayResetsAt!)})} />
         )}
       </div>
     </div>

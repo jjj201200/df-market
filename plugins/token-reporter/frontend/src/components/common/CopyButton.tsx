@@ -1,6 +1,7 @@
 import React, {useCallback, useState, useRef} from 'react';
 import clsx from 'clsx';
 import {useI18n} from '../../i18n';
+import Tooltip from './Tooltip';
 import s from './CopyButton.module.scss';
 
 interface CopyButtonProps {
@@ -25,8 +26,10 @@ export const CopyButton: React.FC<CopyButtonProps> = ({getText, className}) => {
   }, [getText]);
 
   return (
-    <button className={clsx(s.copyBtn, copied && s.copied, className)} onClick={handleClick} title={t('common.copy')}>
-      {copied ? t('common.copied') : t('common.copy')}
-    </button>
+    <Tooltip content={copied ? t('common.copied') : t('common.copy')}>
+      <button className={clsx(s.copyBtn, copied && s.copied, className)} onClick={handleClick}>
+        {copied ? t('common.copied') : t('common.copy')}
+      </button>
+    </Tooltip>
   );
 };

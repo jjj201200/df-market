@@ -2,10 +2,15 @@ import {useEffect} from 'react';
 import {useChartStore} from '../stores/chartStore';
 import {useSessionStore} from '../stores/sessionStore';
 
+/** Get the scroll container (.splitMain) */
+export function getScrollContainer(): HTMLElement {
+  return document.getElementById('splitMain') ?? document.documentElement;
+}
+
 /**
  * Directional lock: when brush-driven code triggers a scroll, this lock
  * blocks scroll→brush sync until the smooth scroll animation settles.
- * "Settle" = scrollY unchanged for 150ms.
+ * "Settle" = scrollTop unchanged for 150ms.
  */
 let _brushDriving = false;
 let _settleTimer: ReturnType<typeof setTimeout> | null = null;
@@ -14,11 +19,12 @@ let _lastScrollY = -1;
 function startSettleDetection() {
   if (_settleTimer) clearTimeout(_settleTimer);
   _settleTimer = setTimeout(() => {
-    if (Math.abs(window.scrollY - _lastScrollY) < 2) {
+    const container = getScrollContainer();
+    if (Math.abs(container.scrollTop - _lastScrollY) < 2) {
       _brushDriving = false;
       _settleTimer = null;
     } else {
-      _lastScrollY = window.scrollY;
+      _lastScrollY = container.scrollTop;
       startSettleDetection();
     }
   }, 150);
@@ -27,7 +33,8 @@ function startSettleDetection() {
 /** Call this before any brush-driven scroll to block scroll→brush feedback */
 export function lockBrushDriving() {
   _brushDriving = true;
-  _lastScrollY = window.scrollY;
+  const container = getScrollContainer();
+  _lastScrollY = container.scrollTop;
   startSettleDetection();
 }
 
@@ -69,7 +76,8 @@ function estimateViewportTurnCount(): number {
   if (counted === 0) return 20;
 
   const avgHeight = totalHeight / counted;
-  const viewportHeight = window.innerHeight;
+  const container = getScrollContainer();
+  const viewportHeight = container.clientHeight;
   // Account for sticky header (approximately 200px)
   const availableHeight = viewportHeight - 200;
 
@@ -87,10 +95,12 @@ function updateViewRange() {
   if (N === 0) return {loIdx: -1, hiIdx: -1, loPct: 0, hiPct: 1};
 
   const Nm1 = Math.max(N - 1, 1);
+  const container = getScrollContainer();
+  const containerRect = container.getBoundingClientRect();
   const stickyEl = document.getElementById('stickyChart');
   const stickyH = stickyEl?.offsetHeight ?? 0;
-  const viewTop = window.scrollY + stickyH;
-  const viewBottom = window.scrollY + window.innerHeight;
+  const viewTop = containerRect.top + stickyH;
+  const viewBottom = containerRect.bottom;
 
   let loIdx = -1;
   let hiIdx = -1;
@@ -100,21 +110,20 @@ function updateViewRange() {
   for (let i = 0; i < N; i++) {
     const el = document.getElementById('turn-' + turns[i]!.id);
     if (!el) continue;
-    const top = el.offsetTop;
-    const bottom = top + el.offsetHeight;
+    const rect = el.getBoundingClientRect();
+    const top = rect.top;
+    const bottom = rect.bottom;
     if (bottom > viewTop && top < viewBottom) {
       if (loIdx < 0) {
         loIdx = i;
         // Sub-index precision: how much of this turn is hidden above the viewport
-        const h = el.offsetHeight || 1;
+        const h = rect.height || 1;
         const hiddenAbove = Math.max(0, viewTop - top);
         loPct = (i + hiddenAbove / h) / Nm1;
       }
       hiIdx = i;
       // Sub-index precision: how much of this turn is hidden below the viewport
-      // When fully visible: hiPct = i / Nm1 (same as brush index mapping)
-      // When partially hidden below: shift left by the hidden fraction
-      const h = el.offsetHeight || 1;
+      const h = rect.height || 1;
       const hiddenBelow = Math.max(0, bottom - viewBottom);
       hiPct = (i - hiddenBelow / h) / Nm1;
     }
@@ -130,8 +139,10 @@ function updateViewRange() {
   return {loIdx, hiIdx, loPct, hiPct};
 }
 
-export function useScrollSync() {
+export function useScrollSync(splitView?: boolean) {
   useEffect(() => {
+    const container = getScrollContainer();
+
     // Initialize brush width based on actual viewport size after DOM is ready
     // Only runs once on mount when turns are loaded
     let initialized = false;
@@ -152,6 +163,9 @@ export function useScrollSync() {
     const timer = setTimeout(initBrushFromViewport, 100);
     // Also try after a longer delay in case of slow rendering
     const timer2 = setTimeout(initBrushFromViewport, 500);
+
+    // Compute initial viewport range after DOM settles
+    const initTimer = setTimeout(() => updateViewRange(), 150);
 
     function onScroll() {
       // Always update viewport range (even during brush-driven scroll)
@@ -192,13 +206,14 @@ export function useScrollSync() {
       updateViewRange();
     }
 
-    window.addEventListener('scroll', onScroll, {passive: true});
+    container.addEventListener('scroll', onScroll, {passive: true});
     window.addEventListener('resize', onResize, {passive: true});
     return () => {
       clearTimeout(timer);
       clearTimeout(timer2);
-      window.removeEventListener('scroll', onScroll);
+      clearTimeout(initTimer);
+      container.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onResize);
     };
-  }, []);
+  }, [splitView]);
 }

@@ -4,7 +4,7 @@
   z-index: 100;
   background: var(--bg-sticky);
   border-bottom: 1px solid var(--border-default);
-  border-radius: 12px;
+  border-radius: 0 0 12px 12px;
   padding: 46px 16px 8px;
   box-shadow: 0 4px 20px var(--shadow-drop);
 }
@@ -43,7 +43,7 @@
   width: fit-content;
   position: absolute;
   top: 0;
-  background-color: var(--accent-border-muted);
+  background-color: var(--blue-a2);
 
   .version {
     margin-left: 8px;
@@ -104,4 +104,32 @@
   margin-top: 12px;
   padding-top: 12px;
   border-top: 1px solid var(--border-default);
+}
+
+@mixin compact {
+  .stickyChart {
+    padding: 42px 10px 6px;
+  }
+
+  .bottomRow {
+    gap: 8px;
+  }
+
+  .chartHeader {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .rangeLabel {
+    font-size: 11px;
+    padding: 1px 6px;
+  }
+}
+
+@media (max-width: 1200px) {
+  @include compact;
+}
+
+:global(.split-view) {
+  @include compact;
 }
