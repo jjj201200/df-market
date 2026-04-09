@@ -62,6 +62,77 @@ All runtime data lives in `~/.claude/token-reporter/`:
 ### Version Migrations (`src/migrate.js`)
 A migration framework that runs on session start. When adding breaking config changes, add a migration entry here.
 
+## Internationalization (i18n)
+
+The frontend dashboard supports multiple languages (English and Chinese). The i18n system is a custom lightweight implementation (~2KB) using Zustand + React hooks.
+
+### File Structure
+
+```
+frontend/src/
+  i18n/
+    index.ts              # Barrel export: useI18n, TFunction, Locale, TranslationKey
+    types.ts              # Locale type, FlattenKeys utility, TranslationKey union
+    useI18n.ts            # useI18n() hook and createT() for non-component code
+    locales/
+      en.ts               # English translations (source of truth for types)
+      zh-CN.ts            # Chinese translations
+  stores/
+    i18nStore.ts          # Zustand store for locale state + browser detection
+```
+
+### Adding a New Translatable String
+
+1. Add the key and English text to `frontend/src/i18n/locales/en.ts` under the appropriate namespace
+2. Add the same key with Chinese translation to `frontend/src/i18n/locales/zh-CN.ts`
+3. In the component, use `const {t} = useI18n()` then `t('namespace.key')`
+
+For strings with variables, use `{varName}` placeholders:
+```ts
+// en.ts
+nTurns: '{count} turns'
+// Component
+t('overview.nTurns', {count: 42})  // → "42 turns"
+```
+
+### Key Naming Convention
+
+Keys are dot-separated and organized by feature area:
+- `common.*` — shared labels (Input, Output, Copy, etc.)
+- `error.*` — error and empty state messages
+- `nav.*` — navigation labels
+- `overview.*`, `cache.*`, `tools.*`, `context.*`, `subagents.*`, `timing.*` — analytics panel strings
+- `session.*` — session bar labels
+- `chart.*` — chart titles
+- `compact.*`, `conversation.*` — conversation list strings
+- `toolStats.*` — tool statistics labels
+- `rec.*` — recommendation templates (nested: `rec.lowCache.title`, `rec.lowCache.detail`, etc.)
+
+### Using i18n in Utility Functions
+
+For non-component code (like `generateRecommendations` in `utils/analytics.ts`), pass the `t` function as a parameter:
+```ts
+import type {TFunction} from '../i18n';
+
+export function generateRecommendations(input: Input, t: TFunction): Result[] {
+  // use t('rec.lowCache.title', {rate: '30%'})
+}
+```
+
+### Adding a New Language
+
+1. Create `frontend/src/i18n/locales/<code>.ts` (e.g., `ja.ts`)
+2. Import `Translation` type from `en.ts` and implement all keys
+3. Add the locale code to the `Locale` union in `types.ts`
+4. Add the locale code to `SUPPORTED` array in `stores/i18nStore.ts`
+5. Import and register the new locale in `i18n/useI18n.ts` translations map
+6. Update `detectLocale()` in `i18nStore.ts` for browser language matching
+
+### Language Detection
+
+Priority order: localStorage (`token-reporter:locale`) → `navigator.languages` → default `en`.
+The language toggle button is in the StickyChart header bar.
+
 ## Adding a New Plugin
 
 1. Create `plugins/<name>/` with the plugin source
