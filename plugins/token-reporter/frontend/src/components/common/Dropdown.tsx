@@ -13,6 +13,7 @@ import {
 import {useVirtualizer} from '@tanstack/react-virtual';
 import styles from './Dropdown.module.scss';
 import clsx from 'clsx';
+import {IconChevronDown} from '@tabler/icons-react';
 
 export interface DropdownOption {
   value: string;
@@ -105,7 +106,9 @@ export default function Dropdown({
           {selected?.label ?? '\u00a0'}
           {selected?.sub && <span className={styles.triggerSub}>{selected.sub}</span>}
         </span>
-        <span className={clsx(styles.chevron, open && styles.chevronOpen)}>&#x25BE;</span>
+        <span className={clsx(styles.chevron, open && styles.chevronOpen)}>
+            <IconChevronDown size={12} stroke={1.5} />
+          </span>
       </button>
 
       {open && (

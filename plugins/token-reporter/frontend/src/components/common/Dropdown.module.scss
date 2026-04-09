@@ -52,10 +52,11 @@
 }
 
 .chevron {
-  font-size: 10px;
   color: var(--fg-subtle);
   transition: transform 0.15s;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 .chevronOpen {
