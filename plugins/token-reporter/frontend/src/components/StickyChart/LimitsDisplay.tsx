@@ -1,6 +1,7 @@
 import {useLimitsStore} from '../../stores/limitsStore';
 import {useSessionStore} from '../../stores/sessionStore';
 import {fmt, fmtResetTimeAbsolute} from '../../utils/format';
+import {useI18n} from '../../i18n';
 import styles from './LimitsDisplay.module.scss';
 
 function barColor(pct: number): string {
@@ -30,6 +31,7 @@ function LimitItem({label, pct, detail}: LimitItemProps) {
 }
 
 export default function LimitsDisplay() {
+  const {t} = useI18n();
   const activeSessionId = useSessionStore((s) => s.activeSessionId);
   const allLimits = useLimitsStore((s) => s.limits);
 
@@ -78,12 +80,12 @@ export default function LimitsDisplay() {
 
   return (
     <div className={styles.limitGroup}>
-      <span className={styles.limitBarTip}>Limits</span>
+      <span className={styles.limitBarTip}>{t('limits.title')}</span>
       <div className={styles.limitsRowCompact}>
-        <LimitItem label="Session" pct={ctxPct} detail={ctxDetail || undefined} />
-        {hasFive && <LimitItem label="5h" pct={fivePct} detail={`reset ${fmtResetTimeAbsolute(fiveHourResetsAt!)}`} />}
+        <LimitItem label={t('limits.session')} pct={ctxPct} detail={ctxDetail || undefined} />
+        {hasFive && <LimitItem label={t('limits.fiveHour')} pct={fivePct} detail={t('limits.reset', {time: fmtResetTimeAbsolute(fiveHourResetsAt!)})} />}
         {hasSeven && (
-          <LimitItem label="7d" pct={sevenPct} detail={`reset ${fmtResetTimeAbsolute(sevenDayResetsAt!)}`} />
+          <LimitItem label={t('limits.sevenDay')} pct={sevenPct} detail={t('limits.reset', {time: fmtResetTimeAbsolute(sevenDayResetsAt!)})} />
         )}
       </div>
     </div>

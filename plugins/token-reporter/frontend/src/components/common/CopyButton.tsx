@@ -1,5 +1,6 @@
 import React, {useCallback, useState, useRef} from 'react';
 import clsx from 'clsx';
+import {useI18n} from '../../i18n';
 import s from './CopyButton.module.scss';
 
 interface CopyButtonProps {
@@ -8,6 +9,7 @@ interface CopyButtonProps {
 }
 
 export const CopyButton: React.FC<CopyButtonProps> = ({getText, className}) => {
+  const {t} = useI18n();
   const [copied, setCopied] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -23,8 +25,8 @@ export const CopyButton: React.FC<CopyButtonProps> = ({getText, className}) => {
   }, [getText]);
 
   return (
-    <button className={clsx(s.copyBtn, copied && s.copied, className)} onClick={handleClick} title="Copy">
-      {copied ? 'Copied' : 'Copy'}
+    <button className={clsx(s.copyBtn, copied && s.copied, className)} onClick={handleClick} title={t('common.copy')}>
+      {copied ? t('common.copied') : t('common.copy')}
     </button>
   );
 };

@@ -1,5 +1,6 @@
 import React from 'react';
 import {useChartStore} from '../../stores/chartStore';
+import {useI18n} from '../../i18n';
 import {fmtF} from '../../utils/format';
 import s from './TokenBadges.module.scss';
 
@@ -11,13 +12,14 @@ interface TokenBadgesProps {
 }
 
 export const TokenBadges: React.FC<TokenBadgesProps> = React.memo(({input, output, cacheR, cacheC}) => {
+  const {t} = useI18n();
   const dims = useChartStore((st) => st.dims);
 
   const badges: React.ReactNode[] = [];
   if (dims.input && input) {
     badges.push(
       <span className={s.tok} key="in">
-        <span className={s.tl}>in </span>
+        <span className={s.tl}>{t('session.in')} </span>
         <span className={s.tvIn}>{fmtF(input)}</span>
       </span>,
     );
@@ -25,7 +27,7 @@ export const TokenBadges: React.FC<TokenBadgesProps> = React.memo(({input, outpu
   if (dims.output && output) {
     badges.push(
       <span className={s.tok} key="out">
-        <span className={s.tl}>out </span>
+        <span className={s.tl}>{t('session.out')} </span>
         <span className={s.tvOut}>{fmtF(output)}</span>
       </span>,
     );
@@ -33,7 +35,7 @@ export const TokenBadges: React.FC<TokenBadgesProps> = React.memo(({input, outpu
   if (dims.cacheR && cacheR) {
     badges.push(
       <span className={s.tok} key="cr">
-        <span className={s.tl}>cr </span>
+        <span className={s.tl}>{t('session.cr')} </span>
         <span className={s.tvCr}>{fmtF(cacheR)}</span>
       </span>,
     );
@@ -41,7 +43,7 @@ export const TokenBadges: React.FC<TokenBadgesProps> = React.memo(({input, outpu
   if (dims.cacheC && cacheC) {
     badges.push(
       <span className={s.tok} key="cc">
-        <span className={s.tl}>cc </span>
+        <span className={s.tl}>{t('session.cc')} </span>
         <span className={s.tvCc}>{fmtF(cacheC)}</span>
       </span>,
     );

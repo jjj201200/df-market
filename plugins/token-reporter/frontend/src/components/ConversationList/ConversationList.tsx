@@ -1,5 +1,6 @@
 import React from 'react';
 import {useSessionStore} from '../../stores/sessionStore';
+import {useI18n} from '../../i18n';
 import {LoadingState} from '../common/LoadingState';
 import {ErrorDisplay} from '../common/ErrorDisplay';
 import {TurnItem} from './TurnItem';
@@ -9,6 +10,7 @@ import type {TurnItem as TurnItemType, CompactItem, CommandItem} from '../../typ
 import s from './ConversationList.module.scss';
 
 export const ConversationList: React.FC = () => {
+  const {t} = useI18n();
   const data = useSessionStore((st) => st.data);
   const subagents = useSessionStore((st) => st.subagents);
   const sessions = useSessionStore((st) => st.sessions);
@@ -29,7 +31,7 @@ export const ConversationList: React.FC = () => {
   if (sessionsError) {
     return (
       <div className={s.convScroll}>
-        <ErrorDisplay message="Failed to load sessions" detail={sessionsError} />
+        <ErrorDisplay message={t('error.failedLoadSessions')} detail={sessionsError} />
       </div>
     );
   }
@@ -38,7 +40,7 @@ export const ConversationList: React.FC = () => {
     if (sessions.length === 0 && !sessionsLoading) {
       return (
         <div className={s.convScroll}>
-          <ErrorDisplay message="No sessions available" />
+          <ErrorDisplay message={t('error.noSessions')} />
         </div>
       );
     }
@@ -52,7 +54,7 @@ export const ConversationList: React.FC = () => {
   if (sessionError) {
     return (
       <div className={s.convScroll}>
-        <ErrorDisplay message="Failed to load session" detail={sessionError} />
+        <ErrorDisplay message={t('error.failedLoadSession')} detail={sessionError} />
       </div>
     );
   }
@@ -60,7 +62,7 @@ export const ConversationList: React.FC = () => {
   if (data.length === 0) {
     return (
       <div className={s.convScroll}>
-        <ErrorDisplay message="No data for this session" />
+        <ErrorDisplay message={t('error.noData')} />
       </div>
     );
   }

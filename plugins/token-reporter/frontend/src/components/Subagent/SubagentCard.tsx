@@ -1,5 +1,6 @@
 import React from 'react';
 import type {SubagentStats} from '../../types/state';
+import {useI18n} from '../../i18n';
 import {useUIStore} from '../../stores/uiStore';
 import {ToolPills} from '../common/ToolPills';
 import {TokenBadges} from '../common/TokenBadges';
@@ -13,6 +14,7 @@ interface SubagentCardProps {
 }
 
 export const SubagentCard: React.FC<SubagentCardProps> = ({subagent, turnId, toolIndex}) => {
+  const {t} = useI18n();
   const saId = `sa-${turnId}-${toolIndex}-${subagent.agentId}`;
   const expanded = useUIStore((st) => st.expandedSubagents.has(saId));
   const toggleSubagent = useUIStore((st) => st.toggleSubagent);
@@ -26,7 +28,9 @@ export const SubagentCard: React.FC<SubagentCardProps> = ({subagent, turnId, too
           <span className={s.saType}>{subagent.agentType}</span>
           <span className={s.saId}>{subagent.agentId.slice(0, 8)}</span>
           <span className={s.saTurnsCount}>
-            {subagent.totalTurns} turn{subagent.totalTurns === 1 ? '' : 's'}
+            {subagent.totalTurns === 1
+              ? `${subagent.totalTurns} ${t('common.turn')}`
+              : t('overview.nTurns', {count: subagent.totalTurns})}
           </span>
           <ToolPills counts={toolCounts} />
         </div>
@@ -45,7 +49,7 @@ export const SubagentCard: React.FC<SubagentCardProps> = ({subagent, turnId, too
       {hasTurns && (
         <div className={s.saExpandRow} onClick={() => toggleSubagent(saId)}>
           <span className={`${s.arrow} ${expanded ? s.open : ''}`}>&#x25B6;</span>
-          <span>View {subagent.totalTurns} turns</span>
+          <span>{t('conversation.viewTurns', {count: subagent.totalTurns})}</span>
         </div>
       )}
 

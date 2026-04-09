@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import clsx from 'clsx';
 import type {TurnItem, SubagentStats} from '../../types/state';
+import {useI18n} from '../../i18n';
 import {useUIStore} from '../../stores/uiStore';
 import {fmtDur, fmtBytes, parseDur, parseSize} from '../../utils/format';
 import {ToolPills} from '../common/ToolPills';
@@ -14,6 +15,7 @@ interface ToolGroupProps {
 }
 
 export const ToolGroup: React.FC<ToolGroupProps> = React.memo(({turn, subagents}) => {
+  const {t} = useI18n();
   const tools = turn.tools;
   if (!tools || tools.length === 0) return null;
 
@@ -52,7 +54,7 @@ export const ToolGroup: React.FC<ToolGroupProps> = React.memo(({turn, subagents}
       <div className={s.tcToggle} onClick={handleToggle}>
         <span className={clsx(s.arrow, expanded && s.open)}>▶</span>
         <span className={s.tcBadge}>
-          {total} tool call{total === 1 ? '' : 's'}
+          {total} {total === 1 ? t('conversation.toolCall') : t('conversation.toolCalls')}
         </span>
         <span className={s.tcSummary}>
           <ToolPills counts={toolCounts} />
@@ -63,7 +65,7 @@ export const ToolGroup: React.FC<ToolGroupProps> = React.memo(({turn, subagents}
           {errCount > 0 && (
             <>
               <span className={s.tcSumSep}>&middot;</span>
-              <span className={s.tcSumErr}>{errCount} ERR</span>
+              <span className={s.tcSumErr}>{t('conversation.nErr', {count: errCount})}</span>
             </>
           )}
         </span>

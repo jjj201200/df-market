@@ -1,22 +1,25 @@
 import clsx from 'clsx';
 import {useChartStore} from '../../stores/chartStore';
+import {useI18n} from '../../i18n';
+import type {TranslationKey} from '../../i18n';
 import type {Dims} from '../../types/state';
 import styles from './DimBar.module.scss';
 
-const CHIPS: {key: keyof Dims; label: string; variant: string}[] = [
-  {key: 'input', label: 'Input', variant: 'input'},
-  {key: 'output', label: 'Output', variant: 'output'},
-  {key: 'cacheR', label: 'Cache Read', variant: 'cacheR'},
-  {key: 'cacheC', label: 'Cache Create', variant: 'cacheC'},
+const CHIPS: {key: keyof Dims; labelKey: TranslationKey; variant: string}[] = [
+  {key: 'input', labelKey: 'common.input', variant: 'input'},
+  {key: 'output', labelKey: 'common.output', variant: 'output'},
+  {key: 'cacheR', labelKey: 'common.cacheRead', variant: 'cacheR'},
+  {key: 'cacheC', labelKey: 'common.cacheCreate', variant: 'cacheC'},
 ];
 
 export default function DimBar() {
+  const {t} = useI18n();
   const dims = useChartStore((s) => s.dims);
   const toggleDim = useChartStore((s) => s.toggleDim);
 
   return (
     <div className={styles.dimBar}>
-      <span className={styles.toggleTip}>TOGGEL SHOW</span>
+      <span className={styles.toggleTip}>{t('dim.toggleShow')}</span>
       {CHIPS.map((chip) => (
         <span
           key={chip.key}
@@ -24,7 +27,7 @@ export default function DimBar() {
           onClick={() => toggleDim(chip.key)}
         >
           <span className={styles.dot} />
-          {chip.label}
+          {t(chip.labelKey)}
         </span>
       ))}
     </div>

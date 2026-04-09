@@ -1,6 +1,7 @@
 import React, {useCallback, useRef, useState, useLayoutEffect} from 'react';
 import clsx from 'clsx';
 import type {TurnItem} from '../../types/state';
+import {useI18n} from '../../i18n';
 import {useUIStore} from '../../stores/uiStore';
 import {TokenBadges} from '../common/TokenBadges';
 import s from './TurnItem.module.scss';
@@ -11,6 +12,7 @@ interface UserMessageProps {
 }
 
 export const UserMessage: React.FC<UserMessageProps> = React.memo(({turn, isHovered}) => {
+  const {t} = useI18n();
   const textId = `ut-${turn.id}`;
   const expanded = useUIStore((st) => st.expandedTexts.has(textId));
   const toggleText = useUIStore((st) => st.toggleText);
@@ -36,8 +38,8 @@ export const UserMessage: React.FC<UserMessageProps> = React.memo(({turn, isHove
   return (
     <div className={cls}>
       <div className={s.msgUserHeader}>
-        <span className={s.roleBadgeUser}>USER</span>
-        {turn.isSidechain && <span className={s.sidechainBadge}>SIDECHAIN</span>}
+        <span className={s.roleBadgeUser}>{t('conversation.user')}</span>
+        {turn.isSidechain && <span className={s.sidechainBadge}>{t('conversation.sidechain')}</span>}
         <span className={s.msgTime}>{turn.time}</span>
         <TokenBadges input={turn.input} output={turn.output} cacheR={turn.cacheR} cacheC={turn.cacheC} />
       </div>
@@ -45,7 +47,7 @@ export const UserMessage: React.FC<UserMessageProps> = React.memo(({turn, isHove
         <div ref={textRef} className={clsx(s.msgText, !expanded && s.clamped)}>{userText}</div>
         {overflows && (
           <span className={s.expandBtn} onClick={handleToggle}>
-            {expanded ? '▲ Collapse' : '▼ Expand all'}
+            {expanded ? `▲ ${t('common.collapse')}` : `▼ ${t('common.expandAll')}`}
           </span>
         )}
       </div>

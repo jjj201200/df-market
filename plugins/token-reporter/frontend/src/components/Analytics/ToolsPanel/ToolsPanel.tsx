@@ -1,6 +1,7 @@
 import {useMemo} from 'react';
 import {BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid} from 'recharts';
 import {useSessionStore} from '../../../stores/sessionStore';
+import {useI18n} from '../../../i18n';
 import {computeToolEfficiency, computeSidechainMetrics} from '../../../utils/analytics';
 import {
   tooltipStyle,
@@ -19,6 +20,7 @@ import StatCard from '../common/StatCard';
 import s from './ToolsPanel.module.scss';
 
 export default function ToolsPanel() {
+  const {t} = useI18n();
   const turns = useSessionStore((st) => st.turns);
   const tools = useMemo(() => computeToolEfficiency(turns), [turns]);
   const sidechain = useMemo(() => computeSidechainMetrics(turns), [turns]);
@@ -31,20 +33,20 @@ export default function ToolsPanel() {
   return (
     <Panel>
       <CardGrid minWidth={130}>
-        <StatCard label="Total Tool Calls" value={String(tools.totalCalls)} />
+        <StatCard label={t('tools.totalCalls')} value={String(tools.totalCalls)} />
         <StatCard
-          label="Error Rate"
+          label={t('tools.errorRate')}
           value={pct(tools.errorRate)}
-          sub={`${tools.totalErrors} failed`}
+          sub={t('tools.nFailed', {count: tools.totalErrors})}
           color={tools.errorRate > 0.15 ? 'var(--danger)' : undefined}
         />
-        <StatCard label="Redundant Groups" value={String(tools.redundantGroups.length)} />
-        <StatCard label="Large Returns (>50KB)" value={String(tools.largeCalls.length)} />
+        <StatCard label={t('tools.redundantGroups')} value={String(tools.redundantGroups.length)} />
+        <StatCard label={t('tools.largeReturns')} value={String(tools.largeCalls.length)} />
       </CardGrid>
 
       {/* Error rate by tool class */}
       {errorChartData.length > 0 && (
-        <ChartBox title="Tool Calls & Errors by Category">
+        <ChartBox title={t('tools.callsAndErrors')}>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={errorChartData} margin={{top: 4, right: 12, bottom: 4, left: 50}} layout="vertical">
               <CartesianGrid horizontal={false} stroke={gridStroke()} strokeDasharray="3 3" />
@@ -56,8 +58,8 @@ export default function ToolsPanel() {
                 itemStyle={tooltipItemStyle()}
                 cursor={cursorStyle()}
               />
-              <Bar dataKey="total" fill={cssVar('--accent') || '#58a6ff'} radius={[0, 4, 4, 0]} name="Total" />
-              <Bar dataKey="errors" fill={cssVar('--danger') || '#f85149'} radius={[0, 4, 4, 0]} name="Errors" />
+              <Bar dataKey="total" fill={cssVar('--accent') || '#58a6ff'} radius={[0, 4, 4, 0]} name={t('tools.total')} />
+              <Bar dataKey="errors" fill={cssVar('--danger') || '#f85149'} radius={[0, 4, 4, 0]} name={t('tools.errors')} />
             </BarChart>
           </ResponsiveContainer>
         </ChartBox>
@@ -65,7 +67,7 @@ export default function ToolsPanel() {
 
       {/* Redundant tool calls */}
       {tools.redundantGroups.length > 0 && (
-        <ChartBox title="Redundant Tool Calls">
+        <ChartBox title={t('tools.redundantCalls')}>
           <div className={s.list}>
             {tools.redundantGroups.slice(0, 10).map((g, i) => (
               <div key={i} className={s.redundantItem}>
@@ -73,8 +75,8 @@ export default function ToolsPanel() {
                 <span className={s.redundantKey} title={g.keyParam}>
                   {g.keyParam.length > 200 ? g.keyParam.slice(0, 200) + '...' : g.keyParam}
                 </span>
-                <span className={s.redundantCount}>x{g.count}</span>
-                <span className={s.redundantTurns}>turns: {g.turnIds.join(', ')}</span>
+                <span className={s.redundantCount}>{t('tools.timesCount', {count: g.count})}</span>
+                <span className={s.redundantTurns}>{t('tools.turnsLabel', {ids: g.turnIds.join(', ')})}</span>
               </div>
             ))}
           </div>
@@ -83,13 +85,13 @@ export default function ToolsPanel() {
 
       {/* Large returns */}
       {tools.largeCalls.length > 0 && (
-        <ChartBox title="Large Tool Returns (&gt;50KB)">
+        <ChartBox title={t('tools.largeToolReturns')}>
           <div className={s.list}>
             {tools.largeCalls.slice(0, 10).map((lc, i) => (
               <div key={i} className={s.largeItem}>
                 <span className={s.largeTool}>{lc.toolName}</span>
                 <span className={s.largeSize}>{lc.retSize}</span>
-                <span className={s.largeTurn}>Turn #{lc.turnId}</span>
+                <span className={s.largeTurn}>{t('tools.turnNumber', {id: lc.turnId})}</span>
               </div>
             ))}
           </div>
@@ -98,17 +100,17 @@ export default function ToolsPanel() {
 
       {/* Sidechain analysis */}
       {sidechain.sidechainTurns > 0 && (
-        <ChartBox title="Sidechain Calls">
+        <ChartBox title={t('tools.sidechainCalls')}>
           <CardGrid minWidth={130}>
             <StatCard
-              label="Sidechain Turns"
+              label={t('tools.sidechainTurns')}
               value={String(sidechain.sidechainTurns)}
-              sub={`${(sidechain.sidechainPct * 100).toFixed(1)}% of total`}
+              sub={t('tools.pctOfTotal', {pct: (sidechain.sidechainPct * 100).toFixed(1)})}
             />
             <StatCard
-              label="Sidechain Cost"
+              label={t('tools.sidechainCost')}
               value={fmtUsd(sidechain.sidechainCost)}
-              sub={`${(sidechain.sidechainCostPct * 100).toFixed(1)}% of total`}
+              sub={t('tools.pctOfTotal', {pct: (sidechain.sidechainCostPct * 100).toFixed(1)})}
               color={sidechain.sidechainCostPct > 0.4 ? 'var(--warning)' : undefined}
             />
           </CardGrid>

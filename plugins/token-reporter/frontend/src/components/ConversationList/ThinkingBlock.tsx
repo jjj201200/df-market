@@ -1,4 +1,5 @@
 import React, {useCallback} from 'react';
+import {useI18n} from '../../i18n';
 import {useUIStore} from '../../stores/uiStore';
 import s from './ThinkingBlock.module.scss';
 
@@ -8,6 +9,7 @@ interface ThinkingBlockProps {
 }
 
 export const ThinkingBlock: React.FC<ThinkingBlockProps> = React.memo(({id, text}) => {
+  const {t} = useI18n();
   const expanded = useUIStore((st) => st.expandedThinking.has(id));
   const toggleThinking = useUIStore((st) => st.toggleThinking);
 
@@ -21,9 +23,9 @@ export const ThinkingBlock: React.FC<ThinkingBlockProps> = React.memo(({id, text
     <div className={s.thinkingBlock}>
       <div className={s.thinkingHeader} onClick={handleToggle}>
         <span className={s.thinkingIcon}>🧠</span>
-        <span>Internal reasoning</span>
-        <span className={s.thinkingEstimate}>{estimatedTokens} tokens (est.)</span>
-        <span className={s.thinkingToggle}>{expanded ? '▼ Collapse' : '▶ Expand'}</span>
+        <span>{t('conversation.internalReasoning')}</span>
+        <span className={s.thinkingEstimate}>{t('conversation.tokensEst', {count: estimatedTokens})}</span>
+        <span className={s.thinkingToggle}>{expanded ? `▼ ${t('common.collapse')}` : `▶ ${t('common.expand')}`}</span>
       </div>
       {expanded && <div className={s.thinkingBody}>{text}</div>}
     </div>

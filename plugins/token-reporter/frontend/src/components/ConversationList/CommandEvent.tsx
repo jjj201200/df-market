@@ -1,6 +1,7 @@
 import React, {useCallback} from 'react';
 import clsx from 'clsx';
 import type {CommandItem} from '../../types/state';
+import {useI18n} from '../../i18n';
 import {useUIStore} from '../../stores/uiStore';
 import s from './CommandEvent.module.scss';
 
@@ -9,6 +10,7 @@ interface CommandEventProps {
 }
 
 export const CommandEvent: React.FC<CommandEventProps> = React.memo(({item}) => {
+  const {t} = useI18n();
   const cmdId = `cmd-${item.command}-${item.timestamp}`;
   const expanded = useUIStore((st) => st.expandedCommands.has(cmdId));
   const toggleCommand = useUIStore((st) => st.toggleCommand);
@@ -31,7 +33,7 @@ export const CommandEvent: React.FC<CommandEventProps> = React.memo(({item}) => 
       {hasOutput && (
         <div className={clsx(s.evCmdExpandRow, expanded && s.open)} onClick={handleToggle}>
           <span className={s.arrow}>&#9654;</span>
-          <span>output</span>
+          <span>{t('conversation.commandOutput')}</span>
         </div>
       )}
       {hasOutput && expanded && <div className={s.evCmdOutput}>{item.output}</div>}

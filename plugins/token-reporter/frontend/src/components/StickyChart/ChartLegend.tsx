@@ -1,13 +1,15 @@
 import {COLORS} from '../../types/state';
+import {useI18n} from '../../i18n';
 
 const ITEMS = [
-  {key: 'input', label: 'Input', color: COLORS.input},
-  {key: 'output', label: 'Output', color: COLORS.output},
-  {key: 'cacheR', label: 'Cache Read', color: COLORS.cacheR},
-  {key: 'cacheC', label: 'Cache Create', color: COLORS.cacheC},
+  {key: 'input', labelKey: 'common.input', color: COLORS.input},
+  {key: 'output', labelKey: 'common.output', color: COLORS.output},
+  {key: 'cacheR', labelKey: 'common.cacheRead', color: COLORS.cacheR},
+  {key: 'cacheC', labelKey: 'common.cacheCreate', color: COLORS.cacheC},
 ] as const;
 
 export default function ChartLegend() {
+  const {t} = useI18n();
   return (
     <div
       style={{
@@ -36,7 +38,7 @@ export default function ChartLegend() {
               display: 'inline-block',
             }}
           />
-          {item.label}
+          {t(item.labelKey)}
         </span>
       ))}
     </div>

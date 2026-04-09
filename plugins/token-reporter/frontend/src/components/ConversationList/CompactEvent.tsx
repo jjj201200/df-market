@@ -1,5 +1,6 @@
 import React from 'react';
 import type {CompactItem} from '../../types/state';
+import {useI18n} from '../../i18n';
 import {fmt} from '../../utils/format';
 
 const styles: Record<string, React.CSSProperties> = {
@@ -42,15 +43,18 @@ interface CompactEventProps {
   item: CompactItem;
 }
 
-export const CompactEvent: React.FC<CompactEventProps> = React.memo(({item}) => (
-  <div style={styles.wrap}>
-    <span style={styles.bolt}>&#9889;</span>
-    <span style={styles.label}>COMPACT</span>
-    <span style={styles.detail}>Context window compressed</span>
-    <span style={styles.meta}>
-      {item.time} &middot; {item.trigger || 'auto'} &middot; {fmt(item.preTokens || 0)} tokens before
-    </span>
-  </div>
-));
+export const CompactEvent: React.FC<CompactEventProps> = React.memo(({item}) => {
+  const {t} = useI18n();
+  return (
+    <div style={styles.wrap}>
+      <span style={styles.bolt}>&#9889;</span>
+      <span style={styles.label}>{t('compact.label')}</span>
+      <span style={styles.detail}>{t('compact.description')}</span>
+      <span style={styles.meta}>
+        {t('compact.detail', {time: item.time, trigger: item.trigger || 'auto', tokens: fmt(item.preTokens || 0)})}
+      </span>
+    </div>
+  );
+});
 
 CompactEvent.displayName = 'CompactEvent';

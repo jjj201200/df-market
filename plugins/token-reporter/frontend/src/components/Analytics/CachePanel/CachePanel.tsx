@@ -11,6 +11,7 @@ import {
   ReferenceLine,
 } from 'recharts';
 import {useSessionStore} from '../../../stores/sessionStore';
+import {useI18n} from '../../../i18n';
 import {computeCacheMetrics} from '../../../utils/analytics';
 import {tokenColors, tooltipStyle, tooltipLabelStyle, tooltipItemStyle, gridStroke, axisTickStyle, cssVar} from '../../../utils/chartTheme';
 import {fmtUsd, fmtTokens, fmtPct as pct} from '../../../utils/format';
@@ -27,6 +28,7 @@ function hitRateLevel(rate: number): 'good' | 'ok' | 'bad' {
 }
 
 export default function CachePanel() {
+  const {t} = useI18n();
   const turns = useSessionStore((st) => st.turns);
   const data = useSessionStore((st) => st.data);
   const cache = useMemo(() => computeCacheMetrics(turns), [turns]);
@@ -60,34 +62,34 @@ export default function CachePanel() {
   return (
     <Panel>
       <CardGrid minWidth={130}>
-        <StatCard label="Cache Hit Rate" value={pct(cache.hitRate)} color={levelColor} />
+        <StatCard label={t('cache.hitRate')} value={pct(cache.hitRate)} color={levelColor} />
         <StatCard
-          label="Efficiency Ratio"
+          label={t('cache.efficiencyRatio')}
           value={cache.efficiencyRatio.toFixed(1) + 'x'}
-          sub="cache reads per creation"
+          sub={t('cache.readsPerCreation')}
         />
-        <StatCard label="Estimated Savings" value={fmtUsd(cache.estimatedSavings)} color="var(--success)" />
-        <StatCard label="Cache Read Tokens" value={fmtTokens(cache.totalCacheR)} color={tc.cacheRead} />
-        <StatCard label="Cache Create Tokens" value={fmtTokens(cache.totalCacheC)} color={tc.cacheCreation} />
+        <StatCard label={t('cache.estimatedSavings')} value={fmtUsd(cache.estimatedSavings)} color="var(--success)" />
+        <StatCard label={t('cache.readTokens')} value={fmtTokens(cache.totalCacheR)} color={tc.cacheRead} />
+        <StatCard label={t('cache.createTokens')} value={fmtTokens(cache.totalCacheC)} color={tc.cacheCreation} />
       </CardGrid>
 
       {/* Gauge visualization */}
       <div className={s.gaugeBox}>
-        <div className={s.gaugeTitle}>Cache Hit Rate</div>
+        <div className={s.gaugeTitle}>{t('cache.hitRate')}</div>
         <div className={s.gauge}>
           <div className={s.gaugeBg}>
             <div className={clsx(s.gaugeFill, s[level])} style={{width: pct(Math.min(cache.hitRate, 1))}} />
           </div>
           <div className={s.gaugeLabels}>
             <span>0%</span>
-            <span className={s.gaugeTarget}>Target: 60-80%</span>
+            <span className={s.gaugeTarget}>{t('cache.target')}</span>
             <span>100%</span>
           </div>
         </div>
       </div>
 
       {/* Per-turn hit rate chart */}
-      <ChartBox title="Cache Hit Rate per Turn">
+      <ChartBox title={t('cache.hitRatePerTurn')}>
         <ResponsiveContainer width="100%" height={220}>
           <LineChart data={chartData} margin={{top: 8, right: 12, bottom: 4, left: 0}}>
             <CartesianGrid stroke={gridStroke()} strokeDasharray="3 3" />
@@ -108,7 +110,7 @@ export default function CachePanel() {
                 x={`#${id}`}
                 stroke={cssVar('--danger') || '#f85149'}
                 strokeDasharray="4 4"
-                label={{value: 'compact', fill: cssVar('--danger') || '#f85149', fontSize: 10, position: 'top'}}
+                label={{value: t('cache.compact'), fill: cssVar('--danger') || '#f85149', fontSize: 10, position: 'top'}}
               />
             ))}
             {/* Target zone */}

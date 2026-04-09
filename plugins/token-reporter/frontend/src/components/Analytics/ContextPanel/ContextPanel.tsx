@@ -10,6 +10,7 @@ import {
   ReferenceLine,
 } from 'recharts';
 import {useSessionStore} from '../../../stores/sessionStore';
+import {useI18n} from '../../../i18n';
 import {computeContextGrowth, computeThinkingMetrics} from '../../../utils/analytics';
 import {tooltipStyle, tooltipLabelStyle, tooltipItemStyle, cursorStyle, gridStroke, axisTickStyle, cssVar} from '../../../utils/chartTheme';
 import {fmtTokens} from '../../../utils/format';
@@ -19,6 +20,7 @@ import ChartBox from '../common/ChartBox';
 import StatCard from '../common/StatCard';
 
 export default function ContextPanel() {
+  const {t} = useI18n();
   const turns = useSessionStore((st) => st.turns);
   const data = useSessionStore((st) => st.data);
   const context = useMemo(() => computeContextGrowth(data, turns), [data, turns]);
@@ -37,16 +39,16 @@ export default function ContextPanel() {
   return (
     <Panel>
       <CardGrid>
-        <StatCard label="Cumulative Tokens" value={fmtTokens(totalTokens)} />
-        <StatCard label="Avg Growth / Turn" value={fmtTokens(context.avgGrowthPerTurn)} />
+        <StatCard label={t('context.cumulativeTokens')} value={fmtTokens(totalTokens)} />
+        <StatCard label={t('context.avgGrowth')} value={fmtTokens(context.avgGrowthPerTurn)} />
         <StatCard
-          label="Compaction Events"
+          label={t('context.compactionEvents')}
           value={String(context.compactEvents.length)}
           color={context.compactEvents.length > 2 ? 'var(--warning)' : undefined}
         />
       </CardGrid>
 
-      <ChartBox title="Context Window Growth">
+      <ChartBox title={t('context.contextWindowGrowth')}>
         <ResponsiveContainer width="100%" height={280}>
           <AreaChart data={chartData} margin={{top: 8, right: 12, bottom: 4, left: 8}}>
             <defs>
@@ -71,7 +73,7 @@ export default function ContextPanel() {
               stroke={cssVar('--accent') || '#58a6ff'}
               fill="url(#contextGrad)"
               strokeWidth={2}
-              name="Cumulative"
+              name={t('context.cumulative')}
             />
             {/* Compact event markers */}
             {context.compactEvents.map((ce, i) => (
@@ -81,7 +83,7 @@ export default function ContextPanel() {
                 stroke={cssVar('--danger') || '#f85149'}
                 strokeDasharray="4 4"
                 label={{
-                  value: `compact (${fmtTokens(ce.preTokens)})`,
+                  value: t('context.compactWithTokens', {tokens: fmtTokens(ce.preTokens)}),
                   fill: cssVar('--danger') || '#f85149',
                   fontSize: 10,
                   position: 'top',
@@ -93,7 +95,7 @@ export default function ContextPanel() {
       </ChartBox>
 
       {/* Per-turn delta */}
-      <ChartBox title="Tokens Added per Turn">
+      <ChartBox title={t('context.tokensAddedPerTurn')}>
         <ResponsiveContainer width="100%" height={160}>
           <AreaChart data={chartData} margin={{top: 8, right: 12, bottom: 4, left: 8}}>
             <CartesianGrid stroke={gridStroke()} strokeDasharray="3 3" />
@@ -113,7 +115,7 @@ export default function ContextPanel() {
               fill={cssVar('--token-output') || '#3fb950'}
               fillOpacity={0.15}
               strokeWidth={1.5}
-              name="Delta"
+              name={t('context.delta')}
             />
             {hasThinking && (
               <Area
@@ -123,7 +125,7 @@ export default function ContextPanel() {
                 fill={cssVar('--token-cache-write') || '#a371f7'}
                 fillOpacity={0.2}
                 strokeWidth={1.5}
-                name="Thinking (est.)"
+                name={t('context.thinkingEst')}
               />
             )}
           </AreaChart>

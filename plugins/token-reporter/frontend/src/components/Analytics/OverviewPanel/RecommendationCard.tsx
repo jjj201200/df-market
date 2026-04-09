@@ -1,5 +1,6 @@
 import clsx from 'clsx';
 import type {Recommendation} from '../../../utils/analytics';
+import {useI18n} from '../../../i18n';
 import s from './RecommendationCard.module.scss';
 
 const SEVERITY_ICON: Record<string, string> = {
@@ -9,6 +10,7 @@ const SEVERITY_ICON: Record<string, string> = {
 };
 
 export default function RecommendationCard({rec}: {rec: Recommendation}) {
+  const {t} = useI18n();
   return (
     <div className={clsx(s.card, s[rec.severity])}>
       <div className={s.header}>
@@ -17,7 +19,7 @@ export default function RecommendationCard({rec}: {rec: Recommendation}) {
         <span className={s.badge}>{rec.category}</span>
       </div>
       <div className={s.detail}>{rec.detail}</div>
-      {rec.estimatedSavings && <div className={s.savings}>Potential savings: {rec.estimatedSavings}</div>}
+      {rec.estimatedSavings && <div className={s.savings}>{t('rec.potentialSavings', {amount: rec.estimatedSavings})}</div>}
     </div>
   );
 }

@@ -1,12 +1,14 @@
 import {useEffect} from 'react';
 import clsx from 'clsx';
 import {useAnalyticsStore} from '../../stores/analyticsStore';
+import {useI18n} from '../../i18n';
 import AnalyticsPage from './AnalyticsPage';
 import s from './AnalyticsDrawer.module.scss';
 
 export default function AnalyticsDrawer() {
   const drawerOpen = useAnalyticsStore((st) => st.drawerOpen);
   const closeDrawer = useAnalyticsStore((st) => st.closeDrawer);
+  const {t} = useI18n();
 
   // Escape key to close
   useEffect(() => {
@@ -38,7 +40,7 @@ export default function AnalyticsDrawer() {
       />
       <div className={clsx(s.drawer, drawerOpen && s.open)}>
         <div className={s.header}>
-          <span className={s.title}>Session Analytics</span>
+          <span className={s.title}>{t('nav.sessionAnalytics')}</span>
           <button className={s.closeBtn} onClick={closeDrawer}>
             ✕
           </button>

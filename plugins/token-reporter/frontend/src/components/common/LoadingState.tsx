@@ -1,12 +1,15 @@
 import React from 'react';
 import clsx from 'clsx';
+import {useI18n} from '../../i18n';
 import s from './LoadingState.module.scss';
 
-export const LoadingState: React.FC = () => (
+export const LoadingState: React.FC = () => {
+  const {t} = useI18n();
+  return (
   <div className={s.initState}>
     <div className={s.loadStatus}>
       <span className={s.spinner} />
-      Loading session data...
+      {t('common.loading')}
     </div>
     {Array.from({length: 5}, (_, i) => (
       <div className={s.skRow} key={i}>
@@ -15,4 +18,5 @@ export const LoadingState: React.FC = () => (
       </div>
     ))}
   </div>
-);
+  );
+};

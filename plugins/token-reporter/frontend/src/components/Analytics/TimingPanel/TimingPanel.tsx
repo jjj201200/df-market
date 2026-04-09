@@ -15,6 +15,7 @@ import {useSessionStore} from '../../../stores/sessionStore';
 import {computeSessionCost} from '../../../utils/cost';
 import {computeTimingMetrics, IDLE_THRESHOLD_MS} from '../../../utils/analytics';
 import {fmtUsd, fmtDur} from '../../../utils/format';
+import {useI18n} from '../../../i18n';
 import {
   tooltipStyle,
   tooltipLabelStyle,
@@ -34,14 +35,15 @@ import ColoredBar from '../common/ColoredBar';
 import s from './TimingPanel.module.scss';
 
 export default function TimingPanel() {
+  const {t} = useI18n();
   const turns = useSessionStore((st) => st.turns);
   const cost = useMemo(() => computeSessionCost(turns), [turns]);
   const timing = useMemo(() => computeTimingMetrics(turns, cost.total), [turns, cost.total]);
 
-  const intervalData = timing.turnIntervals.map((t) => ({
-    turn: `#${t.turnId}`,
-    interval: Math.round(t.intervalMs / 1000 * 10) / 10, // seconds with 1 decimal
-    isIdle: t.isIdle,
+  const intervalData = timing.turnIntervals.map((ti) => ({
+    turn: `#${ti.turnId}`,
+    interval: Math.round(ti.intervalMs / 1000 * 10) / 10, // seconds with 1 decimal
+    isIdle: ti.isIdle,
   }));
 
   const tlc = toolColors();
@@ -58,24 +60,24 @@ export default function TimingPanel() {
   return (
     <Panel>
       <CardGrid minWidth={130}>
-        <StatCard label="Session Duration" value={fmtDur(timing.sessionDurationMs)} />
+        <StatCard label={t('timing.sessionDuration')} value={fmtDur(timing.sessionDurationMs)} />
         <StatCard
-          label="Cost / Minute"
+          label={t('timing.costPerMinute')}
           value={fmtUsd(timing.costPerMinute)}
         />
         <StatCard
-          label="Idle Time"
+          label={t('timing.idleTime')}
           value={`${(timing.idlePct * 100).toFixed(0)}%`}
           sub={fmtDur(timing.idleTimeMs)}
           color={timing.idlePct > 0.5 ? 'var(--warning)' : undefined}
         />
-        <StatCard label="Avg Turn Interval" value={fmtDur(timing.avgTurnIntervalMs)} />
-        <StatCard label="Total Tool Time" value={fmtDur(timing.totalToolDurationMs)} />
+        <StatCard label={t('timing.avgTurnInterval')} value={fmtDur(timing.avgTurnIntervalMs)} />
+        <StatCard label={t('timing.totalToolTime')} value={fmtDur(timing.totalToolDurationMs)} />
       </CardGrid>
 
       {/* Turn interval chart */}
       {intervalData.length > 0 && (
-        <ChartBox title="Turn Intervals (seconds)">
+        <ChartBox title={t('timing.turnIntervals')}>
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={intervalData} margin={{top: 8, right: 12, bottom: 4, left: 8}}>
               <defs>
@@ -98,7 +100,7 @@ export default function TimingPanel() {
                 y={IDLE_THRESHOLD_MS / 1000}
                 stroke={cssVar('--warning') || '#d29922'}
                 strokeDasharray="4 4"
-                label={{value: `idle threshold (${IDLE_THRESHOLD_MS / 1000}s)`, fill: cssVar('--warning') || '#d29922', fontSize: 10, position: 'right'}}
+                label={{value: t('timing.idleThreshold', {seconds: IDLE_THRESHOLD_MS / 1000}), fill: cssVar('--warning') || '#d29922', fontSize: 10, position: 'right'}}
               />
               <Area
                 type="monotone"
@@ -106,7 +108,7 @@ export default function TimingPanel() {
                 stroke={cssVar('--accent') || '#58a6ff'}
                 fill="url(#intervalGrad)"
                 strokeWidth={1.5}
-                name="Interval"
+                name={t('timing.interval')}
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -116,8 +118,8 @@ export default function TimingPanel() {
       {toolDurData.length > 0 && (
         <ChartGrid>
           {[
-            {key: 'avgMs' as const, title: 'Avg Tool Duration by Category', name: 'Avg Duration'},
-            {key: 'totalMs' as const, title: 'Total Tool Duration by Category', name: 'Total Duration'},
+            {key: 'avgMs' as const, title: t('timing.avgToolDuration'), name: t('timing.avgDuration')},
+            {key: 'totalMs' as const, title: t('timing.totalToolDuration'), name: t('timing.totalDuration')},
           ].map((cfg) => (
             <ChartBox key={cfg.key} title={cfg.title}>
               <ResponsiveContainer width="100%" height={200}>
@@ -142,21 +144,21 @@ export default function TimingPanel() {
 
       {/* Slowest tools table */}
       {timing.slowestTools.length > 0 && (
-        <ChartBox title="Slowest Tool Calls">
+        <ChartBox title={t('timing.slowestToolCalls')}>
           <table className={s.slowTable}>
             <thead>
               <tr>
-                <th>Tool</th>
-                <th>Turn</th>
-                <th>Duration</th>
+                <th>{t('timing.tool')}</th>
+                <th>{t('timing.turn')}</th>
+                <th>{t('timing.duration')}</th>
               </tr>
             </thead>
             <tbody>
-              {timing.slowestTools.map((t, i) => (
+              {timing.slowestTools.map((st, i) => (
                 <tr key={i}>
-                  <td className={s.toolName}>{t.toolName}</td>
-                  <td>#{t.turnId}</td>
-                  <td>{fmtDur(t.durationMs)}</td>
+                  <td className={s.toolName}>{st.toolName}</td>
+                  <td>#{st.turnId}</td>
+                  <td>{fmtDur(st.durationMs)}</td>
                 </tr>
               ))}
             </tbody>

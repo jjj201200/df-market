@@ -2,6 +2,7 @@ import React, {useCallback, useMemo} from 'react';
 import clsx from 'clsx';
 import type {ToolItem, SubagentStats} from '../../types/state';
 import {TOOL_COLORS, TOOL_NAME_COLORS} from '../../types/toolColors';
+import {useI18n} from '../../i18n';
 import {useUIStore} from '../../stores/uiStore';
 import {CopyButton} from '../common/CopyButton';
 import {SubagentCard} from '../Subagent/SubagentCard';
@@ -34,6 +35,7 @@ interface ToolCardProps {
 }
 
 export const ToolCard: React.FC<ToolCardProps> = React.memo(({tool, detailId, turnId, toolIndex, subagents}) => {
+  const {t} = useI18n();
   const expanded = useUIStore((st) => st.expandedToolDetails.has(detailId));
   const toggleToolDetail = useUIStore((st) => st.toggleToolDetail);
 
@@ -55,8 +57,8 @@ export const ToolCard: React.FC<ToolCardProps> = React.memo(({tool, detailId, tu
   }, [tool.name, tool.input, subagents]);
 
   const getOutputText = useCallback(() => {
-    return tool.output || '(no output)';
-  }, [tool.output]);
+    return tool.output || t('common.noOutput');
+  }, [tool.output, t]);
 
   return (
     <div className={s.tcCard}>
@@ -89,7 +91,7 @@ export const ToolCard: React.FC<ToolCardProps> = React.memo(({tool, detailId, tu
       {/* Expand row */}
       <div className={clsx(s.tcExpandRow, expanded && s.open)} onClick={handleToggle}>
         <span className={s.arrow}>▶</span>
-        <span>Expand params &amp; output</span>
+        <span>{t('conversation.expandParams')}</span>
         {tool.retLines && tool.retLines !== '—' && <span className={s.retLinesHint}>{tool.retLines}</span>}
       </div>
 
@@ -99,7 +101,7 @@ export const ToolCard: React.FC<ToolCardProps> = React.memo(({tool, detailId, tu
           <div className={s.tcDetailBody}>
             {tool.input && tool.input.length > 0 && (
               <>
-                <div className={s.tcSectionLabel}>INPUT</div>
+                <div className={s.tcSectionLabel}>{t('conversation.inputLabel')}</div>
                 {tool.input.map((p, pi) => (
                   <div className={s.tcParamRow} key={pi}>
                     <span className={s.tcPk}>{p.k}</span>
@@ -110,12 +112,12 @@ export const ToolCard: React.FC<ToolCardProps> = React.memo(({tool, detailId, tu
             )}
             <div className={s.tcResultBlock}>
               <div className={s.tcResultMeta}>
-                <span>OUTPUT</span>
+                <span>{t('conversation.outputLabel')}</span>
                 <span className={s.rmBytes}>{tool.retSize}</span>
                 {tool.retLines && tool.retLines !== '—' && <span className={s.rmLines}>{tool.retLines}</span>}
               </div>
               <div className={clsx(s.tcResultPreview, tool.isErr && s.isErr)}>
-                <div className={s.tcResultText}>{tool.output || '(no output)'}</div>
+                <div className={s.tcResultText}>{tool.output || t('common.noOutput')}</div>
                 <CopyButton getText={getOutputText} />
               </div>
             </div>

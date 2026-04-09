@@ -1,5 +1,6 @@
 import {useAnalyticsStore} from '../../stores/analyticsStore';
 import {useSessionStore} from '../../stores/sessionStore';
+import {useI18n} from '../../i18n';
 import AnalyticsNav from './AnalyticsNav';
 import OverviewPanel from './OverviewPanel/OverviewPanel';
 import CachePanel from './CachePanel/CachePanel';
@@ -12,11 +13,12 @@ import s from './AnalyticsPage.module.scss';
 export default function AnalyticsPage() {
   const activeTab = useAnalyticsStore((st) => st.activeTab);
   const turns = useSessionStore((st) => st.turns);
+  const {t} = useI18n();
 
   if (turns.length === 0) {
     return (
       <div className={s.page}>
-        <div className={s.empty}>No session data loaded. Select a session to analyze.</div>
+        <div className={s.empty}>{t('error.noSessionData')}</div>
       </div>
     );
   }
