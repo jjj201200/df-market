@@ -1,0 +1,93 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px;
+}
+
+.chartBox {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.chartTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fg-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.section {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.redundantItem,
+.largeItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: var(--bg-body);
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.redundantCls {
+  font-weight: 600;
+  color: var(--accent);
+  min-width: 40px;
+}
+
+.redundantKey {
+  color: var(--fg-muted);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 11px;
+}
+
+.redundantCount {
+  font-weight: 700;
+  color: var(--warning);
+}
+
+.redundantTurns {
+  color: var(--fg-subtle);
+  font-size: 10px;
+}
+
+.largeTool {
+  font-weight: 600;
+  color: var(--accent);
+  min-width: 60px;
+}
+
+.largeSize {
+  color: var(--warning);
+  font-weight: 700;
+}
+
+.largeTurn {
+  color: var(--fg-subtle);
+}

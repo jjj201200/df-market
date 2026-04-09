@@ -1,0 +1,66 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.empty {
+  text-align: center;
+  padding: 40px 0;
+  color: var(--fg-subtle);
+  font-size: 13px;
+}
+
+.tableWrap {
+  overflow-x: auto;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+
+  th,
+  td {
+    padding: 8px 10px;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  th {
+    color: var(--fg-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 10px;
+    border-bottom: 1px solid var(--border-default);
+    background: var(--bg-surface-raised);
+  }
+
+  td {
+    color: var(--fg-default);
+    border-bottom: 1px solid var(--border-muted);
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  tr:hover td {
+    background: var(--bg-body);
+  }
+}
+
+.mainRow td {
+  font-weight: 600;
+  color: var(--accent);
+}

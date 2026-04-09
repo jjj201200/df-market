@@ -1,15 +1,27 @@
+.limitGroup {
+  display: flex;
+  flex-grow: 1;
+}
+
 .limitsRowCompact {
   display: flex;
-  gap: 24px;
+  gap: 32px;
   align-items: center;
 }
 
 .limitItemCompact {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex: 1;
+  gap: 12px;
   min-width: 0;
+}
+
+.limitBarTip {
+  margin-right: 8px;
+  font-size: 12px;
+  color: var(--fg-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .limitLabel {
@@ -40,9 +52,8 @@
 .limitPct {
   font-size: 12px;
   font-weight: 600;
-  color: var(--fg-default);
-  min-width: 32px;
-  margin: 0;
+  color: var(--fg-muted);
+  margin-right: 4px;
 }
 
 .limitDetail {
@@ -50,6 +61,7 @@
   color: var(--fg-subtle);
   white-space: nowrap;
   margin: 0;
+  text-transform: uppercase;
 }
 
 @media (max-width: 800px) {

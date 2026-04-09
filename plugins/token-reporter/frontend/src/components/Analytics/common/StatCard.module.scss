@@ -1,0 +1,28 @@
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  padding: 12px 14px;
+  min-width: 0;
+}
+
+.label {
+  font-size: 11px;
+  color: var(--fg-muted);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--fg-default);
+  line-height: 1.2;
+}
+
+.sub {
+  font-size: 11px;
+  color: var(--fg-subtle);
+  margin-top: 2px;
+}

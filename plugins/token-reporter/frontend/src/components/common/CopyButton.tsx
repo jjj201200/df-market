@@ -1,4 +1,5 @@
 import React, {useCallback, useState, useRef} from 'react';
+import clsx from 'clsx';
 import s from './CopyButton.module.scss';
 
 interface CopyButtonProps {
@@ -22,7 +23,7 @@ export const CopyButton: React.FC<CopyButtonProps> = ({getText, className}) => {
   }, [getText]);
 
   return (
-    <button className={`${s.copyBtn} ${copied ? s.copied : ''} ${className ?? ''}`} onClick={handleClick} title="Copy">
+    <button className={clsx(s.copyBtn, copied && s.copied, className)} onClick={handleClick} title="Copy">
       {copied ? 'Copied' : 'Copy'}
     </button>
   );

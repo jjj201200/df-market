@@ -86,6 +86,7 @@ function updateViewRange() {
   const N = turns.length;
   if (N === 0) return {loIdx: -1, hiIdx: -1, loPct: 0, hiPct: 1};
 
+  const Nm1 = Math.max(N - 1, 1);
   const stickyEl = document.getElementById('stickyChart');
   const stickyH = stickyEl?.offsetHeight ?? 0;
   const viewTop = window.scrollY + stickyH;
@@ -104,19 +105,24 @@ function updateViewRange() {
     if (bottom > viewTop && top < viewBottom) {
       if (loIdx < 0) {
         loIdx = i;
-        // Calculate percentage for first visible turn (same as brush calculation)
-        loPct = i / Math.max(N - 1, 1);
+        // Sub-index precision: how much of this turn is hidden above the viewport
+        const h = el.offsetHeight || 1;
+        const hiddenAbove = Math.max(0, viewTop - top);
+        loPct = (i + hiddenAbove / h) / Nm1;
       }
       hiIdx = i;
-      // Calculate percentage for last visible turn (same as brush calculation)
-      // brush uses index/(N-1), so viewport should use the same
-      hiPct = i / Math.max(N - 1, 1);
+      // Sub-index precision: how much of this turn is hidden below the viewport
+      // When fully visible: hiPct = i / Nm1 (same as brush index mapping)
+      // When partially hidden below: shift left by the hidden fraction
+      const h = el.offsetHeight || 1;
+      const hiddenBelow = Math.max(0, bottom - viewBottom);
+      hiPct = (i - hiddenBelow / h) / Nm1;
     }
   }
 
   if (loIdx >= 0) {
-    const {viewLoIdx: prevLo, viewHiIdx: prevHi, setViewRange} = useChartStore.getState();
-    if (loIdx !== prevLo || hiIdx !== prevHi) {
+    const {viewLoIdx: prevLo, viewHiIdx: prevHi, viewLoPct: prevLoPct, viewHiPct: prevHiPct, setViewRange} = useChartStore.getState();
+    if (loIdx !== prevLo || hiIdx !== prevHi || Math.abs(loPct - prevLoPct) > 0.001 || Math.abs(hiPct - prevHiPct) > 0.001) {
       setViewRange(loIdx, hiIdx, loPct, hiPct);
     }
   }
@@ -165,17 +171,21 @@ export function useScrollSync() {
       const span = brushR - brushL;
 
       // Only push brush when viewport exceeds brush boundaries
-      let newL = brushL;
-      if (viewR > brushR) {
+      const viewSpan = viewR - viewL;
+      if (viewSpan > span) {
+        // Viewport is larger than brush — expand brush to cover viewport
+        const newL = Math.max(0, viewL);
+        const newR = Math.min(1, viewR);
+        setBrush(newL, newR);
+      } else if (viewR > brushR) {
         // Viewport overflows right — push brush right
-        newL = Math.min(viewR - span, 1 - span);
+        const newL = Math.min(viewR - span, 1 - span);
+        setBrush(newL, newL + span);
       } else if (viewL < brushL) {
         // Viewport overflows left — push brush left
-        newL = Math.max(viewL, 0);
-      } else {
-        return; // Viewport within brush range, no change
+        const newL = Math.max(viewL, 0);
+        setBrush(newL, newL + span);
       }
-      setBrush(newL, newL + span);
     }
 
     function onResize() {

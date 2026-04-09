@@ -4,6 +4,7 @@ import {useSessionStore} from '../../stores/sessionStore';
 import {DPR, getSegs, setupCanvas} from '../../utils/canvas';
 import {scrollToTurnIndex} from './MainChart';
 import {lockBrushDriving, deferScrollToTurn} from '../../hooks/useScrollSync';
+import {pixelToBrushPct} from '../../utils/brushCoords';
 import styles from './BrushChart.module.scss';
 const BRUSH_H = 32;
 const ZOOM_FACTOR = 0.05;
@@ -81,7 +82,8 @@ export default function BrushChart() {
       const N = turns.length;
       if (N === 0) return;
       const rect = (e.target as HTMLCanvasElement).getBoundingClientRect();
-      const ratio = (e.clientX - rect.left) / rect.width;
+      const ratioRaw = (e.clientX - rect.left) / rect.width;
+      const ratio = pixelToBrushPct(ratioRaw, N);
       const span = brushR - brushL;
       let newL = ratio - span / 2;
       newL = Math.max(0, Math.min(newL, 1 - span));
@@ -103,7 +105,8 @@ export default function BrushChart() {
       lockBrushDriving();
 
       const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
-      const mouseX = (e.clientX - rect.left) / rect.width;
+      const mouseXRaw = (e.clientX - rect.left) / rect.width;
+      const mouseX = pixelToBrushPct(mouseXRaw, turns.length);
 
       const span = brushR - brushL;
       const {viewLoIdx: vLo, viewHiIdx: vHi} = useChartStore.getState();
@@ -163,10 +166,8 @@ export default function BrushChart() {
       const N = turns.length;
       if (N > 0) {
         deferScrollToTurn(() => {
-          const {viewLoIdx, viewHiIdx} = useChartStore.getState();
+          const {viewLoPct: vL, viewHiPct: vR} = useChartStore.getState();
           const Nm1 = Math.max(N - 1, 1);
-          const vL = viewLoIdx / Nm1;
-          const vR = viewHiIdx / Nm1;
           if (vL < capturedL) {
             scrollToTurnIndex(turns, Math.round(capturedL * Nm1));
           } else if (vR > capturedR) {

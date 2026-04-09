@@ -77,11 +77,14 @@ export default function LimitsDisplay() {
   if (!hasCtx && !hasFive && !hasSeven) return null;
 
   return (
-    <div className={styles.limitsDisplay}>
+    <div className={styles.limitGroup}>
+      <span className={styles.limitBarTip}>Limits</span>
       <div className={styles.limitsRowCompact}>
-        <LimitItem label="Ctx" pct={ctxPct} detail={ctxDetail || undefined} />
-        {hasFive && <LimitItem label="5h" pct={fivePct} detail={fmtResetTimeAbsolute(fiveHourResetsAt!)} />}
-        {hasSeven && <LimitItem label="7d" pct={sevenPct} detail={fmtResetTimeAbsolute(sevenDayResetsAt!)} />}
+        <LimitItem label="Session" pct={ctxPct} detail={ctxDetail || undefined} />
+        {hasFive && <LimitItem label="5h" pct={fivePct} detail={`reset ${fmtResetTimeAbsolute(fiveHourResetsAt!)}`} />}
+        {hasSeven && (
+          <LimitItem label="7d" pct={sevenPct} detail={`reset ${fmtResetTimeAbsolute(sevenDayResetsAt!)}`} />
+        )}
       </div>
     </div>
   );

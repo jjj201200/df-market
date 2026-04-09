@@ -1,4 +1,5 @@
 import React, {useCallback, useRef, useState, useLayoutEffect} from 'react';
+import clsx from 'clsx';
 import type {TurnItem} from '../../types/state';
 import {useUIStore} from '../../stores/uiStore';
 import {TokenBadges} from '../common/TokenBadges';
@@ -30,7 +31,7 @@ export const UserMessage: React.FC<UserMessageProps> = React.memo(({turn, isHove
 
   if (!userText.trim()) return null;
 
-  const cls = [s.msgUser, isHovered ? s.barHover : '', turn.isSidechain ? s.sidechain : ''].filter(Boolean).join(' ');
+  const cls = clsx(s.msgUser, isHovered && s.barHover, turn.isSidechain && s.sidechain);
 
   return (
     <div className={cls}>
@@ -41,7 +42,7 @@ export const UserMessage: React.FC<UserMessageProps> = React.memo(({turn, isHove
         <TokenBadges input={turn.input} output={turn.output} cacheR={turn.cacheR} cacheC={turn.cacheC} />
       </div>
       <div className={s.msgBody}>
-        <div ref={textRef} className={`${s.msgText} ${!expanded ? s.clamped : ''}`}>{userText}</div>
+        <div ref={textRef} className={clsx(s.msgText, !expanded && s.clamped)}>{userText}</div>
         {overflows && (
           <span className={s.expandBtn} onClick={handleToggle}>
             {expanded ? '▲ Collapse' : '▼ Expand all'}

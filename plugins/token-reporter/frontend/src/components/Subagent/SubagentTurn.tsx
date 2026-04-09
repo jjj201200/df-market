@@ -1,4 +1,5 @@
 import React from 'react';
+import clsx from 'clsx';
 import type {SubagentTurnItem} from '../../types/state';
 import {TOOL_COLORS} from '../../types/toolColors';
 import {CopyButton} from '../common/CopyButton';
@@ -48,14 +49,14 @@ export const SubagentTurn: React.FC<SubagentTurnProps> = ({turn}) => {
         </div>
 
         {hasUser && (
-          <div className={`${s.saSection} ${s.saSectionUser}`}>
+          <div className={clsx(s.saSection, s.saSectionUser)}>
             <div className={s.saScrollableContent}>{userText}</div>
             <CopyButton getText={() => userText} />
           </div>
         )}
 
         {hasAssistant && (
-          <div className={`${s.saSection} ${s.saSectionAssistant}`}>
+          <div className={clsx(s.saSection, s.saSectionAssistant)}>
             <div className={s.saScrollableContent}>{assistantText}</div>
             <CopyButton getText={() => assistantText} />
           </div>

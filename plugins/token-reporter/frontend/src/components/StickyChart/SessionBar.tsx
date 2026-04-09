@@ -1,4 +1,5 @@
 import {useCallback, useMemo, useState} from 'react';
+import clsx from 'clsx';
 import {useSessionStore} from '../../stores/sessionStore';
 import {useChartStore} from '../../stores/chartStore';
 import {fmt} from '../../utils/format';
@@ -64,7 +65,7 @@ export default function SessionBar() {
           })}
         </select>
         <button
-          className={`${styles.sessionCopyBtn} ${copied ? styles.copied : ''}`}
+          className={clsx(styles.sessionCopyBtn, copied && styles.copied)}
           onClick={handleCopy}
           title="Copy session ID"
         >
@@ -75,19 +76,19 @@ export default function SessionBar() {
       <div className={styles.sessionMeta}>
         <span className={styles.smeta}>
           <span className={styles.smetaL}>In </span>
-          <span className={`${styles.smetaV} ${styles.in}`}>{fmt(totals.tIn)}</span>
+          <span className={clsx(styles.smetaV, styles.in)}>{fmt(totals.tIn)}</span>
         </span>
         <span className={styles.smeta}>
           <span className={styles.smetaL}>Out </span>
-          <span className={`${styles.smetaV} ${styles.out}`}>{fmt(totals.tOut)}</span>
+          <span className={clsx(styles.smetaV, styles.out)}>{fmt(totals.tOut)}</span>
         </span>
         <span className={styles.smeta}>
           <span className={styles.smetaL}>CR </span>
-          <span className={`${styles.smetaV} ${styles.cr}`}>{fmt(totals.tCR)}</span>
+          <span className={clsx(styles.smetaV, styles.cr)}>{fmt(totals.tCR)}</span>
         </span>
         <span className={styles.smeta}>
           <span className={styles.smetaL}>CC </span>
-          <span className={`${styles.smetaV} ${styles.cc}`}>{fmt(totals.tCC)}</span>
+          <span className={clsx(styles.smetaV, styles.cc)}>{fmt(totals.tCC)}</span>
         </span>
         <span className={styles.smeta}>
           <span className={styles.smetaL}>Turns </span>

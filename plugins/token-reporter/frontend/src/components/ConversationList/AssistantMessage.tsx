@@ -1,4 +1,5 @@
 import React, {useCallback, useRef, useState, useLayoutEffect} from 'react';
+import clsx from 'clsx';
 import type {TurnItem} from '../../types/state';
 import {useUIStore} from '../../stores/uiStore';
 import {TokenBadges} from '../common/TokenBadges';
@@ -30,9 +31,7 @@ export const AssistantMessage: React.FC<AssistantMessageProps> = React.memo(({tu
     setOverflows(el.scrollHeight > el.clientHeight);
   }, [assistantText]);
 
-  const wrapCls = hasUser
-    ? `${s.msgAssistant} ${isHovered ? s.barHover : ''}`
-    : `${s.msgAsstLed} ${isHovered ? s.barHover : ''}`;
+  const wrapCls = clsx(hasUser ? s.msgAssistant : s.msgAsstLed, isHovered && s.barHover);
 
   return (
     <div className={wrapCls}>
@@ -46,7 +45,7 @@ export const AssistantMessage: React.FC<AssistantMessageProps> = React.memo(({tu
       {turn.thinking && <ThinkingBlock id={`th-${turn.id}`} text={turn.thinking} />}
       {assistantText && (
         <div className={s.msgBody}>
-          <div ref={textRef} className={`${s.msgText} ${!expanded ? s.clamped : ''}`}>{assistantText}</div>
+          <div ref={textRef} className={clsx(s.msgText, !expanded && s.clamped)}>{assistantText}</div>
           {overflows && (
             <span className={s.expandBtn} onClick={handleToggle}>
               {expanded ? '▲ Collapse' : '▼ Expand all'}

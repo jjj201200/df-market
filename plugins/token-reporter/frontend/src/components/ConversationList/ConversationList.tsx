@@ -11,10 +11,37 @@ import s from './ConversationList.module.scss';
 export const ConversationList: React.FC = () => {
   const data = useSessionStore((st) => st.data);
   const subagents = useSessionStore((st) => st.subagents);
+  const sessions = useSessionStore((st) => st.sessions);
+  const sessionsLoading = useSessionStore((st) => st.sessionsLoading);
+  const sessionsError = useSessionStore((st) => st.sessionsError);
+  const activeSessionId = useSessionStore((st) => st.activeSessionId);
   const sessionLoading = useSessionStore((st) => st.sessionLoading);
   const sessionError = useSessionStore((st) => st.sessionError);
 
-  if (sessionLoading) {
+  if (sessionsLoading || sessionLoading) {
+    return (
+      <div className={s.convScroll}>
+        <LoadingState />
+      </div>
+    );
+  }
+
+  if (sessionsError) {
+    return (
+      <div className={s.convScroll}>
+        <ErrorDisplay message="Failed to load sessions" detail={sessionsError} />
+      </div>
+    );
+  }
+
+  if (!activeSessionId) {
+    if (sessions.length === 0 && !sessionsLoading) {
+      return (
+        <div className={s.convScroll}>
+          <ErrorDisplay message="No sessions available" />
+        </div>
+      );
+    }
     return (
       <div className={s.convScroll}>
         <LoadingState />

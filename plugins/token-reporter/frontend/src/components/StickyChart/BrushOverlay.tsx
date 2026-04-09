@@ -3,6 +3,7 @@ import {useChartStore} from '../../stores/chartStore';
 import {useSessionStore} from '../../stores/sessionStore';
 import {scrollToTurnIndex} from './MainChart';
 import {lockBrushDriving, deferScrollToTurn} from '../../hooks/useScrollSync';
+import {brushToPixelPct, pixelToBrushPct} from '../../utils/brushCoords';
 import styles from './BrushOverlay.module.scss';
 
 const ZOOM_FACTOR = 0.05; // 5% zoom per wheel tick
@@ -53,7 +54,8 @@ export default function BrushOverlay() {
       lockBrushDriving();
 
       const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
-      const mouseX = (e.clientX - rect.left) / rect.width; // 0-1 position under mouse
+      const mouseXRaw = (e.clientX - rect.left) / rect.width;
+      const mouseX = pixelToBrushPct(mouseXRaw, turns.length); // convert pixel-space to brush-space
 
       const span = brushR - brushL;
       const {viewLoIdx: vLo, viewHiIdx: vHi} = useChartStore.getState();
@@ -115,10 +117,8 @@ export default function BrushOverlay() {
       const N = turns.length;
       if (N > 0) {
         deferScrollToTurn(() => {
-          const {viewLoIdx, viewHiIdx} = useChartStore.getState();
+          const {viewLoPct: vL, viewHiPct: vR} = useChartStore.getState();
           const Nm1 = Math.max(N - 1, 1);
-          const vL = viewLoIdx / Nm1;
-          const vR = viewHiIdx / Nm1;
           if (vL < capturedL) {
             scrollToTurnIndex(turns, Math.round(capturedL * Nm1));
           } else if (vR > capturedR) {
@@ -169,10 +169,8 @@ export default function BrushOverlay() {
 
         // Defer scroll until drag stops — if viewport partially outside brush
         deferScrollToTurn(() => {
-          const {brushL: bL, brushR: bR, viewLoIdx, viewHiIdx} = useChartStore.getState();
+          const {brushL: bL, brushR: bR, viewLoPct: vL, viewHiPct: vR} = useChartStore.getState();
           const Nm1 = Math.max(N - 1, 1);
-          const vL = viewLoIdx / Nm1;
-          const vR = viewHiIdx / Nm1;
           if (vR > bR) {
             // Viewport right edge beyond brush right — align viewport bottom to brush right edge
             scrollToTurnIndex(turns, Math.round(bR * Nm1), 'bottom');
@@ -185,10 +183,8 @@ export default function BrushOverlay() {
 
       const onUp = () => {
         if (styles.dragging) overlayRef.current?.classList.remove(styles.dragging);
-        const {brushL: bL, brushR: bR, viewLoIdx, viewHiIdx} = useChartStore.getState();
+        const {brushL: bL, brushR: bR, viewLoPct: vL, viewHiPct: vR} = useChartStore.getState();
         const Nm1 = Math.max(N - 1, 1);
-        const vL = viewLoIdx / Nm1;
-        const vR = viewHiIdx / Nm1;
         if (vR > bR) {
           scrollToTurnIndex(turns, Math.round(bR * Nm1), 'bottom');
         } else if (vL < bL) {
@@ -204,15 +200,15 @@ export default function BrushOverlay() {
     [brushL, brushR, setBrush, turns],
   );
 
-  // Compute pixel positions. The overlay width matches the brush canvas.
-  // We use percentage-based positioning so it works without knowing the exact width.
-  const lPct = brushL * 100;
-  const rPct = brushR * 100;
+  // Compute pixel positions using coordinate conversion (index-space → pixel-space).
+  const N = turns.length;
+  const lPct = brushToPixelPct(brushL, N) * 100;
+  const rPct = brushToPixelPct(brushR, N) * 100;
   const selWidth = rPct - lPct;
 
-  // Viewport indicator: use precise percentage from scroll sync
-  const viewLPct = viewLoPct * 100;
-  const viewRPct = viewHiPct * 100;
+  // Viewport indicator: convert from index-space to pixel-space
+  const viewLPct = brushToPixelPct(viewLoPct, N) * 100;
+  const viewRPct = brushToPixelPct(viewHiPct, N) * 100;
   const viewWidth = viewRPct - viewLPct;
   const showViewport = viewLoIdx >= 0 && viewHiIdx >= 0 && turns.length > 0;
 

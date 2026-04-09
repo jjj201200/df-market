@@ -1,5 +1,7 @@
-import React, {useState, useCallback} from 'react';
+import React, {useCallback} from 'react';
+import clsx from 'clsx';
 import type {CommandItem} from '../../types/state';
+import {useUIStore} from '../../stores/uiStore';
 import s from './CommandEvent.module.scss';
 
 interface CommandEventProps {
@@ -7,27 +9,32 @@ interface CommandEventProps {
 }
 
 export const CommandEvent: React.FC<CommandEventProps> = React.memo(({item}) => {
-  const [showOutput, setShowOutput] = useState(false);
+  const cmdId = `cmd-${item.command}-${item.timestamp}`;
+  const expanded = useUIStore((st) => st.expandedCommands.has(cmdId));
+  const toggleCommand = useUIStore((st) => st.toggleCommand);
   const hasOutput = (item.output || '').trim().length > 0;
 
   const handleToggle = useCallback(() => {
-    setShowOutput((prev) => !prev);
-  }, []);
+    toggleCommand(cmdId);
+  }, [cmdId, toggleCommand]);
 
   const showMessage = item.message && item.message !== item.command.replace(/^\//, '');
 
   return (
     <div className={s.eventCommand}>
-      <span className={s.evCmdIcon}>&#8984;</span>
-      <span className={s.evCmdName}>{item.command}</span>
-      {showMessage && <span className={s.evCmdMsg}>{item.message}</span>}
-      <span className={s.evCmdTime}>{item.time}</span>
+      <div className={s.evCmdHead}>
+        <span className={s.evCmdIcon}>&#8984;</span>
+        <span className={s.evCmdName}>{item.command}</span>
+        {showMessage && <span className={s.evCmdMsg}>{item.message}</span>}
+        <span className={s.evCmdTime}>{item.time}</span>
+      </div>
       {hasOutput && (
-        <span className={s.evCmdToggle} onClick={handleToggle}>
-          {showOutput ? '▼ output' : '▶ output'}
-        </span>
+        <div className={clsx(s.evCmdExpandRow, expanded && s.open)} onClick={handleToggle}>
+          <span className={s.arrow}>&#9654;</span>
+          <span>output</span>
+        </div>
       )}
-      {hasOutput && showOutput && <div className={s.evCmdOutput}>{item.output}</div>}
+      {hasOutput && expanded && <div className={s.evCmdOutput}>{item.output}</div>}
     </div>
   );
 });

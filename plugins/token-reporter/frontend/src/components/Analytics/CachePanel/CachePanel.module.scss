@@ -1,0 +1,76 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px;
+}
+
+.gaugeBox {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.chartTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fg-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.gauge {
+  padding: 4px 0;
+}
+
+.gaugeBg {
+  height: 16px;
+  background: var(--bg-inset);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.gaugeFill {
+  height: 100%;
+  border-radius: 8px;
+  transition: width 0.5s ease;
+}
+
+.good {
+  background: var(--success);
+}
+
+.ok {
+  background: var(--warning);
+}
+
+.bad {
+  background: var(--danger);
+}
+
+.gaugeLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--fg-subtle);
+  margin-top: 4px;
+}
+
+.gaugeTarget {
+  color: var(--success-fg);
+  font-weight: 600;
+}
+
+.chartBox {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  padding: 12px;
+}

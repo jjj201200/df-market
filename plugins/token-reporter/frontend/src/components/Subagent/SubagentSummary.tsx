@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import clsx from 'clsx';
 import type {SubagentStats} from '../../types/state';
 import {ToolPills} from '../common/ToolPills';
 import {TokenBadges} from '../common/TokenBadges';
@@ -42,7 +43,7 @@ function SubagentCardItem({agentId, stats}: {agentId: string; stats: SubagentSta
   const toolCounts = stats.toolCounts || {};
 
   return (
-    <div className={`${s.saCard} ${s[typeClass] ?? ''}`}>
+    <div className={clsx(s.saCard, s[typeClass])}>
       <div className={s.saCardHeader}>
         <div className={s.saCardLeft}>
           <span className={s.saType}>{stats.agentType}</span>
@@ -66,7 +67,7 @@ function SubagentCardItem({agentId, stats}: {agentId: string; stats: SubagentSta
 
       {hasTurns && (
         <div className={s.saExpandRow} onClick={() => setExpanded(!expanded)}>
-          <span className={`${s.arrow} ${expanded ? s.open : ''}`}>&#x25B6;</span>
+          <span className={clsx(s.arrow, expanded && s.open)}>&#x25B6;</span>
           <span>View {stats.totalTurns} turns</span>
         </div>
       )}

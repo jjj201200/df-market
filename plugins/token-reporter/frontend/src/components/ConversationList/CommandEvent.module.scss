@@ -2,22 +2,25 @@
 @use '../../styles/mixins' as *;
 
 .eventCommand {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
   margin-bottom: 10px;
-  background: var(--blue-2);
   border: 1px solid var(--accent-hover-shadow);
   border-left: 3px solid var(--accent);
   border-radius: $radius-sm;
   font-size: $font-size-sm;
-  flex-wrap: wrap;
-  position: relative;
+  overflow: hidden;
+}
+
+.evCmdHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--blue-1);
 }
 
 .evCmdIcon {
-  font-size: $font-size-sm;
+  line-height: 12px;
+  font-size: 16px;
   color: var(--accent);
   flex-shrink: 0;
 }
@@ -40,27 +43,38 @@
   margin-left: auto;
 }
 
-.evCmdToggle {
+.evCmdExpandRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px 4px 13px;
   font-size: $font-size-sm;
+  border-top: 1px solid var(--accent-hover-shadow);
   color: var(--fg-subtle);
+  background: var(--bg-inset);
   cursor: pointer;
   user-select: none;
-  background: none;
-  border: none;
-  padding: 0;
 
   &:hover {
     color: var(--accent);
+    background: var(--gray-a4);
+  }
+}
+
+.arrow {
+  font-size: $font-size-sm;
+  transition: transform 0.15s;
+  display: inline-block;
+
+  .open & {
+    transform: rotate(90deg);
   }
 }
 
 .evCmdOutput {
-  width: 100%;
-  margin-top: 4px;
-  padding: 4px 8px;
+  padding: 5px 8px;
   background: var(--bg-body);
-  border: 1px solid var(--border-default);
-  border-radius: 3px;
+  border-top: 1px solid var(--accent-hover-shadow);
   font-size: $font-size-sm;
   color: var(--fg-muted);
   font-family: monospace;

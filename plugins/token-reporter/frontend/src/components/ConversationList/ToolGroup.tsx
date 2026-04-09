@@ -1,4 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
+import clsx from 'clsx';
 import type {TurnItem, SubagentStats} from '../../types/state';
 import {useUIStore} from '../../stores/uiStore';
 import {fmtDur, fmtBytes, parseDur, parseSize} from '../../utils/format';
@@ -49,7 +50,7 @@ export const ToolGroup: React.FC<ToolGroupProps> = React.memo(({turn, subagents}
   return (
     <div className={s.tcGroup}>
       <div className={s.tcToggle} onClick={handleToggle}>
-        <span className={`${s.arrow} ${expanded ? s.open : ''}`}>▶</span>
+        <span className={clsx(s.arrow, expanded && s.open)}>▶</span>
         <span className={s.tcBadge}>
           {total} tool call{total === 1 ? '' : 's'}
         </span>

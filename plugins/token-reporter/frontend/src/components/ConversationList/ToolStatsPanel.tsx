@@ -1,4 +1,5 @@
 import React from 'react';
+import clsx from 'clsx';
 import type {ToolItem} from '../../types/state';
 import {fmtDur, fmtBytes, parseDur, parseSize} from '../../utils/format';
 import s from './ToolGroup.module.scss';
@@ -27,29 +28,29 @@ export const ToolStatsPanel: React.FC<ToolStatsPanelProps> = React.memo(({tools}
       </div>
       <div className={s.tsItem}>
         <div className={s.tsLabel}>OK</div>
-        <div className={`${s.tsVal} ${s.ok}`}>{okCount}</div>
+        <div className={clsx(s.tsVal, s.ok)}>{okCount}</div>
       </div>
       <div className={s.tsItem}>
         <div className={s.tsLabel}>Err</div>
-        <div className={`${s.tsVal} ${errCount ? s.err : s.ok}`}>{errCount}</div>
+        <div className={clsx(s.tsVal, errCount ? s.err : s.ok)}>{errCount}</div>
       </div>
       <div className={s.tsItem}>
         <div className={s.tsLabel}>Duration</div>
-        <div className={`${s.tsVal} ${s.time}`}>{fmtDur(totalMs)}</div>
+        <div className={clsx(s.tsVal, s.time)}>{fmtDur(totalMs)}</div>
       </div>
       <div className={s.tsItem}>
         <div className={s.tsLabel}>Slowest</div>
-        <div className={`${s.tsVal} ${s.time}`}>
+        <div className={clsx(s.tsVal, s.time)}>
           {slowest.name} {slowest.dur}
         </div>
       </div>
       <div className={s.tsItem}>
         <div className={s.tsLabel}>Total ret.</div>
-        <div className={`${s.tsVal} ${s.size}`}>{fmtBytes(totalBytes)}</div>
+        <div className={clsx(s.tsVal, s.size)}>{fmtBytes(totalBytes)}</div>
       </div>
       <div className={s.tsItem}>
         <div className={s.tsLabel}>Largest</div>
-        <div className={`${s.tsVal} ${s.size}`}>
+        <div className={clsx(s.tsVal, s.size)}>
           {biggest.name} {biggest.retSize}
         </div>
       </div>

@@ -1,4 +1,5 @@
 import React from 'react';
+import clsx from 'clsx';
 import type {ToolItem} from '../../types/state';
 import {TOOL_COLORS} from '../../types/toolColors';
 import s from './SubagentSummary.module.scss';
@@ -23,7 +24,7 @@ export const SubagentToolGroup: React.FC<SubagentToolGroupProps> = ({tools}) => 
             <span className={s.saToolMeta}>
               <span className={s.saToolDur}>{t.dur}</span>
               <span className={s.saToolSize}>{t.retSize}</span>
-              <span className={`${s.saToolSt} ${t.status === 'ok' ? s.ok : s.err}`}>{t.status.toUpperCase()}</span>
+              <span className={clsx(s.saToolSt, t.status === 'ok' ? s.ok : s.err)}>{t.status.toUpperCase()}</span>
             </span>
           </div>
         ))}

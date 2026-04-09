@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import {useChartStore} from '../../stores/chartStore';
 import type {Dims} from '../../types/state';
 import styles from './DimBar.module.scss';
@@ -15,10 +16,11 @@ export default function DimBar() {
 
   return (
     <div className={styles.dimBar}>
+      <span className={styles.toggleTip}>TOGGEL SHOW</span>
       {CHIPS.map((chip) => (
         <span
           key={chip.key}
-          className={`${styles.dimChip} ${styles[chip.variant] ?? ''} ${dims[chip.key] ? '' : styles.off}`}
+          className={clsx(styles.dimChip, styles[chip.variant], !dims[chip.key] && styles.off)}
           onClick={() => toggleDim(chip.key)}
         >
           <span className={styles.dot} />

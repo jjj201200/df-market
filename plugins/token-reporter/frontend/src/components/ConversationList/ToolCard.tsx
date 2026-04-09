@@ -1,4 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
+import clsx from 'clsx';
 import type {ToolItem, SubagentStats} from '../../types/state';
 import {TOOL_COLORS, TOOL_NAME_COLORS} from '../../types/toolColors';
 import {useUIStore} from '../../stores/uiStore';
@@ -77,7 +78,7 @@ export const ToolCard: React.FC<ToolCardProps> = React.memo(({tool, detailId, tu
           <div className={s.tcMeta}>
             <span className={s.tcDur}>{tool.dur}</span>
             <span className={s.tcSize}>{tool.retSize}</span>
-            <span className={`${s.tcSt} ${tool.status === 'ok' ? s.ok : s.err}`}>{tool.status.toUpperCase()}</span>
+            <span className={clsx(s.tcSt, tool.status === 'ok' ? s.ok : s.err)}>{tool.status.toUpperCase()}</span>
           </div>
         </div>
       </div>
@@ -86,8 +87,8 @@ export const ToolCard: React.FC<ToolCardProps> = React.memo(({tool, detailId, tu
       {matchingSubagent && <SubagentCard subagent={matchingSubagent} turnId={turnId} toolIndex={toolIndex} />}
 
       {/* Expand row */}
-      <div className={s.tcExpandRow} onClick={handleToggle}>
-        <span className={`${s.arrow} ${expanded ? s.open : ''}`}>▶</span>
+      <div className={clsx(s.tcExpandRow, expanded && s.open)} onClick={handleToggle}>
+        <span className={s.arrow}>▶</span>
         <span>Expand params &amp; output</span>
         {tool.retLines && tool.retLines !== '—' && <span className={s.retLinesHint}>{tool.retLines}</span>}
       </div>
@@ -102,7 +103,7 @@ export const ToolCard: React.FC<ToolCardProps> = React.memo(({tool, detailId, tu
                 {tool.input.map((p, pi) => (
                   <div className={s.tcParamRow} key={pi}>
                     <span className={s.tcPk}>{p.k}</span>
-                    <span className={`${s.tcPv} ${getVcClass(p.vc)}`}>{p.v}</span>
+                    <span className={clsx(s.tcPv, getVcClass(p.vc))}>{p.v}</span>
                   </div>
                 ))}
               </>
@@ -113,7 +114,7 @@ export const ToolCard: React.FC<ToolCardProps> = React.memo(({tool, detailId, tu
                 <span className={s.rmBytes}>{tool.retSize}</span>
                 {tool.retLines && tool.retLines !== '—' && <span className={s.rmLines}>{tool.retLines}</span>}
               </div>
-              <div className={`${s.tcResultPreview} ${tool.isErr ? s.isErr : ''}`}>
+              <div className={clsx(s.tcResultPreview, tool.isErr && s.isErr)}>
                 <div className={s.tcResultText}>{tool.output || '(no output)'}</div>
                 <CopyButton getText={getOutputText} />
               </div>

@@ -1,4 +1,5 @@
 import React from 'react';
+import clsx from 'clsx';
 import s from './ToolPills.module.scss';
 
 const PILL_CLASS: Record<string, string> = {
@@ -26,7 +27,7 @@ export const ToolPills: React.FC<ToolPillsProps> = ({counts}) => {
   return (
     <span className={s.toolPills}>
       {entries.map(([cls, n]) => (
-        <span className={`${s.toolPill} ${s[PILL_CLASS[cls] || 'tpOther'] || ''}`} key={cls}>
+        <span className={clsx(s.toolPill, s[PILL_CLASS[cls] || 'tpOther'])} key={cls}>
           {cls.toUpperCase()}&times;{n}
         </span>
       ))}

@@ -83,6 +83,9 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
 
       localStorage.setItem(LAST_SESSION_KEY, sessionId);
 
+      // Always keep turnCount in sync for brush snapping
+      useChartStore.getState().setTurnCount(turns.length);
+
       if (!preserveScroll) {
         useChartStore.getState().initBrushForTurnCount(turns.length);
 

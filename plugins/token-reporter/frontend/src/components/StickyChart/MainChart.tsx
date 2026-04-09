@@ -233,12 +233,10 @@ export default function MainChart() {
         setBrush(newL, newL + span);
         const Nm1 = Math.max(turns.length - 1, 1);
         deferScrollToTurn(() => {
-          const {brushL: bL, brushR: bR, viewLoIdx, viewHiIdx} = useChartStore.getState();
-          const vL = viewLoIdx / Nm1;
-          const vR = viewHiIdx / Nm1;
-          if (vR <= bL) {
+          const {brushL: bL, brushR: bR, viewLoPct: vL, viewHiPct: vR} = useChartStore.getState();
+          if (vL < bL) {
             scrollToTurnIndex(turns, Math.round(bL * Nm1));
-          } else if (vL >= bR) {
+          } else if (vR > bR) {
             scrollToTurnIndex(turns, Math.round(bR * Nm1), 'bottom');
           }
         });
@@ -248,12 +246,10 @@ export default function MainChart() {
         dragRef.current.active = false;
         if (styles.dragging) canvasRef.current?.classList.remove(styles.dragging);
         const Nm1 = Math.max(turns.length - 1, 1);
-        const {brushL: bL, brushR: bR, viewLoIdx, viewHiIdx} = useChartStore.getState();
-        const vL = viewLoIdx / Nm1;
-        const vR = viewHiIdx / Nm1;
-        if (vR <= bL) {
+        const {brushL: bL, brushR: bR, viewLoPct: vL, viewHiPct: vR} = useChartStore.getState();
+        if (vL < bL) {
           scrollToTurnIndex(turns, Math.round(bL * Nm1));
-        } else if (vL >= bR) {
+        } else if (vR > bR) {
           scrollToTurnIndex(turns, Math.round(bR * Nm1), 'bottom');
         }
         window.removeEventListener('mousemove', onMove);
