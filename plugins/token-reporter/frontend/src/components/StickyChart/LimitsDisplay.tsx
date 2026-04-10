@@ -82,7 +82,7 @@ export default function LimitsDisplay() {
 
   return (
     <div className={styles.limitGroup}>
-      <span className={styles.limitBarTip}>{t('limits.title')}</span>
+      {ctxDetail ? <span className={styles.limitBarTip}>{t('limits.title')}</span> : null}
       <div className={styles.limitsRowCompact}>
         <LimitItem
           label={t('limits.session')}
