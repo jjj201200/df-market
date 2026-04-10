@@ -3,8 +3,9 @@ import clsx from 'clsx';
 import type {CommandItem} from '../../types/state';
 import {useI18n} from '../../i18n';
 import {useUIStore} from '../../stores/uiStore';
+import {CopyButton} from '../common/CopyButton';
 import s from './CommandEvent.module.scss';
-import {IconCommand, IconChevronRight} from '@tabler/icons-react';
+import {IconCommand, IconTerminal2, IconChevronRight} from '@tabler/icons-react';
 
 interface CommandEventProps {
   item: CommandItem;
@@ -21,13 +22,19 @@ export const CommandEvent: React.FC<CommandEventProps> = React.memo(({item}) => 
     toggleCommand(cmdId);
   }, [cmdId, toggleCommand]);
 
-  const showMessage = item.message && item.message !== item.command.replace(/^\//, '');
+  const getOutputText = useCallback(() => item.output || '', [item.output]);
+
+  const isBash = item.kind === 'bash';
+  const displayName = isBash ? `! ${item.command}` : item.command;
+  const showMessage = !isBash && item.message && item.message !== item.command.replace(/^\//, '');
 
   return (
-    <div className={s.eventCommand}>
+    <div className={clsx(s.eventCommand, isBash && s.bash, item.isError && s.hasError)}>
       <div className={s.evCmdHead}>
-        <span className={s.evCmdIcon}><IconCommand size={14} stroke={1.5} /></span>
-        <span className={s.evCmdName}>{item.command}</span>
+        <span className={s.evCmdIcon}>
+          {isBash ? <IconTerminal2 size={14} stroke={1.5} /> : <IconCommand size={14} stroke={1.5} />}
+        </span>
+        <span className={s.evCmdName}>{displayName}</span>
         {showMessage && <span className={s.evCmdMsg}>{item.message}</span>}
         <span className={s.evCmdTime}>{item.time}</span>
       </div>
@@ -37,7 +44,12 @@ export const CommandEvent: React.FC<CommandEventProps> = React.memo(({item}) => 
           <span>{t('conversation.commandOutput')}</span>
         </div>
       )}
-      {hasOutput && expanded && <div className={s.evCmdOutput}>{item.output}</div>}
+      {hasOutput && expanded && (
+        <div className={clsx(s.evCmdResultPreview, item.isError && s.isErr)}>
+          <div className={s.evCmdResultText}>{item.output}</div>
+          <CopyButton getText={getOutputText} />
+        </div>
+      )}
     </div>
   );
 });

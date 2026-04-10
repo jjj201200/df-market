@@ -65,9 +65,11 @@ export interface McpInfo {
 
 export interface ApiSystemEvent {
   type: 'command' | 'compact';
+  kind?: 'slash' | 'bash';
   command?: string;
   message?: string;
   output?: string;
+  isError?: boolean;
   trigger?: string;
   preTokens?: number;
   time: string;

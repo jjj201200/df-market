@@ -48,9 +48,11 @@ export function adaptSession(session: SessionResponse | null): AdaptedSession {
       if (ev.type === 'command') {
         items.push({
           type: 'command' as const,
+          kind: ev.kind || 'slash',
           command: ev.command || '',
           message: ev.message || '',
           output: ev.output || '',
+          isError: ev.isError || false,
           time: ev.time,
           timestamp: ev.timestamp,
         });

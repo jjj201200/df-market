@@ -43,9 +43,11 @@ export interface CompactItem {
 
 export interface CommandItem {
   type: 'command';
+  kind: 'slash' | 'bash';
   command: string;
   message: string;
   output: string;
+  isError: boolean;
   time: string;
   timestamp: string;
 }

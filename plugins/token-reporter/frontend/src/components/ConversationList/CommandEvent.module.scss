@@ -8,6 +8,39 @@
   border-radius: $radius-sm;
   font-size: $font-size-sm;
   overflow: hidden;
+
+  &.bash {
+    border-color: var(--pink-a3);
+    border-left-color: var(--pink-10);
+
+    .evCmdHead {
+      background: var(--pink-1);
+    }
+
+    .evCmdIcon,
+    .evCmdName {
+      color: var(--pink-9);
+    }
+
+    .evCmdName {
+      font-family: monospace;
+      letter-spacing: 0;
+    }
+  }
+
+  &.hasError {
+    border-color: var(--red-a3);
+    border-left-color: var(--red-9);
+
+    .evCmdHead {
+      background: var(--red-1);
+    }
+
+    .evCmdIcon,
+    .evCmdName {
+      color: var(--red-9);
+    }
+  }
 }
 
 .evCmdHead {
@@ -71,13 +104,25 @@
   }
 }
 
-.evCmdOutput {
-  padding: 5px 8px;
+.evCmdResultPreview {
+  position: relative;
   background: var(--bg-body);
   border-top: 1px solid var(--accent-hover-shadow);
+
+  &.isErr {
+    background: var(--red-1);
+
+    .evCmdResultText {
+      color: var(--danger);
+    }
+  }
+}
+
+.evCmdResultText {
   font-size: $font-size-sm;
-  color: var(--fg-muted);
+  color: var(--gray-9);
   font-family: monospace;
   white-space: pre-wrap;
-  @include scrollable(80px);
+  padding: 5px 8px;
+  @include scrollable(150px);
 }

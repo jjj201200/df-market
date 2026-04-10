@@ -115,7 +115,7 @@
   }
 }
 
-.skBlock {
+@mixin skBlock {
   background: linear-gradient(90deg, var(--shimmer-from) 25%, var(--shimmer-to) 50%, var(--shimmer-from) 75%);
   background-size: 600px 100%;
   animation: shimmer 1.4s infinite linear;
@@ -123,13 +123,13 @@
 }
 
 .skChartHeader {
-  composes: skBlock;
+  @include skBlock;
   height: 16px;
   width: 80px;
 }
 
 .skMainChart {
-  composes: skBlock;
+  @include skBlock;
   height: 120px;
   width: 100%;
 }
@@ -139,13 +139,13 @@
 }
 
 .skBrushChart {
-  composes: skBlock;
+  @include skBlock;
   height: 40px;
   width: 100%;
 }
 
 .skLimits {
-  composes: skBlock;
+  @include skBlock;
   height: 20px;
   width: 200px;
 }

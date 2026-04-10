@@ -202,6 +202,106 @@ async function collectSubagentStats(sessionDir) {
 }
 
 /**
+ * Try to parse a slash command wrapper from a user message string content.
+ * Newer Claude Code versions record slash commands as type:"user" records
+ * whose content is a string like:
+ *   "<command-message>release-plugin</command-message>\n<command-name>/release-plugin</command-name>"
+ * Returns { command, message } or null if not a slash command wrapper.
+ * @param {unknown} content
+ * @returns {{command: string, message: string} | null}
+ */
+function parseSlashCommandContent(content) {
+  if (typeof content !== "string") return null;
+  const cmdMatch = content.match(/<command-name>([^<]+)<\/command-name>/);
+  if (!cmdMatch) return null;
+  const msgMatch = content.match(
+    /<command-message>([^<]*)<\/command-message>/,
+  );
+  return {
+    command: cmdMatch[1].trim(),
+    message: (msgMatch?.[1] || "").trim(),
+  };
+}
+
+/**
+ * Extract <local-command-stdout>...</local-command-stdout> body from a string.
+ * Returns the inner text or null if not matched. The stdout may be emitted
+ * either as a system/local_command record (old format) or as a type:"user"
+ * record with string content (Claude Code 2.1+).
+ * @param {unknown} content
+ * @returns {string | null}
+ */
+function parseLocalCommandStdout(content) {
+  if (typeof content !== "string") return null;
+  const m = content.match(
+    /<local-command-stdout>([\s\S]*?)<\/local-command-stdout>/,
+  );
+  return m ? m[1] : null;
+}
+
+/**
+ * Detect a <local-command-caveat>...</local-command-caveat> wrapper. These
+ * meta-messages accompany slash command execution and should not be shown as
+ * user text in the conversation.
+ * @param {unknown} content
+ * @returns {boolean}
+ */
+function isLocalCommandCaveat(content) {
+  return (
+    typeof content === "string" && /<local-command-caveat>/.test(content)
+  );
+}
+
+/**
+ * Parse a <bash-input>...</bash-input> wrapper. This is how shell commands
+ * typed with the `! ` prefix are recorded as type:"user" string content.
+ * Returns the bash command text or null.
+ * @param {unknown} content
+ * @returns {string | null}
+ */
+function parseBashInputContent(content) {
+  if (typeof content !== "string") return null;
+  const m = content.match(/<bash-input>([\s\S]*?)<\/bash-input>/);
+  return m ? m[1] : null;
+}
+
+/**
+ * Parse a <bash-stdout>...</bash-stdout><bash-stderr>...</bash-stderr>
+ * response wrapper (always emitted together, one of them may be empty).
+ * Returns { stdout, stderr } or null if neither tag is present.
+ * @param {unknown} content
+ * @returns {{stdout: string, stderr: string} | null}
+ */
+function parseBashOutputContent(content) {
+  if (typeof content !== "string") return null;
+  const outMatch = content.match(/<bash-stdout>([\s\S]*?)<\/bash-stdout>/);
+  const errMatch = content.match(/<bash-stderr>([\s\S]*?)<\/bash-stderr>/);
+  if (!outMatch && !errMatch) return null;
+  return {
+    stdout: outMatch ? outMatch[1] : "",
+    stderr: errMatch ? errMatch[1] : "",
+  };
+}
+
+/**
+ * True if a user message string content is some kind of slash command or
+ * bash command wrapper — the command itself, its stdout, or a caveat
+ * meta-message. Used to suppress the raw XML from appearing as user bubble
+ * text in turns.
+ * @param {unknown} content
+ */
+function isSlashCommandWrapperContent(content) {
+  if (typeof content !== "string") return false;
+  return (
+    parseSlashCommandContent(content) !== null ||
+    parseLocalCommandStdout(content) !== null ||
+    isLocalCommandCaveat(content) ||
+    parseBashInputContent(content) !== null ||
+    parseBashOutputContent(content) !== null
+  );
+}
+
+/**
  * Parse a JSONL file and return structured session data
  * @param {string} filePath
  * @returns {Promise<SessionData>}
@@ -256,38 +356,114 @@ async function parseSession(filePath) {
     }
   }
 
-  // Collect system events (commands, compact boundaries, etc.)
+  // Collect system events (commands, compact boundaries, etc.).
+  // Single ordered pass over all records so that slash command stdout can be
+  // attached to the preceding command event regardless of whether it's
+  // emitted as a type:"system" record (old) or a type:"user" string (new).
   const systemEvents = [];
+  let lastCommandEvent = null;
   for (const rec of lines) {
-    if (rec.type !== "system") continue;
-    if (rec.subtype === "local_command") {
-      // Parse command name and output from XML-like content
-      const content = rec.content || "";
-      const cmdMatch = content.match(/<command-name>([^<]+)<\/command-name>/);
-      const msgMatch = content.match(/<command-message>([^<]*)<\/command-message>/);
-      const stdoutMatch = content.match(
-        /<local-command-stdout>([\s\S]*?)<\/local-command-stdout>/,
-      );
-      if (cmdMatch) {
-        systemEvents.push({
+    // --- type:"user" slash command / bash wrappers (Claude Code 2.1+) ---
+    if (rec.type === "user" && !rec.isSidechain) {
+      const content = rec.message?.content;
+      const parsedCmd = parseSlashCommandContent(content);
+      if (parsedCmd) {
+        const ev = {
           type: "command",
-          command: cmdMatch[1],
-          message: msgMatch?.[1] || "",
+          kind: "slash",
+          command: parsedCmd.command,
+          message: parsedCmd.message,
+          output: "",
+          isError: false,
           timestamp: rec.timestamp,
           time: rec.timestamp
             ? new Date(rec.timestamp).toLocaleTimeString(undefined, {
                 hour12: false,
               })
             : "",
-        });
-      } else if (stdoutMatch) {
-        // Command output — attach to previous command event if timestamps match
-        const prev = systemEvents[systemEvents.length - 1];
-        if (prev && prev.type === "command") {
-          prev.output = stdoutMatch[1];
+        };
+        systemEvents.push(ev);
+        lastCommandEvent = ev;
+        continue;
+      }
+      const bashInput = parseBashInputContent(content);
+      if (bashInput !== null) {
+        const ev = {
+          type: "command",
+          kind: "bash",
+          command: bashInput,
+          message: "",
+          output: "",
+          isError: false,
+          timestamp: rec.timestamp,
+          time: rec.timestamp
+            ? new Date(rec.timestamp).toLocaleTimeString(undefined, {
+                hour12: false,
+              })
+            : "",
+        };
+        systemEvents.push(ev);
+        lastCommandEvent = ev;
+        continue;
+      }
+      const bashOutput = parseBashOutputContent(content);
+      if (bashOutput) {
+        if (lastCommandEvent && !lastCommandEvent.output) {
+          // Combine stdout and stderr; mark as error if stderr has content.
+          const parts = [];
+          if (bashOutput.stdout) parts.push(bashOutput.stdout);
+          if (bashOutput.stderr) parts.push(bashOutput.stderr);
+          lastCommandEvent.output = parts.join("\n").trim();
+          lastCommandEvent.isError = !!bashOutput.stderr.trim();
+        }
+        continue;
+      }
+      const stdoutBody = parseLocalCommandStdout(content);
+      if (stdoutBody !== null) {
+        if (lastCommandEvent && !lastCommandEvent.output) {
+          lastCommandEvent.output = stdoutBody;
+        }
+        continue;
+      }
+      // <local-command-caveat> and other meta wrappers are silently skipped
+      continue;
+    }
+
+    // --- type:"system" local_command (legacy format) ---
+    if (rec.type === "system" && rec.subtype === "local_command") {
+      const content = rec.content || "";
+      const cmdMatch = content.match(/<command-name>([^<]+)<\/command-name>/);
+      const msgMatch = content.match(
+        /<command-message>([^<]*)<\/command-message>/,
+      );
+      const stdoutBody = parseLocalCommandStdout(content);
+      if (cmdMatch) {
+        const ev = {
+          type: "command",
+          kind: "slash",
+          command: cmdMatch[1],
+          message: msgMatch?.[1] || "",
+          output: "",
+          isError: false,
+          timestamp: rec.timestamp,
+          time: rec.timestamp
+            ? new Date(rec.timestamp).toLocaleTimeString(undefined, {
+                hour12: false,
+              })
+            : "",
+        };
+        systemEvents.push(ev);
+        lastCommandEvent = ev;
+      } else if (stdoutBody !== null) {
+        if (lastCommandEvent && !lastCommandEvent.output) {
+          lastCommandEvent.output = stdoutBody;
         }
       }
-    } else if (rec.subtype === "compact_boundary") {
+      continue;
+    }
+
+    // --- type:"system" compact_boundary ---
+    if (rec.type === "system" && rec.subtype === "compact_boundary") {
       const meta = rec.compactMetadata || {};
       systemEvents.push({
         type: "compact",
@@ -388,7 +564,14 @@ async function parseSession(filePath) {
           .join("\n")
           .trim();
       } else if (typeof userContent === "string") {
-        userText = userContent;
+        // Slash command wrappers (the command itself, its stdout, or the
+        // caveat meta-message) are surfaced as systemEvents above; skip them
+        // here so the turn does not render a user bubble with raw XML tags.
+        if (isSlashCommandWrapperContent(userContent)) {
+          userText = "";
+        } else {
+          userText = userContent;
+        }
       }
       // Get agentId from parent user record if not in assistant record
       if (!agentId && parentRec.agentId) {
