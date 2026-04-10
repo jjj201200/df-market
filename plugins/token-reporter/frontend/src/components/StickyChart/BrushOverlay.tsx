@@ -5,6 +5,7 @@ import {scrollToTurnIndex} from './MainChart';
 import {lockBrushDriving, deferScrollToTurn} from '../../hooks/useScrollSync';
 import {brushToPixelPct, pixelToBrushPct, brushToFirstIdx, brushToLastIdx} from '../../utils/brushCoords';
 import styles from './BrushOverlay.module.scss';
+import clsx from 'clsx';
 
 const ZOOM_FACTOR = 0.05; // 5% zoom per wheel tick
 const WHEEL_THROTTLE_MS = 80; // Throttle to prevent inertial scroll bursts
@@ -217,7 +218,12 @@ export default function BrushOverlay() {
   }, [showViewport, turns, viewLoIdx, viewHiIdx]);
 
   return (
-    <div ref={overlayRef} className={styles.brushOverlay} style={{width: overlayWidth > 0 ? overlayWidth : '100%'}} onWheel={handleWheel}>
+    <div
+      ref={overlayRef}
+      className={styles.brushOverlay}
+      style={{width: overlayWidth > 0 ? overlayWidth : '100%'}}
+      onWheel={handleWheel}
+    >
       {/* Viewport indicator (visible turns) */}
       {showViewport && (
         <div className={styles.viewportIndicator} style={{left: `${viewLPct}%`, width: `${Math.max(viewWidth, 0.5)}%`}}>
@@ -229,7 +235,11 @@ export default function BrushOverlay() {
       {/* Left handle */}
       <div className={styles.brushHandle} style={{left: `${lPct}%`}} onMouseDown={(e) => startDrag(e, 'L')} />
       {/* Right handle */}
-      <div className={styles.brushHandle} style={{left: `${rPct}%`}} onMouseDown={(e) => startDrag(e, 'R')} />
+      <div
+        className={clsx(styles.brushHandle, styles.right)}
+        style={{left: `${rPct}%`}}
+        onMouseDown={(e) => startDrag(e, 'R')}
+      />
       {/* Move area */}
       <div
         className={styles.brushMoveArea}

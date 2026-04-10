@@ -20,7 +20,9 @@
   background: var(--brush-selection);
   border-left: 1px solid var(--accent);
   border-right: 1px solid var(--accent);
-  transition: left 0.1s ease-out, width 0.1s ease-out;
+  transition:
+    left 0.1s ease-out,
+    width 0.1s ease-out;
 }
 
 .brushHandle {
@@ -35,6 +37,10 @@
   z-index: 3;
   transform: translateY(-50%) translateX(-2px);
   transition: left 0.1s ease-out;
+
+  &.right {
+    transform: translateY(-50%) translateX(-3px);
+  }
 }
 
 .viewportIndicator {
@@ -46,7 +52,9 @@
   pointer-events: none;
   z-index: 4;
   opacity: 0.7;
-  transition: left 0.15s ease-out, width 0.15s ease-out;
+  transition:
+    left 0.15s ease-out,
+    width 0.15s ease-out;
 }
 
 .viewportLabel {
@@ -68,7 +76,9 @@
   cursor: grab;
   pointer-events: all;
   z-index: 2;
-  transition: left 0.1s ease-out, width 0.1s ease-out;
+  transition:
+    left 0.1s ease-out,
+    width 0.1s ease-out;
 
   &:active {
     cursor: grabbing;

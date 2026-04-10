@@ -75,19 +75,36 @@ export default function LimitsDisplay() {
   const sevenDayResetsAt = sevenDay?.resets_at;
 
   // Only render if there is at least some data
-  const hasCtx = ctxPct > 0;
+  // const hasCtx = ctxPct > 0;
   const hasFive = hasRateLimits && fiveHourResetsAt;
   const hasSeven = hasRateLimits && sevenDayResetsAt;
-  if (!hasCtx && !hasFive && !hasSeven) return null;
+  // if (!hasCtx && !hasFive && !hasSeven) return null;
 
   return (
     <div className={styles.limitGroup}>
       <span className={styles.limitBarTip}>{t('limits.title')}</span>
       <div className={styles.limitsRowCompact}>
-        <LimitItem label={t('limits.session')} pct={ctxPct} detail={ctxDetail || undefined} shortDetail={ctxDetail || undefined} />
-        {hasFive && <LimitItem label={t('limits.fiveHour')} pct={fivePct} detail={t('limits.reset', {time: fmtResetTimeAbsolute(fiveHourResetsAt!)})} shortDetail={t('limits.reset', {time: fmtResetTimeShort(fiveHourResetsAt!)})} />}
+        <LimitItem
+          label={t('limits.session')}
+          pct={ctxPct}
+          detail={ctxDetail || undefined}
+          shortDetail={ctxDetail || undefined}
+        />
+        {hasFive && (
+          <LimitItem
+            label={t('limits.fiveHour')}
+            pct={fivePct}
+            detail={t('limits.reset', {time: fmtResetTimeAbsolute(fiveHourResetsAt!)})}
+            shortDetail={t('limits.reset', {time: fmtResetTimeShort(fiveHourResetsAt!)})}
+          />
+        )}
         {hasSeven && (
-          <LimitItem label={t('limits.sevenDay')} pct={sevenPct} detail={t('limits.reset', {time: fmtResetTimeAbsolute(sevenDayResetsAt!)})} shortDetail={t('limits.reset', {time: fmtResetTimeShort(sevenDayResetsAt!)})} />
+          <LimitItem
+            label={t('limits.sevenDay')}
+            pct={sevenPct}
+            detail={t('limits.reset', {time: fmtResetTimeAbsolute(sevenDayResetsAt!)})}
+            shortDetail={t('limits.reset', {time: fmtResetTimeShort(sevenDayResetsAt!)})}
+          />
         )}
       </div>
     </div>
