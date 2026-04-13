@@ -579,6 +579,29 @@ async function parseSession(filePath) {
       }
     }
 
+    // If this assistant's direct parent is another assistant (not a user),
+    // it means this is part of the same conversation turn.
+    // Merge it into the previous turn if they share the same user text.
+    const directParent = byUuid.get(rec.parentUuid);
+    const prevTurn = turns.length > 0 ? turns[turns.length - 1] : null;
+    const shouldMerge = prevTurn && prevTurn.userText === userText &&
+      (directParent?.type === "assistant" || (directParent?.type === "user" && parentRec && directParent.uuid === parentRec.uuid));
+
+    if (shouldMerge) {
+      // Merge tools
+      prevTurn.tools.push(...tools);
+      // If current has text but previous doesn't, use current's text
+      if (textBlocks && !prevTurn.assistantText) {
+        prevTurn.assistantText = textBlocks;
+      }
+      // Accumulate token usage
+      prevTurn.input += usage.input_tokens || 0;
+      prevTurn.output += usage.output_tokens || 0;
+      prevTurn.cacheR += usage.cache_read_input_tokens || 0;
+      prevTurn.cacheC += usage.cache_creation_input_tokens || 0;
+      continue;
+    }
+
     turns.push({
       id: ++turnIndex,
       type: "turn",
