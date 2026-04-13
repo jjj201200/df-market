@@ -54,6 +54,16 @@ export const zhCN: Translation = {
     copyId: '复制 ID',
     copySessionId: '复制会话 ID',
     copiedId: '已复制!',
+    totalsTitle: '会话总计',
+    assistantMessages: 'Assistant 消息数',
+    totalTokens: '总 Token',
+    toolUses: '工具调用',
+    hookCalls: 'Hook 调用',
+    subagents: '子代理',
+    errors: '错误',
+    stopReasons: '停止原因',
+    collapseTotals: '收起总计',
+    expandTotals: '展开总计',
   },
 
   limits: {

@@ -52,6 +52,16 @@ export const en = {
     copyId: 'Copy ID',
     copySessionId: 'Copy session ID',
     copiedId: 'Copied!',
+    totalsTitle: 'Session Totals',
+    assistantMessages: 'Assistant messages',
+    totalTokens: 'Total tokens',
+    toolUses: 'Tool uses',
+    hookCalls: 'Hook calls',
+    subagents: 'Subagents',
+    errors: 'Errors',
+    stopReasons: 'Stop reasons',
+    collapseTotals: 'Collapse totals',
+    expandTotals: 'Expand totals',
   },
 
   limits: {
