@@ -52,3 +52,19 @@
   font-weight: 600;
   color: var(--accent);
 }
+
+.agentId {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 11px;
+  color: var(--accent);
+}
+
+.agentDesc {
+  font-size: 11px;
+  color: var(--fg-muted);
+  margin-top: 2px;
+  max-width: 260px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -625,6 +625,38 @@ async function parseSession(filePath) {
     });
   }
 
+  // Collect hook events from attachments
+  const hooks = [];
+  for (const rec of lines) {
+    if (rec.type !== "attachment") continue;
+    const att = rec.attachment;
+    if (!att || att.type !== "hook_success") continue;
+    hooks.push({
+      hookName: att.hookName || "",
+      hookEvent: att.hookEvent || "",
+      durationMs: att.durationMs || 0,
+      exitCode: att.exitCode ?? 0,
+      stdout: typeof att.stdout === "string" ? att.stdout : "",
+      stderr: typeof att.stderr === "string" ? att.stderr : "",
+      timestamp: rec.timestamp || "",
+    });
+  }
+
+  // Collect stop_reason and cache TTL stats from assistant messages
+  const stopReasons = {};
+  const cacheTtl = { ephemeral1h: 0, ephemeral5m: 0 };
+  for (const rec of lines) {
+    if (rec.type !== "assistant") continue;
+    const msg = rec.message;
+    if (!msg) continue;
+    const sr = msg.stop_reason;
+    if (sr) stopReasons[sr] = (stopReasons[sr] || 0) + 1;
+    const usage = msg.usage || {};
+    const cc = usage.cache_creation || {};
+    if (cc.ephemeral_1h_input_tokens) cacheTtl.ephemeral1h += cc.ephemeral_1h_input_tokens;
+    if (cc.ephemeral_5m_input_tokens) cacheTtl.ephemeral5m += cc.ephemeral_5m_input_tokens;
+  }
+
   // Collect subagent statistics
   // For main session file: /path/to/sessionId.jsonl -> sessionDir is /path/to/sessionId/
   // For subagent file: /path/to/sessionId/subagents/agent-id.jsonl -> sessionDir is /path/to/sessionId/
@@ -633,7 +665,7 @@ async function parseSession(filePath) {
   const sessionDir = path.join(baseDir, baseName);
   const subagents = await collectSubagentStats(sessionDir);
 
-  return { sessionId, slug, gitBranch, turns, systemEvents, subagents };
+  return { sessionId, slug, gitBranch, turns, systemEvents, hooks, stopReasons, cacheTtl, subagents };
 }
 
 /** Map tool name to CSS class */

@@ -9,12 +9,25 @@ export interface SessionListItem {
 }
 
 /** GET /api/sessions/:id - full session response from parser.js */
+export interface ApiHookEvent {
+  hookName: string;
+  hookEvent: string;
+  durationMs: number;
+  exitCode: number;
+  stdout: string;
+  stderr: string;
+  timestamp: string;
+}
+
 export interface SessionResponse {
   sessionId: string;
   slug: string;
   gitBranch: string;
   turns: ApiTurn[];
   systemEvents: ApiSystemEvent[];
+  hooks: ApiHookEvent[];
+  stopReasons: Record<string, number>;
+  cacheTtl: { ephemeral1h: number; ephemeral5m: number };
   subagents: Record<string, ApiSubagentStats>;
 }
 

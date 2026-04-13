@@ -86,6 +86,10 @@ export const en = {
     costPerTurn: '$/Turn',
     modelSwitches: 'Model switches: {count}',
     recommendations: 'Recommendations',
+    stopReasons: 'Stop Reasons',
+    stopReasonsSub: 'assistant stop reason distribution',
+    cacheTtl: 'Cache TTL',
+    cacheTtlSub: 'ephemeral cache creation breakdown',
   },
 
   cache: {
@@ -179,6 +183,12 @@ export const en = {
     tool: 'Tool',
     turn: 'Turn',
     duration: 'Duration',
+    hookPerformance: 'Hook Performance',
+    totalHookTime: 'Total Hook Time',
+    hookCalls: 'Hook Calls',
+    hook: 'Hook',
+    count: 'Count',
+    errors: 'Errors',
   },
 
   compact: {

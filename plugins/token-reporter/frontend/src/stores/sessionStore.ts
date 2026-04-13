@@ -1,5 +1,5 @@
 import {create} from 'zustand';
-import type {SessionListItem} from '../types/api';
+import type {SessionListItem, ApiHookEvent} from '../types/api';
 import type {DataItem, TurnItem, SubagentStats} from '../types/state';
 import {getSessions, getSession, getLimits} from '../services/api';
 import {adaptSession, extractTurns} from '../services/adapter';
@@ -16,6 +16,9 @@ interface SessionStore {
   data: DataItem[];
   turns: TurnItem[];
   subagents: Record<string, SubagentStats>;
+  hooks: ApiHookEvent[];
+  stopReasons: Record<string, number>;
+  cacheTtl: {ephemeral1h: number; ephemeral5m: number};
   sessionLoading: boolean;
   sessionError: string | null;
   fetchSessions: () => Promise<void>;
@@ -35,6 +38,9 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
   data: [],
   turns: [],
   subagents: {},
+  hooks: [],
+  stopReasons: {},
+  cacheTtl: {ephemeral1h: 0, ephemeral5m: 0},
   sessionLoading: false,
   sessionError: null,
   newSessionIds: new Set<string>(),
@@ -82,6 +88,9 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
         data: adapted.items,
         turns,
         subagents: adapted.subagents,
+        hooks: adapted.hooks,
+        stopReasons: adapted.stopReasons,
+        cacheTtl: adapted.cacheTtl,
         sessionLoading: false,
         sessionError: null,
       });

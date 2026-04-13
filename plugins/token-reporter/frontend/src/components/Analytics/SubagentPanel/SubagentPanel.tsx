@@ -70,7 +70,10 @@ export default function SubagentPanel() {
             </tr>
             {sa.agents.map((a) => (
               <tr key={a.agentId}>
-                <td title={a.description}>{a.agentId.slice(0, 8)}</td>
+                <td>
+                  <div className={s.agentId}>{a.agentId.slice(0, 8)}</div>
+                  {a.description && <div className={s.agentDesc}>{a.description}</div>}
+                </td>
                 <td>{a.agentType || t('subagents.na')}</td>
                 <td>{a.turns}</td>
                 <td>{fmtTokens(a.tokens.input)}</td>

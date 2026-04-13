@@ -37,8 +37,26 @@ import s from './TimingPanel.module.scss';
 export default function TimingPanel() {
   const {t} = useI18n();
   const turns = useSessionStore((st) => st.turns);
+  const hooks = useSessionStore((st) => st.hooks);
   const cost = useMemo(() => computeSessionCost(turns), [turns]);
   const timing = useMemo(() => computeTimingMetrics(turns, cost.total), [turns, cost.total]);
+
+  const hookStats = useMemo(() => {
+    const byName: Record<string, {totalMs: number; count: number; errors: number}> = {};
+    let totalMs = 0;
+    for (const h of hooks) {
+      const name = h.hookName || h.hookEvent || 'unknown';
+      if (!byName[name]) byName[name] = {totalMs: 0, count: 0, errors: 0};
+      byName[name]!.totalMs += h.durationMs;
+      byName[name]!.count++;
+      if (h.exitCode !== 0) byName[name]!.errors++;
+      totalMs += h.durationMs;
+    }
+    const rows = Object.entries(byName)
+      .map(([name, v]) => ({name, avgMs: Math.round(v.totalMs / v.count), totalMs: v.totalMs, count: v.count, errors: v.errors}))
+      .sort((a, b) => b.totalMs - a.totalMs);
+    return {rows, totalMs};
+  }, [hooks]);
 
   const intervalData = timing.turnIntervals.map((ti) => ({
     turn: `#${ti.turnId}`,
@@ -159,6 +177,38 @@ export default function TimingPanel() {
                   <td className={s.toolName}>{st.toolName}</td>
                   <td>#{st.turnId}</td>
                   <td>{fmtDur(st.durationMs)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </ChartBox>
+      )}
+
+      {/* Hook performance */}
+      {hookStats.rows.length > 0 && (
+        <ChartBox title={t('timing.hookPerformance')}>
+          <CardGrid minWidth={130}>
+            <StatCard label={t('timing.totalHookTime')} value={fmtDur(hookStats.totalMs)} />
+            <StatCard label={t('timing.hookCalls')} value={String(hooks.length)} />
+          </CardGrid>
+          <table className={s.slowTable} style={{marginTop: 12}}>
+            <thead>
+              <tr>
+                <th>{t('timing.hook')}</th>
+                <th>{t('timing.count')}</th>
+                <th>{t('timing.avgDuration')}</th>
+                <th>{t('timing.totalDuration')}</th>
+                <th>{t('timing.errors')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {hookStats.rows.map((h, i) => (
+                <tr key={i}>
+                  <td className={s.toolName}>{h.name}</td>
+                  <td>{h.count}</td>
+                  <td>{fmtDur(h.avgMs)}</td>
+                  <td>{fmtDur(h.totalMs)}</td>
+                  <td style={{color: h.errors > 0 ? 'var(--danger)' : undefined}}>{h.errors}</td>
                 </tr>
               ))}
             </tbody>

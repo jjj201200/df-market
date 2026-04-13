@@ -88,6 +88,10 @@ export const zhCN: Translation = {
     costPerTurn: '$/轮',
     modelSwitches: '模型切换: {count} 次',
     recommendations: '优化建议',
+    stopReasons: '停止原因',
+    stopReasonsSub: 'assistant 停止原因分布',
+    cacheTtl: '缓存 TTL',
+    cacheTtlSub: '临时缓存创建细分',
   },
 
   cache: {
@@ -181,6 +185,12 @@ export const zhCN: Translation = {
     tool: '工具',
     turn: '轮次',
     duration: '耗时',
+    hookPerformance: 'Hook 性能',
+    totalHookTime: 'Hook 总耗时',
+    hookCalls: 'Hook 调用次数',
+    hook: 'Hook',
+    count: '次数',
+    errors: '错误',
   },
 
   compact: {

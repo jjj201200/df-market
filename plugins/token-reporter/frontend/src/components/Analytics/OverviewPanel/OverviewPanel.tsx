@@ -29,6 +29,8 @@ export default function OverviewPanel() {
   const turns = useSessionStore((st) => st.turns);
   const data = useSessionStore((st) => st.data);
   const subagents = useSessionStore((st) => st.subagents);
+  const stopReasons = useSessionStore((st) => st.stopReasons);
+  const cacheTtl = useSessionStore((st) => st.cacheTtl);
 
   const cost = useMemo(() => computeSessionCost(turns), [turns]);
   const cache = useMemo(() => computeCacheMetrics(turns), [turns]);
@@ -94,6 +96,22 @@ export default function OverviewPanel() {
             value={fmtUsd(thinking.estimatedThinkingCost)}
             sub={t('overview.tokensEstimate', {tokens: fmtTokens(thinking.estimatedThinkingTokens)})}
             color={cost.total > 0 && thinking.estimatedThinkingCost / cost.total > 0.3 ? 'var(--danger)' : undefined}
+          />
+        )}
+        {Object.keys(stopReasons).length > 0 && (
+          <StatCard
+            label={t('overview.stopReasons')}
+            value={Object.entries(stopReasons)
+              .map(([k, v]) => `${k}: ${v}`)
+              .join(', ')}
+            sub={t('overview.stopReasonsSub')}
+          />
+        )}
+        {(cacheTtl.ephemeral1h > 0 || cacheTtl.ephemeral5m > 0) && (
+          <StatCard
+            label={t('overview.cacheTtl')}
+            value={`1h: ${fmtTokens(cacheTtl.ephemeral1h)} / 5m: ${fmtTokens(cacheTtl.ephemeral5m)}`}
+            sub={t('overview.cacheTtlSub')}
           />
         )}
       </CardGrid>

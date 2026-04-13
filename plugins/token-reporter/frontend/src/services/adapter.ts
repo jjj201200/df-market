@@ -1,9 +1,12 @@
-import type {SessionResponse, ApiTool, ApiTurn} from '../types/api';
+import type {SessionResponse, ApiTool, ApiTurn, ApiHookEvent} from '../types/api';
 import type {DataItem, TurnItem, ToolItem, SubagentStats} from '../types/state';
 
 interface AdaptedSession {
   items: DataItem[];
   subagents: Record<string, SubagentStats>;
+  hooks: ApiHookEvent[];
+  stopReasons: Record<string, number>;
+  cacheTtl: {ephemeral1h: number; ephemeral5m: number};
 }
 
 function adaptTool(tool: ApiTool): ToolItem {
@@ -24,7 +27,7 @@ function adaptTool(tool: ApiTool): ToolItem {
 
 /** Transform API session response to internal data model */
 export function adaptSession(session: SessionResponse | null): AdaptedSession {
-  if (!session?.turns) return {items: [], subagents: {}};
+  if (!session?.turns) return {items: [], subagents: {}, hooks: [], stopReasons: {}, cacheTtl: {ephemeral1h: 0, ephemeral5m: 0}};
 
   const items: DataItem[] = session.turns.map((t) => ({
     type: 'turn' as const,
@@ -92,7 +95,13 @@ export function adaptSession(session: SessionResponse | null): AdaptedSession {
     };
   }
 
-  return {items, subagents};
+  return {
+    items,
+    subagents,
+    hooks: session.hooks || [],
+    stopReasons: session.stopReasons || {},
+    cacheTtl: session.cacheTtl || {ephemeral1h: 0, ephemeral5m: 0},
+  };
 }
 
 /** Extract only turn-type items from data array */
