@@ -14,33 +14,33 @@
 
 ## Progress
 
-**状态**：🔴 未开始（计划已批准，等待实施）  
-**最后更新**：2026-04-15（计划撰写完成）
+**状态**：🟢 已完成  
+**最后更新**：2026-04-15（实施完成）
 
-### 阶段 0：前置准备（未开始）
-- [ ] 0a 确认当前工作区干净，无未提交更改
-- [ ] 0b 运行全部现有测试，记录基线结果
-- [ ] 0c 确认版本是否需要更新（运行 `node plugins/token-reporter/scripts/check-version.js`）
+### 阶段 0：前置准备（已完成）
+- [x] 0a 确认当前工作区干净，无未提交更改
+- [x] 0b 运行全部现有测试，记录基线结果
+- [x] 0c 确认版本是否需要更新（运行 `node plugins/token-reporter/scripts/check-version.js`）
 
-### 阶段 1：补全核心 Analytics 测试 + 修复 R18 规则（未开始）
-- [ ] Task 1：为 `computeCacheMetrics` 编写测试
-- [ ] Task 2：为 `computeToolEfficiency` 编写测试（含冗余检测精度验证）
-- [ ] Task 3：修复 R18 (Bloated Prompt) 推荐规则逻辑
-- [ ] Task 4：为 `generateRecommendations` 编写集成测试（重点覆盖 R12、R18）
+### 阶段 1：补全核心 Analytics 测试 + 修复 R18 规则（已完成）
+- [x] Task 1：为 `computeCacheMetrics` 编写测试
+- [x] Task 2：为 `computeToolEfficiency` 编写测试（含冗余检测精度验证）
+- [x] Task 3：修复 R18 (Bloated Prompt) 推荐规则逻辑
+- [x] Task 4：为 `generateRecommendations` 编写集成测试（重点覆盖 R12、R18）
 
-### 阶段 2：改进估算指标与命名/语义问题（未开始）
-- [ ] Task 5：重命名 `mcpTokenPct` → `mcpTurnPct`
-- [ ] Task 6：明确 `readEditRatio` 语义并补充 `totalReadOps / totalEditOps` 指标
-- [ ] Task 7：为 Context Growth、Thinking Tokens、Prompt Tokens 增加 "Estimated" UI 标注
+### 阶段 2：改进估算指标与命名/语义问题（已完成）
+- [x] Task 5：重命名 `mcpTokenPct` → `mcpTurnPct`
+- [x] Task 6：明确 `readEditRatio` 语义并补充 `totalReadOps / totalEditOps` 指标
+- [x] Task 7：为 Context Growth、Thinking Tokens、Prompt Tokens 增加 "Estimated" UI 标注
 
-### 阶段 3：定价表维护与数据准确性（未开始）
-- [ ] Task 8：更新 `cost.ts` 定价表，补充最新模型并增加未知模型日志警告
-- [ ] Task 9：改进子代理成本计算，使用实际 turn 级模型而非默认 Haiku
+### 阶段 3：定价表维护与数据准确性（已完成）
+- [x] Task 8：更新 `cost.ts` 定价表，补充最新模型并增加未知模型日志警告
+- [x] Task 9：改进子代理成本计算，使用实际 turn 级模型而非默认 Haiku
 
-### 阶段 4：回归验证与提交（未开始）
-- [ ] Task 10：运行全部测试并确认通过
-- [ ] Task 11：构建前端并确认无错误
-- [ ] Task 12：按规范提交并更新版本（如需要）
+### 阶段 4：回归验证与提交（已完成）
+- [x] Task 10：运行全部测试并确认通过
+- [x] Task 11：构建前端并确认无错误
+- [x] Task 12：按规范提交并更新版本（如需要）
 
 ---
 
