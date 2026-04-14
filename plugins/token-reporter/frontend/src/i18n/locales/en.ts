@@ -39,6 +39,7 @@ export const en = {
     timing: 'Timing',
     mcp: 'MCP',
     prompt: 'Prompt',
+    pressure: 'Pressure',
     analytics: 'Analytics',
     sessionAnalytics: 'Session Analytics',
     splitView: 'Split View',
@@ -237,6 +238,20 @@ export const en = {
     ratio: 'Ratio',
   },
 
+  pressure: {
+    title: 'Context Pressure',
+    peakTokens: 'Peak Tokens',
+    peakTurn: 'Peak Turn',
+    compactionCount: 'Compactions',
+    avgTurnsBetweenCompact: 'Avg Turns Between Compactions',
+    highSpikeTurns: 'High Spike Turns',
+    growthRate: 'Growth / 10 Turns',
+    estimatedToLimit: 'Est. Turns to Limit',
+    turn: 'Turn',
+    delta: 'Delta',
+    trend: 'Context Growth Trend',
+  },
+
   compact: {
     label: 'COMPACT',
     description: 'Context window compressed',
@@ -349,6 +364,14 @@ export const en = {
     vaguePrompt: {
       title: 'Input/output ratio is only {ratio}',
       detail: '{count} turn(s) produced >5K output tokens from small inputs. More specific prompts may reduce verbose responses.',
+    },
+    highPressure: {
+      title: 'Context compacted {count} times (avg every {avg} turns)',
+      detail: 'Sessions hitting context limits quickly. Consider more targeted file reads, more specific grep patterns, and delegating verbose tasks to subagents.',
+    },
+    contextSpike: {
+      title: '{count} turn(s) added >20K tokens at once',
+      detail: 'Turn #{turnId} added {delta} tokens. Check for large file reads or very long outputs in that turn.',
     },
   },
 } as const;

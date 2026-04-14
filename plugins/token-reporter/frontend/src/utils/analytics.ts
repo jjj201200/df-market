@@ -1,6 +1,6 @@
 import type {TurnItem, DataItem, SubagentStats, ToolItem, CompactItem} from '../types/state';
 import {computeSessionCost, computeTurnCost, getModelPricing, getModelDisplayName, type SessionCost} from './cost';
-import {parseDur, fmtPct} from './format';
+import {parseDur, fmtPct, fmtTokens} from './format';
 import type {TFunction} from '../i18n';
 
 export const IDLE_THRESHOLD_MS = 60_000;
@@ -205,6 +205,73 @@ export function computeContextGrowth(data: DataItem[], turns: TurnItem[]): Conte
   const avgGrowthPerTurn = points.length > 0 ? cumulative / points.length : 0;
 
   return {points, compactEvents, avgGrowthPerTurn};
+}
+
+// ─── Pressure Metrics ────────────────────────────────────
+
+export interface PressureMetrics {
+  peakTokens: number;
+  peakTurnId: number;
+  compactionCount: number;
+  avgTurnsBetweenCompact: number;
+  highSpikeTurns: {turnId: number; delta: number}[];
+  growthRatePer10Turns: number;
+  estimatedTurnsToLimit: number | null;
+}
+
+const CONTEXT_LIMIT = 200_000;
+const HIGH_SPIKE_THRESHOLD = 20_000;
+
+export function computePressureMetrics(data: DataItem[], turns: TurnItem[]): PressureMetrics {
+  const context = computeContextGrowth(data, turns);
+  const points = context.points;
+
+  let peakTokens = 0;
+  let peakTurnId = -1;
+  for (const p of points) {
+    if (p.cumulative > peakTokens) {
+      peakTokens = p.cumulative;
+      peakTurnId = p.turnId;
+    }
+  }
+
+  const compactionCount = context.compactEvents.length;
+  const avgTurnsBetweenCompact = compactionCount > 0 && points.length > 0
+    ? points.length / (compactionCount + 1)
+    : points.length;
+
+  const highSpikeTurns = points
+    .filter((p) => p.delta > HIGH_SPIKE_THRESHOLD)
+    .map((p) => ({turnId: p.turnId, delta: p.delta}))
+    .slice(0, 10);
+
+  let growthRatePer10Turns = 0;
+  if (points.length >= 10) {
+    const first = points[0]!.cumulative;
+    const tenth = points[9]!.cumulative;
+    growthRatePer10Turns = tenth - first;
+  } else if (points.length > 1) {
+    const first = points[0]!.cumulative;
+    const last = points[points.length - 1]!.cumulative;
+    growthRatePer10Turns = ((last - first) / points.length) * 10;
+  }
+
+  let estimatedTurnsToLimit: number | null = null;
+  if (points.length > 1 && growthRatePer10Turns > 0) {
+    const remaining = CONTEXT_LIMIT - peakTokens;
+    estimatedTurnsToLimit = Math.round((remaining / growthRatePer10Turns) * 10);
+    if (estimatedTurnsToLimit < 0) estimatedTurnsToLimit = 0;
+  }
+
+  return {
+    peakTokens,
+    peakTurnId,
+    compactionCount,
+    avgTurnsBetweenCompact,
+    highSpikeTurns,
+    growthRatePer10Turns,
+    estimatedTurnsToLimit,
+  };
 }
 
 // ─── Subagent Efficiency ─────────────────────────────────
@@ -695,10 +762,11 @@ export interface RecommendationInput {
   timing?: TimingMetrics;
   mcp?: McpMetrics;
   prompt?: PromptMetrics;
+  pressure?: PressureMetrics;
 }
 
 export function generateRecommendations(input: RecommendationInput, t: TFunction): Recommendation[] {
-  const {cache, tools, context, subagent, cost, modelBreakdown, thinking, sidechain, timing, mcp, prompt} = input;
+  const {cache, tools, context, subagent, cost, modelBreakdown, thinking, sidechain, timing, mcp, prompt, pressure} = input;
   const recs: Recommendation[] = [];
   const usd = (v: number) => `$${v.toFixed(4)}`;
 
@@ -944,6 +1012,28 @@ export function generateRecommendations(input: RecommendationInput, t: TFunction
         detail: t('rec.vaguePrompt.detail', {count: highOutputTurns}),
       });
     }
+  }
+
+  // R20: High context pressure
+  if (pressure && pressure.compactionCount >= 2 && pressure.avgTurnsBetweenCompact < 10) {
+    recs.push({
+      id: 'high-pressure',
+      severity: 'high',
+      category: 'context',
+      title: t('rec.highPressure.title', {count: pressure.compactionCount, avg: Math.round(pressure.avgTurnsBetweenCompact)}),
+      detail: t('rec.highPressure.detail'),
+    });
+  }
+
+  // R21: High context spike
+  if (pressure && pressure.highSpikeTurns.length > 0) {
+    recs.push({
+      id: 'context-spike',
+      severity: 'medium',
+      category: 'context',
+      title: t('rec.contextSpike.title', {count: pressure.highSpikeTurns.length}),
+      detail: t('rec.contextSpike.detail', {turnId: pressure.highSpikeTurns[0]!.turnId, delta: fmtTokens(pressure.highSpikeTurns[0]!.delta)}),
+    });
   }
 
   return recs.sort((a, b) => {

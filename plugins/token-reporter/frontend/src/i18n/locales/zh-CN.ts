@@ -41,6 +41,7 @@ export const zhCN: Translation = {
     timing: '时间',
     mcp: 'MCP',
     prompt: 'Prompt',
+    pressure: '压力',
     analytics: '分析',
     sessionAnalytics: '会话分析',
     splitView: '分栏视图',
@@ -239,6 +240,20 @@ export const zhCN: Translation = {
     ratio: '比例',
   },
 
+  pressure: {
+    title: '上下文压力',
+    peakTokens: '峰值 Token',
+    peakTurn: '峰值轮次',
+    compactionCount: '压缩次数',
+    avgTurnsBetweenCompact: '平均压缩间隔',
+    highSpikeTurns: '高增量轮次',
+    growthRate: '每 10 轮增长',
+    estimatedToLimit: '预计触顶轮次',
+    turn: '轮次',
+    delta: '增量',
+    trend: '上下文增长趋势',
+  },
+
   compact: {
     label: '压缩',
     description: '上下文窗口已压缩',
@@ -343,6 +358,14 @@ export const zhCN: Translation = {
     vaguePrompt: {
       title: '输入/输出比例仅为 {ratio}',
       detail: '{count} 轮从小输入产生了超过 5K 的输出 token。更具体的 prompt 可能减少冗长回复。',
+    },
+    highPressure: {
+      title: '上下文压缩了 {count} 次（平均每 {avg} 轮）',
+      detail: '会话频繁触达上下文限制。建议使用更精确的文件读取、更具体的 grep 模式，并将冗长任务委托给子代理。',
+    },
+    contextSpike: {
+      title: '{count} 轮单次新增超过 20K token',
+      detail: '轮次 #{turnId} 新增了 {delta} token。请检查该轮是否存在大文件读取或超长输出。',
     },
   },
 } as const;

@@ -15,6 +15,7 @@ import {
   computeTimingMetrics,
   computeMcpMetrics,
   computePromptMetrics,
+  computePressureMetrics,
   generateRecommendations,
 } from '../../../utils/analytics';
 import {tokenColors, toolColors, MODEL_COLORS, tooltipStyle, tooltipLabelStyle, tooltipItemStyle, cursorStyle, gridStroke, axisTickStyle} from '../../../utils/chartTheme';
@@ -45,11 +46,12 @@ export default function OverviewPanel() {
   const timing = useMemo(() => computeTimingMetrics(turns, cost.total), [turns, cost.total]);
   const mcp = useMemo(() => computeMcpMetrics(turns), [turns]);
   const prompt = useMemo(() => computePromptMetrics(turns), [turns]);
+  const pressure = useMemo(() => computePressureMetrics(data, turns), [data, turns]);
   const {t} = useI18n();
 
   const recommendations = useMemo(
-    () => generateRecommendations({cache, tools, context, subagent, cost, modelBreakdown, thinking, sidechain, timing, mcp, prompt}, t),
-    [cache, tools, context, subagent, cost, modelBreakdown, thinking, sidechain, timing, mcp, prompt, t]
+    () => generateRecommendations({cache, tools, context, subagent, cost, modelBreakdown, thinking, sidechain, timing, mcp, prompt, pressure}, t),
+    [cache, tools, context, subagent, cost, modelBreakdown, thinking, sidechain, timing, mcp, prompt, pressure, t]
   );
   const tc = tokenColors();
 
