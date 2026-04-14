@@ -18,6 +18,7 @@ import Panel from '../common/Panel';
 import CardGrid from '../common/CardGrid';
 import ChartBox from '../common/ChartBox';
 import StatCard from '../common/StatCard';
+import {useChartTurnClick} from '../common/useChartTurnClick';
 import s from './CachePanel.module.scss';
 
 function hitRateLevel(rate: number): 'good' | 'ok' | 'bad' {
@@ -31,6 +32,7 @@ export default function CachePanel() {
   const turns = useSessionStore((st) => st.turns);
   const data = useSessionStore((st) => st.data);
   const cache = useMemo(() => computeCacheMetrics(turns), [turns]);
+  const onChartClick = useChartTurnClick();
 
   // Find compact events for reference lines
   const compactTurnIds = useMemo(() => {
@@ -89,7 +91,7 @@ export default function CachePanel() {
       {/* Per-turn hit rate chart */}
       <ChartBox title={t('cache.hitRatePerTurn')}>
         <ResponsiveContainer width="100%" height={220}>
-          <LineChart data={chartData} margin={{top: 8, right: 12, bottom: 4, left: 0}}>
+          <LineChart data={chartData} margin={{top: 8, right: 12, bottom: 4, left: 0}} onClick={onChartClick}>
             <CartesianGrid stroke={gridStroke()} strokeDasharray="3 3" />
             <XAxis dataKey="turn" tick={axisTickStyle()} interval="preserveStartEnd" />
             <YAxis tick={axisTickStyle()} domain={[0, 100]} unit="%" width={45} />

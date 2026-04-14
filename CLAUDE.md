@@ -133,6 +133,19 @@ export function generateRecommendations(input: Input, t: TFunction): Result[] {
 Priority order: localStorage (`token-reporter:locale`) → `navigator.languages` → default `en`.
 The language toggle button is in the StickyChart header bar.
 
+### Chart Turn Jump Interaction
+
+All analytics charts whose x-axis represents individual turns (e.g. `#1`, `#2`) must support clicking the chart to jump to the corresponding turn in the conversation list. This applies to:
+- `LineChart` / `AreaChart` / `BarChart` where `dataKey="turn"` is used on the x-axis
+- Charts where each data point maps to a specific `turnId`
+
+Implementation pattern:
+1. Attach an `onClick` handler to the Recharts chart component
+2. Extract the turn number from the click event (`activeLabel` or coordinate mapping)
+3. Call `scrollToTurnIndex(turns, idx)` and `setSelected(turnId)` to navigate and highlight the turn
+
+Charts that aggregate across turns (e.g. Pie charts, vertical bar charts by category) do not need this behavior.
+
 ## Adding a New Plugin
 
 1. Create `plugins/<name>/` with the plugin source

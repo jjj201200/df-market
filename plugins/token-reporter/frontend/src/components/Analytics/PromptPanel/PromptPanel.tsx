@@ -10,6 +10,7 @@ import CardGrid from '../common/CardGrid';
 import ChartBox from '../common/ChartBox';
 import StatCard from '../common/StatCard';
 import TurnLink from '../common/TurnLink';
+import {useChartTurnClick} from '../common/useChartTurnClick';
 
 export default function PromptPanel() {
   const {t} = useI18n();
@@ -27,6 +28,7 @@ export default function PromptPanel() {
     turn: `#${p.turnId}`,
     ratio: p.ratio,
   }));
+  const onChartClick = useChartTurnClick();
 
   return (
     <Panel>
@@ -54,7 +56,7 @@ export default function PromptPanel() {
       {chartData.length > 0 && (
         <ChartBox title={t('prompt.trend')}>
           <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={chartData} margin={{top: 8, right: 12, bottom: 4, left: 8}}>
+            <AreaChart data={chartData} margin={{top: 8, right: 12, bottom: 4, left: 8}} onClick={onChartClick}>
               <defs>
                 <linearGradient id="promptGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor={cssVar('--accent') || '#58a6ff'} stopOpacity={0.3} />
@@ -98,7 +100,7 @@ export default function PromptPanel() {
       {ratioData.length > 0 && (
         <ChartBox title={t('prompt.ratio')}>
           <ResponsiveContainer width="100%" height={160}>
-            <AreaChart data={ratioData} margin={{top: 8, right: 12, bottom: 4, left: 8}}>
+            <AreaChart data={ratioData} margin={{top: 8, right: 12, bottom: 4, left: 8}} onClick={onChartClick}>
               <CartesianGrid stroke={gridStroke()} strokeDasharray="3 3" />
               <XAxis dataKey="turn" tick={axisTickStyle()} interval="preserveStartEnd" />
               <YAxis tick={axisTickStyle()} width={45} />

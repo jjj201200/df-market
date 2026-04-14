@@ -19,6 +19,7 @@ import CardGrid from '../common/CardGrid';
 import ChartBox from '../common/ChartBox';
 import StatCard from '../common/StatCard';
 import TurnLink from '../common/TurnLink';
+import {useChartTurnClick} from '../common/useChartTurnClick';
 import s from './ContextPanel.module.scss';
 
 export default function ContextPanel() {
@@ -38,6 +39,7 @@ export default function ContextPanel() {
   }));
 
   const totalTokens = context.points.length > 0 ? context.points[context.points.length - 1]!.cumulative : 0;
+  const onChartClick = useChartTurnClick();
 
   return (
     <Panel>
@@ -64,7 +66,7 @@ export default function ContextPanel() {
 
       <ChartBox title={t('context.contextWindowGrowth')}>
         <ResponsiveContainer width="100%" height={280}>
-          <AreaChart data={chartData} margin={{top: 8, right: 12, bottom: 4, left: 8}}>
+          <AreaChart data={chartData} margin={{top: 8, right: 12, bottom: 4, left: 8}} onClick={onChartClick}>
             <defs>
               <linearGradient id="contextGrad" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor={cssVar('--accent') || '#58a6ff'} stopOpacity={0.3} />
@@ -122,7 +124,7 @@ export default function ContextPanel() {
       {/* Per-turn delta */}
       <ChartBox title={t('context.tokensAddedPerTurn')}>
         <ResponsiveContainer width="100%" height={160}>
-          <AreaChart data={chartData} margin={{top: 8, right: 12, bottom: 4, left: 8}}>
+          <AreaChart data={chartData} margin={{top: 8, right: 12, bottom: 4, left: 8}} onClick={onChartClick}>
             <CartesianGrid stroke={gridStroke()} strokeDasharray="3 3" />
             <XAxis dataKey="turn" tick={axisTickStyle()} interval="preserveStartEnd" />
             <YAxis tick={axisTickStyle()} tickFormatter={fmtTokens} width={55} />

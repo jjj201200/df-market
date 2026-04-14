@@ -33,6 +33,7 @@ import ChartBox from '../common/ChartBox';
 import StatCard from '../common/StatCard';
 import ColoredBar from '../common/ColoredBar';
 import TurnLink from '../common/TurnLink';
+import {useChartTurnClick} from '../common/useChartTurnClick';
 import s from './TimingPanel.module.scss';
 
 export default function TimingPanel() {
@@ -66,6 +67,7 @@ export default function TimingPanel() {
   }));
 
   const tlc = toolColors();
+  const onChartClick = useChartTurnClick();
   const toolDurData = Object.entries(timing.toolDurByClass)
     .map(([cls, d]) => ({
       cls,
@@ -98,7 +100,7 @@ export default function TimingPanel() {
       {intervalData.length > 0 && (
         <ChartBox title={t('timing.turnIntervals')}>
           <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={intervalData} margin={{top: 8, right: 12, bottom: 4, left: 8}}>
+            <AreaChart data={intervalData} margin={{top: 8, right: 12, bottom: 4, left: 8}} onClick={onChartClick}>
               <defs>
                 <linearGradient id="intervalGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor={cssVar('--accent') || '#58a6ff'} stopOpacity={0.3} />
