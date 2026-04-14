@@ -10,7 +10,6 @@ import SubagentPanel from './SubagentPanel/SubagentPanel';
 import TimingPanel from './TimingPanel/TimingPanel';
 import McpPanel from './McpPanel/McpPanel';
 import PromptPanel from './PromptPanel/PromptPanel';
-import PressurePanel from './PressurePanel/PressurePanel';
 import s from './AnalyticsPage.module.scss';
 
 export default function AnalyticsPage() {
@@ -38,7 +37,6 @@ export default function AnalyticsPage() {
         {activeTab === 'timing' && <TimingPanel />}
         {activeTab === 'mcp' && <McpPanel />}
         {activeTab === 'prompt' && <PromptPanel />}
-        {activeTab === 'pressure' && <PressurePanel />}
       </div>
     </div>
   );

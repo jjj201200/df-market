@@ -14,7 +14,6 @@ const TABS: {key: AnalyticsTab; labelKey: TranslationKey; icon: string}[] = [
   {key: 'timing', labelKey: 'nav.timing', icon: '\u23F1'},
   {key: 'mcp', labelKey: 'nav.mcp', icon: '\u26A1'},
   {key: 'prompt', labelKey: 'nav.prompt', icon: '\u270D'},
-  {key: 'pressure', labelKey: 'nav.pressure', icon: '\u26A0'},
 ];
 
 export default function AnalyticsNav() {
