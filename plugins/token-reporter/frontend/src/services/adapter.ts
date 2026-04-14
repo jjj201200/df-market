@@ -90,6 +90,10 @@ export function adaptSession(session: SessionResponse | null): AdaptedSession {
         userText: t.userText || '',
         assistantText: t.assistantText || '',
         model: t.model || '',
+        input: t.input || 0,
+        output: t.output || 0,
+        cacheR: t.cacheR || 0,
+        cacheC: t.cacheC || 0,
         tools: (t.tools || []).map(adaptTool),
       })),
     };

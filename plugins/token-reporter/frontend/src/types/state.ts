@@ -69,6 +69,10 @@ export interface SubagentTurnItem {
   userText: string;
   assistantText: string;
   model: string;
+  input: number;
+  output: number;
+  cacheR: number;
+  cacheC: number;
   tools: ToolItem[];
 }
 

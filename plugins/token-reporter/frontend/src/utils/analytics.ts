@@ -61,7 +61,7 @@ export interface ToolEfficiency {
   errorsByClass: Record<string, {total: number; errors: number; rate: number}>;
   redundantGroups: RedundantGroup[];
   largeCalls: {turnId: number; toolName: string; retSize: string; retBytes: number}[];
-  mcpTokenPct: number;
+  mcpTurnPct: number;
 }
 
 function parseSize(s: string): number {
@@ -166,7 +166,7 @@ export function computeToolEfficiency(turns: TurnItem[]): ToolEfficiency {
     errorsByClass,
     redundantGroups,
     largeCalls: largeCalls.sort((a, b) => b.retBytes - a.retBytes).slice(0, 20),
-    mcpTokenPct: turns.length > 0 ? mcpTurns / turns.length : 0,
+    mcpTurnPct: turns.length > 0 ? mcpTurns / turns.length : 0,
   };
 }
 
@@ -309,12 +309,12 @@ export function computeSubagentEfficiency(
   let totalSubagentCost = 0;
 
   for (const [, sa] of Object.entries(subagents)) {
-    // Estimate cost from subagent token counts using haiku pricing as default for subagents
-    const model = sa.turns[0]?.model ?? 'claude-haiku-4-5-20251001';
-    const p = getModelPricing(model);
+    // Compute cost per turn using each turn's actual model for accuracy
+    let cost = 0;
+    for (const t of sa.turns) {
+      cost += computeTurnCost(t as unknown as TurnItem);
+    }
     const tk = sa.totalTokens;
-    const cost =
-      (tk.input * p.input + tk.output * p.output + tk.cacheR * p.cacheRead + tk.cacheC * p.cacheCreation) / 1_000_000;
     totalSubagentCost += cost;
     agents.push({
       agentId: sa.agentId,
@@ -753,6 +753,8 @@ export interface FileMetrics {
   readEditRatio: number;
   totalReadFiles: number;
   totalEditFiles: number;
+  totalReadOps: number;
+  totalEditOps: number;
   bloatedGreps: {pattern: string; glob: string; retLines: number; turnId: number}[];
   unreadReads: FileReadEntry[];
 }
@@ -785,6 +787,8 @@ export function computeFileMetrics(turns: TurnItem[]): FileMetrics {
   const readMap = new Map<string, FileReadEntry>();
   const editSet = new Set<string>();
   const bloatedGreps: FileMetrics['bloatedGreps'] = [];
+  let totalReadOps = 0;
+  let totalEditOps = 0;
 
   for (const t of turns) {
     for (const tool of t.tools) {
@@ -798,11 +802,15 @@ export function computeFileMetrics(turns: TurnItem[]): FileMetrics {
           entry.readCount++;
           entry.turnIds.push(t.id);
           if (hasOffsetLimit(tool)) entry.hasOffsetLimit = true;
+          totalReadOps++;
         }
       }
       if (tool.cls === 'edit' || tool.cls === 'write') {
         const fp = getFilePath(tool);
-        if (fp) editSet.add(fp);
+        if (fp) {
+          editSet.add(fp);
+          totalEditOps++;
+        }
       }
       if (tool.cls === 'grep') {
         const lines = parseRetLines(tool.retLines);
@@ -829,6 +837,8 @@ export function computeFileMetrics(turns: TurnItem[]): FileMetrics {
     readEditRatio: editSet.size > 0 ? readMap.size / editSet.size : readMap.size,
     totalReadFiles: readMap.size,
     totalEditFiles: editSet.size,
+    totalReadOps,
+    totalEditOps,
     bloatedGreps: bloatedGreps.slice(0, 10),
     unreadReads: unreadReads.slice(0, 10),
   };
@@ -1085,7 +1095,7 @@ export function generateRecommendations(input: RecommendationInput, t: TFunction
   // R18: Bloated prompt
   if (prompt && prompt.longestPromptChars > 2000) {
     const turn = prompt.promptTrend.find((p) => p.turnId === prompt.longestPromptTurn);
-    if (turn && turn.outputTokens < turn.inputTokens * 0.1) {
+    if (turn && turn.outputTokens < turn.tokens * 0.1) {
       recs.push({
         id: 'bloated-prompt',
         severity: 'medium',
