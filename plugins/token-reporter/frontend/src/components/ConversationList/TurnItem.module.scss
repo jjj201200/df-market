@@ -4,6 +4,46 @@
 // --- Turn wrapper ---
 .turnWrap {
   margin-bottom: 12px;
+
+  .highlightRing {
+    position: absolute;
+    inset: -4px;
+    border: 2px solid var(--warning);
+    border-radius: 8px;
+    pointer-events: none;
+    box-shadow:
+      0 0 0 2px var(--warning-muted),
+      0 0 16px var(--warning-border);
+    opacity: 0;
+    animation: selectedPulse 1.2s ease-in-out infinite;
+    transition: opacity 0.4s ease-out;
+  }
+
+  &.selected .highlightRing,
+  &.selectedFadeOut .highlightRing {
+    opacity: 1;
+  }
+
+  &.selectedFadeOut .highlightRing {
+    opacity: 0;
+    animation: none;
+  }
+}
+
+@keyframes selectedPulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 0 var(--warning-muted),
+      0 0 12px var(--warning-border);
+    border-color: var(--warning);
+  }
+  50% {
+    box-shadow:
+      0 0 0 0 var(--warning-muted),
+      0 0 24px var(--warning);
+    border-color: #ff9f43;
+  }
 }
 
 // --- User message ---

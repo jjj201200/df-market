@@ -4,8 +4,9 @@ import {useSessionStore} from '../../stores/sessionStore';
 import {fmt} from '../../utils/format';
 import {DPR, getSegs, setupCanvas} from '../../utils/canvas';
 import type {TurnItem, BarRect} from '../../types/state';
-import {lockBrushDriving, deferScrollToTurn, getScrollContainer} from '../../hooks/useScrollSync';
+import {lockBrushDriving, deferScrollToTurn} from '../../hooks/useScrollSync';
 import {brushToFirstIdx, brushToLastIdx} from '../../utils/brushCoords';
+import {scrollToTurnIndex} from '../../utils/scroll';
 import styles from './MainChart.module.scss';
 
 const ANIM_DURATION = 250; // ms
@@ -24,29 +25,6 @@ const PL = 36;
 const PR = 8;
 const PT = 12;
 const PB = 20;
-
-/** Scroll to a turn element by its global index in the turns array */
-export function scrollToTurnIndex(turns: TurnItem[], idx: number, align: 'top' | 'bottom' = 'top') {
-  const t = turns[Math.max(0, Math.min(idx, turns.length - 1))];
-  if (!t) return;
-  const el = document.getElementById('turn-' + t.id);
-  if (!el) return;
-
-  const container = getScrollContainer();
-  const stickyEl = document.getElementById('stickyChart');
-  const stickyH = stickyEl?.offsetHeight || 0;
-  const elRect = el.getBoundingClientRect();
-  const containerRect = container.getBoundingClientRect();
-  let top: number;
-  if (align === 'bottom') {
-    // Place the turn's bottom edge at the container viewport bottom
-    top = container.scrollTop + (elRect.bottom - containerRect.bottom) + 8;
-  } else {
-    top = container.scrollTop + (elRect.top - containerRect.top) - stickyH - 8;
-  }
-  lockBrushDriving();
-  container.scrollTo({top, behavior: 'auto'});
-}
 
 function fmtTs(ts: string | undefined, timeFmt: string): string {
   if (!ts) return '';

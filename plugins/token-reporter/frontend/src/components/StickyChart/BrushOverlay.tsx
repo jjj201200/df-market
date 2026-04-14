@@ -1,7 +1,7 @@
 import {useRef, useCallback, useMemo, useEffect, useState} from 'react';
 import {useChartStore} from '../../stores/chartStore';
 import {useSessionStore} from '../../stores/sessionStore';
-import {scrollToTurnIndex} from './MainChart';
+import {scrollToTurnIndex} from '../../utils/scroll';
 import {lockBrushDriving, deferScrollToTurn} from '../../hooks/useScrollSync';
 import {brushToPixelPct, pixelToBrushPct, brushToFirstIdx, brushToLastIdx} from '../../utils/brushCoords';
 import styles from './BrushOverlay.module.scss';

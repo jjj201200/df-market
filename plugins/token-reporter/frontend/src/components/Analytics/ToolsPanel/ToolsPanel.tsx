@@ -17,6 +17,7 @@ import Panel from '../common/Panel';
 import CardGrid from '../common/CardGrid';
 import ChartBox from '../common/ChartBox';
 import StatCard from '../common/StatCard';
+import TurnLink from '../common/TurnLink';
 import s from './ToolsPanel.module.scss';
 
 export default function ToolsPanel() {
@@ -76,7 +77,15 @@ export default function ToolsPanel() {
                   {g.keyParam.length > 200 ? g.keyParam.slice(0, 200) + '...' : g.keyParam}
                 </span>
                 <span className={s.redundantCount}>{t('tools.timesCount', {count: g.count})}</span>
-                <span className={s.redundantTurns}>{t('tools.turnsLabel', {ids: g.turnIds.join(', ')})}</span>
+                <span className={s.redundantTurns}>
+                  {t('tools.turnsLabel', {ids: ''})}
+                  {g.turnIds.map((id, i) => (
+                    <span key={id}>
+                      {i > 0 && ', '}
+                      <TurnLink turnId={id} />
+                    </span>
+                  ))}
+                </span>
               </div>
             ))}
           </div>
@@ -91,7 +100,7 @@ export default function ToolsPanel() {
               <div key={i} className={s.largeItem}>
                 <span className={s.largeTool}>{lc.toolName}</span>
                 <span className={s.largeSize}>{lc.retSize}</span>
-                <span className={s.largeTurn}>{t('tools.turnNumber', {id: lc.turnId})}</span>
+                <span className={s.largeTurn}><TurnLink turnId={lc.turnId} /></span>
               </div>
             ))}
           </div>

@@ -2,6 +2,7 @@ import {useAnalyticsStore} from '../../stores/analyticsStore';
 import {useSessionStore} from '../../stores/sessionStore';
 import {useI18n} from '../../i18n';
 import AnalyticsNav from './AnalyticsNav';
+import SummaryPanel from './SummaryPanel/SummaryPanel';
 import OverviewPanel from './OverviewPanel/OverviewPanel';
 import CachePanel from './CachePanel/CachePanel';
 import ToolsPanel from './ToolsPanel/ToolsPanel';
@@ -10,6 +11,7 @@ import SubagentPanel from './SubagentPanel/SubagentPanel';
 import TimingPanel from './TimingPanel/TimingPanel';
 import McpPanel from './McpPanel/McpPanel';
 import PromptPanel from './PromptPanel/PromptPanel';
+import FilesPanel from './FilesPanel/FilesPanel';
 import s from './AnalyticsPage.module.scss';
 
 export default function AnalyticsPage() {
@@ -29,6 +31,7 @@ export default function AnalyticsPage() {
     <div className={s.page}>
       <AnalyticsNav />
       <div className={s.content}>
+        {activeTab === 'summary' && <SummaryPanel />}
         {activeTab === 'overview' && <OverviewPanel />}
         {activeTab === 'cache' && <CachePanel />}
         {activeTab === 'tools' && <ToolsPanel />}
@@ -37,6 +40,7 @@ export default function AnalyticsPage() {
         {activeTab === 'timing' && <TimingPanel />}
         {activeTab === 'mcp' && <McpPanel />}
         {activeTab === 'prompt' && <PromptPanel />}
+        {activeTab === 'files' && <FilesPanel />}
       </div>
     </div>
   );

@@ -16,6 +16,7 @@ import Panel from '../common/Panel';
 import CardGrid from '../common/CardGrid';
 import ChartBox from '../common/ChartBox';
 import StatCard from '../common/StatCard';
+import TurnLink from '../common/TurnLink';
 import s from './McpPanel.module.scss';
 
 export default function McpPanel() {
@@ -169,7 +170,7 @@ export default function McpPanel() {
             {mcp.turnUsage.map((tu) => (
               <div key={tu.turnId} className={s.turnItem}>
                 <div className={s.turnHeader}>
-                  <span className={s.turnLabel}>{t('mcp.turnNumber', {id: tu.turnId})}</span>
+                  <span className={s.turnLabel}><TurnLink turnId={tu.turnId} /></span>
                   <span className={s.turnCount}>{t('mcp.mcpCallsInTurn', {count: tu.calls.length})}</span>
                 </div>
                 <div className={s.turnCalls}>

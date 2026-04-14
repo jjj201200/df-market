@@ -9,6 +9,7 @@ import Panel from '../common/Panel';
 import CardGrid from '../common/CardGrid';
 import ChartBox from '../common/ChartBox';
 import StatCard from '../common/StatCard';
+import TurnLink from '../common/TurnLink';
 
 export default function PromptPanel() {
   const {t} = useI18n();
@@ -44,7 +45,7 @@ export default function PromptPanel() {
         />
         <StatCard
           label={t('prompt.longestInput')}
-          value={`#${prompt.longestPromptTurn}`}
+          value={<TurnLink turnId={prompt.longestPromptTurn} />}
           sub={`${prompt.longestPromptChars} chars`}
         />
       </CardGrid>

@@ -89,7 +89,7 @@ function estimateViewportTurnCount(): number {
  * When the user scrolls the page, the brush position updates to reflect visible turns.
  */
 /** Compute which turn indices are visible in the viewport (not occluded by sticky header) */
-function updateViewRange() {
+export function updateViewRange() {
   const turns = useSessionStore.getState().turns;
   const N = turns.length;
   if (N === 0) return {loIdx: -1, hiIdx: -1, loPct: 0, hiPct: 1};

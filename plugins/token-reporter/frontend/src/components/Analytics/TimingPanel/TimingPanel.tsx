@@ -32,6 +32,7 @@ import ChartGrid from '../common/ChartGrid';
 import ChartBox from '../common/ChartBox';
 import StatCard from '../common/StatCard';
 import ColoredBar from '../common/ColoredBar';
+import TurnLink from '../common/TurnLink';
 import s from './TimingPanel.module.scss';
 
 export default function TimingPanel() {
@@ -175,7 +176,7 @@ export default function TimingPanel() {
               {timing.slowestTools.map((st, i) => (
                 <tr key={i}>
                   <td className={s.toolName}>{st.toolName}</td>
-                  <td>#{st.turnId}</td>
+                  <td><TurnLink turnId={st.turnId} /></td>
                   <td>{fmtDur(st.durationMs)}</td>
                 </tr>
               ))}

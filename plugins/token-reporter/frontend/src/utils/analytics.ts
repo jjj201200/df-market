@@ -739,6 +739,101 @@ export function computePromptMetrics(turns: TurnItem[]): PromptMetrics {
   };
 }
 
+// ─── File Metrics ────────────────────────────────────────
+
+export interface FileReadEntry {
+  filePath: string;
+  readCount: number;
+  hasOffsetLimit: boolean;
+  turnIds: number[];
+}
+
+export interface FileMetrics {
+  topReads: FileReadEntry[];
+  readEditRatio: number;
+  totalReadFiles: number;
+  totalEditFiles: number;
+  bloatedGreps: {pattern: string; glob: string; retLines: number; turnId: number}[];
+  unreadReads: FileReadEntry[];
+}
+
+function getFilePath(tool: ToolItem): string {
+  const fp = tool.input.find((a) => a.k === 'file_path');
+  return fp ? fp.v : '';
+}
+
+function hasOffsetLimit(tool: ToolItem): boolean {
+  return tool.input.some((a) => a.k === 'offset' || a.k === 'limit');
+}
+
+function getGrepPattern(tool: ToolItem): string {
+  const pat = tool.input.find((a) => a.k === 'pattern');
+  return pat ? pat.v : '';
+}
+
+function getGrepGlob(tool: ToolItem): string {
+  const gl = tool.input.find((a) => a.k === 'glob');
+  return gl ? gl.v : '';
+}
+
+function parseRetLines(retLines: string): number {
+  const n = parseInt(retLines.replace(/,/g, ''), 10);
+  return isNaN(n) ? 0 : n;
+}
+
+export function computeFileMetrics(turns: TurnItem[]): FileMetrics {
+  const readMap = new Map<string, FileReadEntry>();
+  const editSet = new Set<string>();
+  const bloatedGreps: FileMetrics['bloatedGreps'] = [];
+
+  for (const t of turns) {
+    for (const tool of t.tools) {
+      if (tool.cls === 'read') {
+        const fp = getFilePath(tool);
+        if (fp) {
+          if (!readMap.has(fp)) {
+            readMap.set(fp, {filePath: fp, readCount: 0, hasOffsetLimit: false, turnIds: []});
+          }
+          const entry = readMap.get(fp)!;
+          entry.readCount++;
+          entry.turnIds.push(t.id);
+          if (hasOffsetLimit(tool)) entry.hasOffsetLimit = true;
+        }
+      }
+      if (tool.cls === 'edit' || tool.cls === 'write') {
+        const fp = getFilePath(tool);
+        if (fp) editSet.add(fp);
+      }
+      if (tool.cls === 'grep') {
+        const lines = parseRetLines(tool.retLines);
+        if (lines > 100) {
+          bloatedGreps.push({
+            pattern: getGrepPattern(tool),
+            glob: getGrepGlob(tool),
+            retLines: lines,
+            turnId: t.id,
+          });
+        }
+      }
+    }
+  }
+
+  const topReads = Array.from(readMap.values())
+    .sort((a, b) => b.readCount - a.readCount)
+    .slice(0, 20);
+
+  const unreadReads = topReads.filter((r) => !editSet.has(r.filePath) && r.readCount >= 2);
+
+  return {
+    topReads,
+    readEditRatio: editSet.size > 0 ? readMap.size / editSet.size : readMap.size,
+    totalReadFiles: readMap.size,
+    totalEditFiles: editSet.size,
+    bloatedGreps: bloatedGreps.slice(0, 10),
+    unreadReads: unreadReads.slice(0, 10),
+  };
+}
+
 // ─── Recommendations ─────────────────────────────────────
 
 export interface Recommendation {
@@ -763,10 +858,11 @@ export interface RecommendationInput {
   mcp?: McpMetrics;
   prompt?: PromptMetrics;
   pressure?: PressureMetrics;
+  files?: FileMetrics;
 }
 
 export function generateRecommendations(input: RecommendationInput, t: TFunction): Recommendation[] {
-  const {cache, tools, context, subagent, cost, modelBreakdown, thinking, sidechain, timing, mcp, prompt, pressure} = input;
+  const {cache, tools, context, subagent, cost, modelBreakdown, thinking, sidechain, timing, mcp, prompt, pressure, files} = input;
   const recs: Recommendation[] = [];
   const usd = (v: number) => `$${v.toFixed(4)}`;
 
@@ -1033,6 +1129,42 @@ export function generateRecommendations(input: RecommendationInput, t: TFunction
       category: 'context',
       title: t('rec.contextSpike.title', {count: pressure.highSpikeTurns.length}),
       detail: t('rec.contextSpike.detail', {turnId: pressure.highSpikeTurns[0]!.turnId, delta: fmtTokens(pressure.highSpikeTurns[0]!.delta)}),
+    });
+  }
+
+  // R22: Repeated file reads without offset
+  if (files) {
+    const repeated = files.topReads.find((r) => r.readCount >= 3 && !r.hasOffsetLimit);
+    if (repeated) {
+      recs.push({
+        id: 'repeated-reads',
+        severity: 'medium',
+        category: 'tools',
+        title: t('rec.repeatedReads.title', {file: repeated.filePath, count: repeated.readCount}),
+        detail: t('rec.repeatedReads.detail'),
+      });
+    }
+  }
+
+  // R23: Bloated grep
+  if (files && files.bloatedGreps.length > 2) {
+    recs.push({
+      id: 'bloated-grep',
+      severity: 'medium',
+      category: 'tools',
+      title: t('rec.bloatedGrep.title', {count: files.bloatedGreps.length}),
+      detail: t('rec.bloatedGrep.detail', {pattern: files.bloatedGreps[0]!.pattern.slice(0, 60)}),
+    });
+  }
+
+  // R24: Low edit coverage
+  if (files && files.readEditRatio > 5 && files.totalReadFiles > 5) {
+    recs.push({
+      id: 'low-edit-coverage',
+      severity: 'low',
+      category: 'tools',
+      title: t('rec.lowEditCoverage.title', {ratio: files.readEditRatio.toFixed(1)}),
+      detail: t('rec.lowEditCoverage.detail'),
     });
   }
 

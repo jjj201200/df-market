@@ -18,6 +18,7 @@ import Panel from '../common/Panel';
 import CardGrid from '../common/CardGrid';
 import ChartBox from '../common/ChartBox';
 import StatCard from '../common/StatCard';
+import TurnLink from '../common/TurnLink';
 import s from './ContextPanel.module.scss';
 
 export default function ContextPanel() {
@@ -169,7 +170,7 @@ export default function ContextPanel() {
             <tbody>
               {pressure.highSpikeTurns.map((st) => (
                 <tr key={st.turnId}>
-                  <td>#{st.turnId}</td>
+                  <td><TurnLink turnId={st.turnId} /></td>
                   <td className={s.spikeDelta}>{fmtTokens(st.delta)}</td>
                 </tr>
               ))}

@@ -33,6 +33,7 @@ export const zhCN: Translation = {
   },
 
   nav: {
+    summary: '摘要',
     overview: '概览',
     cache: '缓存',
     tools: '工具',
@@ -41,7 +42,7 @@ export const zhCN: Translation = {
     timing: '时间',
     mcp: 'MCP',
     prompt: '提示词',
-    pressure: '压力',
+    files: '文件',
     analytics: '分析',
     sessionAnalytics: '会话分析',
     splitView: '分栏视图',
@@ -254,6 +255,39 @@ export const zhCN: Translation = {
     trend: '上下文增长趋势',
   },
 
+  files: {
+    title: '文件操作',
+    topReads: '高频读取文件',
+    readEditRatio: '读取/编辑比例',
+    totalReadFiles: '读取文件数',
+    totalEditFiles: '编辑文件数',
+    bloatedGreps: '膨胀的 Grep',
+    unreadReads: '只读未编辑',
+    filePath: '文件',
+    readCount: '读取次数',
+    hasOffset: 'Offset/Limit',
+    pattern: '模式',
+    glob: 'Glob',
+    retLines: '行数',
+    turn: '轮次',
+  },
+
+  summary: {
+    keyInsights: '核心洞察',
+    topRecommendations: '优先建议',
+    dominantModel: '主导模型',
+    subagentCost: '子代理费用',
+    sidechainCost: '侧链费用',
+    thinkingCost: '思考费用',
+    mcpCalls: 'MCP 调用',
+    sessionDuration: '会话时长',
+    costPerMinute: '费用/分钟',
+    peakContext: '峰值上下文',
+    atTurn: '于轮次',
+    fileActivity: '文件活动',
+    readEdit: '{read} 读 / {edit} 编',
+  },
+
   compact: {
     label: '压缩',
     description: '上下文窗口已压缩',
@@ -366,6 +400,18 @@ export const zhCN: Translation = {
     contextSpike: {
       title: '{count} 轮单次新增超过 20K token',
       detail: '轮次 #{turnId} 新增了 {delta} token。请检查该轮是否存在大文件读取或超长输出。',
+    },
+    repeatedReads: {
+      title: '"{file}" 被读取 {count} 次且未使用 offset/limit',
+      detail: '重复全文件读取会膨胀上下文。建议缓存内容或使用 offset/limit 进行针对性读取。',
+    },
+    bloatedGrep: {
+      title: '{count} 次 grep 返回超过 100 行',
+      detail: '过于宽泛的 grep 模式："{pattern}"。建议使用更精确的模式或增加 glob 过滤。',
+    },
+    lowEditCoverage: {
+      title: '读取/编辑比例为 {ratio}',
+      detail: '很多文件被读取但从未编辑。建议更精准地预先指定目标文件。',
     },
   },
 } as const;

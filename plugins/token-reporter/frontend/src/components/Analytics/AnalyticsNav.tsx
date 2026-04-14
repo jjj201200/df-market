@@ -1,5 +1,6 @@
 import clsx from 'clsx';
 import {
+  IconClipboardList,
   IconChartPie,
   IconRefresh,
   IconTools,
@@ -8,6 +9,7 @@ import {
   IconClockHour4,
   IconBolt,
   IconPencil,
+  IconFiles,
 } from '@tabler/icons-react';
 import {useAnalyticsStore} from '../../stores/analyticsStore';
 import type {AnalyticsTab} from '../../stores/analyticsStore';
@@ -16,6 +18,7 @@ import type {TranslationKey} from '../../i18n';
 import s from './AnalyticsNav.module.scss';
 
 const TABS: {key: AnalyticsTab; labelKey: TranslationKey; icon: React.ReactNode}[] = [
+  {key: 'summary', labelKey: 'nav.summary', icon: <IconClipboardList size={14} />},
   {key: 'overview', labelKey: 'nav.overview', icon: <IconChartPie size={14} />},
   {key: 'cache', labelKey: 'nav.cache', icon: <IconRefresh size={14} />},
   {key: 'tools', labelKey: 'nav.tools', icon: <IconTools size={14} />},
@@ -24,6 +27,7 @@ const TABS: {key: AnalyticsTab; labelKey: TranslationKey; icon: React.ReactNode}
   {key: 'timing', labelKey: 'nav.timing', icon: <IconClockHour4 size={14} />},
   {key: 'mcp', labelKey: 'nav.mcp', icon: <IconBolt size={14} />},
   {key: 'prompt', labelKey: 'nav.prompt', icon: <IconPencil size={14} />},
+  {key: 'files', labelKey: 'nav.files', icon: <IconFiles size={14} />},
 ];
 
 export default function AnalyticsNav() {

@@ -16,6 +16,7 @@ import {
   computeMcpMetrics,
   computePromptMetrics,
   computePressureMetrics,
+  computeFileMetrics,
   generateRecommendations,
 } from '../../../utils/analytics';
 import {tokenColors, toolColors, MODEL_COLORS, tooltipStyle, tooltipLabelStyle, tooltipItemStyle, cursorStyle, gridStroke, axisTickStyle} from '../../../utils/chartTheme';
@@ -26,6 +27,7 @@ import ChartBox from '../common/ChartBox';
 import StatCard from '../common/StatCard';
 import ColoredBar from '../common/ColoredBar';
 import RecommendationCard from './RecommendationCard';
+import TurnLink from '../common/TurnLink';
 import s from './OverviewPanel.module.scss';
 
 export default function OverviewPanel() {
@@ -47,11 +49,12 @@ export default function OverviewPanel() {
   const mcp = useMemo(() => computeMcpMetrics(turns), [turns]);
   const prompt = useMemo(() => computePromptMetrics(turns), [turns]);
   const pressure = useMemo(() => computePressureMetrics(data, turns), [data, turns]);
+  const files = useMemo(() => computeFileMetrics(turns), [turns]);
   const {t} = useI18n();
 
   const recommendations = useMemo(
-    () => generateRecommendations({cache, tools, context, subagent, cost, modelBreakdown, thinking, sidechain, timing, mcp, prompt, pressure}, t),
-    [cache, tools, context, subagent, cost, modelBreakdown, thinking, sidechain, timing, mcp, prompt, pressure, t]
+    () => generateRecommendations({cache, tools, context, subagent, cost, modelBreakdown, thinking, sidechain, timing, mcp, prompt, pressure, files}, t),
+    [cache, tools, context, subagent, cost, modelBreakdown, thinking, sidechain, timing, mcp, prompt, pressure, files, t]
   );
   const tc = tokenColors();
 
@@ -85,7 +88,7 @@ export default function OverviewPanel() {
         <StatCard label={t('overview.avgPerTurn')} value={fmtUsd(cost.avgPerTurn)} />
         <StatCard
           label={t('overview.mostExpensiveTurn')}
-          value={`#${cost.maxTurnIdx + 1}`}
+          value={<TurnLink turnId={cost.maxTurnIdx + 1} />}
           sub={fmtUsd(cost.maxTurnCost)}
           color="var(--danger)"
         />

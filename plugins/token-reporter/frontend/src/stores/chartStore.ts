@@ -7,6 +7,7 @@ interface ChartStore {
   brushR: number;
   turnCount: number;
   hoveredId: number | null;
+  selectedId: number | null;
   dims: Dims;
   barRects: BarRect[];
   resizeTick: number;
@@ -17,6 +18,7 @@ interface ChartStore {
   setBrush: (l: number, r: number) => void;
   setTurnCount: (n: number) => void;
   setHovered: (id: number | null) => void;
+  setSelected: (id: number | null) => void;
   toggleDim: (key: keyof Dims) => void;
   setBarRects: (rects: BarRect[]) => void;
   setViewRange: (lo: number, hi: number, loPct?: number, hiPct?: number) => void;
@@ -29,6 +31,7 @@ export const useChartStore = create<ChartStore>((set) => ({
   brushR: 1,
   turnCount: 0,
   hoveredId: null,
+  selectedId: null,
   dims: {input: true, output: true, cacheR: true, cacheC: true},
   barRects: [],
   resizeTick: 0,
@@ -50,6 +53,8 @@ export const useChartStore = create<ChartStore>((set) => ({
   setTurnCount: (n) => set({turnCount: n}),
 
   setHovered: (id) => set({hoveredId: id}),
+
+  setSelected: (id) => set({selectedId: id}),
 
   toggleDim: (key) => set((s) => ({dims: {...s.dims, [key]: !s.dims[key]}})),
 

@@ -31,6 +31,7 @@ export const en = {
   },
 
   nav: {
+    summary: 'Summary',
     overview: 'Overview',
     cache: 'Cache',
     tools: 'Tools',
@@ -39,7 +40,7 @@ export const en = {
     timing: 'Timing',
     mcp: 'MCP',
     prompt: 'Prompt',
-    pressure: 'Pressure',
+    files: 'Files',
     analytics: 'Analytics',
     sessionAnalytics: 'Session Analytics',
     splitView: 'Split View',
@@ -252,6 +253,39 @@ export const en = {
     trend: 'Context Growth Trend',
   },
 
+  files: {
+    title: 'File Operations',
+    topReads: 'Top Read Files',
+    readEditRatio: 'Read / Edit Ratio',
+    totalReadFiles: 'Read Files',
+    totalEditFiles: 'Edited Files',
+    bloatedGreps: 'Bloated Greps',
+    unreadReads: 'Read but Not Edited',
+    filePath: 'File',
+    readCount: 'Reads',
+    hasOffset: 'Offset/Limit',
+    pattern: 'Pattern',
+    glob: 'Glob',
+    retLines: 'Lines',
+    turn: 'Turn',
+  },
+
+  summary: {
+    keyInsights: 'Key Insights',
+    topRecommendations: 'Top Recommendations',
+    dominantModel: 'Dominant Model',
+    subagentCost: 'Subagent Cost',
+    sidechainCost: 'Sidechain Cost',
+    thinkingCost: 'Thinking Cost',
+    mcpCalls: 'MCP Calls',
+    sessionDuration: 'Session Duration',
+    costPerMinute: 'Cost / Minute',
+    peakContext: 'Peak Context',
+    atTurn: 'at Turn',
+    fileActivity: 'File Activity',
+    readEdit: '{read} read / {edit} edited',
+  },
+
   compact: {
     label: 'COMPACT',
     description: 'Context window compressed',
@@ -284,8 +318,7 @@ export const en = {
     },
     toolErrors: {
       title: '{errors} of {total} tool calls failed ({rate})',
-      detail:
-        'Failed tool calls waste tokens on both the request and the error response. Check common error patterns.',
+      detail: 'Failed tool calls waste tokens on both the request and the error response. Check common error patterns.',
     },
     redundantTools: {
       title: '{count} redundant tool calls detected',
@@ -308,8 +341,7 @@ export const en = {
     },
     subagentCost: {
       title: 'Subagents consumed {pct} of total cost',
-      detail:
-        'Verify that subagent delegations are worthwhile. Consider using Haiku model for exploration subagents.',
+      detail: 'Verify that subagent delegations are worthwhile. Consider using Haiku model for exploration subagents.',
       savings: '{amount} if subagents used Haiku',
     },
     goodCache: {
@@ -338,12 +370,12 @@ export const en = {
     },
     highSidechain: {
       title: 'Sidechain operations: {pct} of total cost',
-      detail:
-        '{turns} sidechain turns consumed {amount}. Review whether all sidechain tool executions are necessary.',
+      detail: '{turns} sidechain turns consumed {amount}. Review whether all sidechain tool executions are necessary.',
     },
     highMcp: {
       title: 'MCP tools account for {pct} of all calls',
-      detail: '{count} MCP calls detected. For simple queries, consider using CLI tools instead to reduce context overhead.',
+      detail:
+        '{count} MCP calls detected. For simple queries, consider using CLI tools instead to reduce context overhead.',
     },
     mcpErrors: {
       title: 'MCP server "{server}" has {rate} error rate',
@@ -355,23 +387,40 @@ export const en = {
     },
     fragmentedPrompts: {
       title: '{count} consecutive very short user inputs detected',
-      detail: 'Multiple short inputs in a row suggest fragmented prompting. Consider merging them into a single, complete request.',
+      detail:
+        'Multiple short inputs in a row suggest fragmented prompting. Consider merging them into a single, complete request.',
     },
     bloatedPrompt: {
       title: 'One prompt is very long ({chars} chars)',
-      detail: 'The longest user input generated relatively little output. Consider trimming unnecessary context from that turn.',
+      detail:
+        'The longest user input generated relatively little output. Consider trimming unnecessary context from that turn.',
     },
     vaguePrompt: {
       title: 'Input/output ratio is only {ratio}',
-      detail: '{count} turn(s) produced >5K output tokens from small inputs. More specific prompts may reduce verbose responses.',
+      detail:
+        '{count} turn(s) produced >5K output tokens from small inputs. More specific prompts may reduce verbose responses.',
     },
     highPressure: {
       title: 'Context compacted {count} times (avg every {avg} turns)',
-      detail: 'Sessions hitting context limits quickly. Consider more targeted file reads, more specific grep patterns, and delegating verbose tasks to subagents.',
+      detail:
+        'Sessions hitting context limits quickly. Consider more targeted file reads, more specific grep patterns, and delegating verbose tasks to subagents.',
     },
     contextSpike: {
       title: '{count} turn(s) added >20K tokens at once',
       detail: 'Turn #{turnId} added {delta} tokens. Check for large file reads or very long outputs in that turn.',
+    },
+    repeatedReads: {
+      title: '"{file}" read {count} times without offset/limit',
+      detail:
+        'Repeated full-file reads inflate context. Consider caching content or using offset/limit for targeted reads.',
+    },
+    bloatedGrep: {
+      title: '{count} grep calls returned >100 lines',
+      detail: 'Broad grep pattern: "{pattern}". Consider a more specific pattern or add a glob filter.',
+    },
+    lowEditCoverage: {
+      title: 'Read/edit ratio is {ratio}',
+      detail: 'Many files were read but never edited. Try to specify target files more precisely upfront.',
     },
   },
 } as const;

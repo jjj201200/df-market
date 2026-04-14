@@ -2,7 +2,7 @@ import s from './StatCard.module.scss';
 
 interface Props {
   label: string;
-  value: string;
+  value: string | React.ReactNode;
   sub?: string;
   color?: string;
 }

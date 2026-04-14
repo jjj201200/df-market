@@ -1,0 +1,95 @@
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+
+  th,
+  td {
+    padding: 6px 8px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  th {
+    color: var(--fg-muted);
+    font-weight: 500;
+  }
+
+  td {
+    color: var(--fg-default);
+  }
+
+  .filePath {
+    font-family: 'SF Mono', 'Menlo', monospace;
+    font-size: 11px;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.grepItem,
+.readItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: var(--bg-body);
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.grepPattern {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 11px;
+  color: var(--accent);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grepGlob {
+  color: var(--fg-muted);
+  font-size: 11px;
+  min-width: 60px;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grepLines {
+  font-weight: 600;
+  color: var(--warning);
+  min-width: 60px;
+}
+
+.grepTurn {
+  color: var(--fg-subtle);
+  font-size: 11px;
+}
+
+.readPath {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 11px;
+  color: var(--fg-default);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.readCount {
+  color: var(--fg-subtle);
+  font-size: 11px;
+}
