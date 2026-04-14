@@ -1,19 +1,29 @@
 import clsx from 'clsx';
+import {
+  IconChartPie,
+  IconRefresh,
+  IconTools,
+  IconArrowUp,
+  IconLayersIntersect,
+  IconClockHour4,
+  IconBolt,
+  IconPencil,
+} from '@tabler/icons-react';
 import {useAnalyticsStore} from '../../stores/analyticsStore';
 import type {AnalyticsTab} from '../../stores/analyticsStore';
 import {useI18n} from '../../i18n';
 import type {TranslationKey} from '../../i18n';
 import s from './AnalyticsNav.module.scss';
 
-const TABS: {key: AnalyticsTab; labelKey: TranslationKey; icon: string}[] = [
-  {key: 'overview', labelKey: 'nav.overview', icon: '$'},
-  {key: 'cache', labelKey: 'nav.cache', icon: '\u21bb'},
-  {key: 'tools', labelKey: 'nav.tools', icon: '\u2692'},
-  {key: 'context', labelKey: 'nav.context', icon: '\u2191'},
-  {key: 'subagents', labelKey: 'nav.subagents', icon: '\u2442'},
-  {key: 'timing', labelKey: 'nav.timing', icon: '\u23F1'},
-  {key: 'mcp', labelKey: 'nav.mcp', icon: '\u26A1'},
-  {key: 'prompt', labelKey: 'nav.prompt', icon: '\u270D'},
+const TABS: {key: AnalyticsTab; labelKey: TranslationKey; icon: React.ReactNode}[] = [
+  {key: 'overview', labelKey: 'nav.overview', icon: <IconChartPie size={14} />},
+  {key: 'cache', labelKey: 'nav.cache', icon: <IconRefresh size={14} />},
+  {key: 'tools', labelKey: 'nav.tools', icon: <IconTools size={14} />},
+  {key: 'context', labelKey: 'nav.context', icon: <IconArrowUp size={14} />},
+  {key: 'subagents', labelKey: 'nav.subagents', icon: <IconLayersIntersect size={14} />},
+  {key: 'timing', labelKey: 'nav.timing', icon: <IconClockHour4 size={14} />},
+  {key: 'mcp', labelKey: 'nav.mcp', icon: <IconBolt size={14} />},
+  {key: 'prompt', labelKey: 'nav.prompt', icon: <IconPencil size={14} />},
 ];
 
 export default function AnalyticsNav() {

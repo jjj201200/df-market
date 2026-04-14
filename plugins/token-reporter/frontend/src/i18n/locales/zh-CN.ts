@@ -40,7 +40,7 @@ export const zhCN: Translation = {
     subagents: '子代理',
     timing: '时间',
     mcp: 'MCP',
-    prompt: 'Prompt',
+    prompt: '提示词',
     pressure: '压力',
     analytics: '分析',
     sessionAnalytics: '会话分析',
@@ -227,7 +227,7 @@ export const zhCN: Translation = {
   },
 
   prompt: {
-    title: 'Prompt 效率',
+    title: '提示词效率',
     avgLength: '平均输入长度',
     avgTokens: '平均输入 Token',
     ioRatio: '输入/输出比例',
