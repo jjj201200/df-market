@@ -1,19 +1,35 @@
-import {useEffect, useRef, useLayoutEffect} from 'react';
+import {useEffect, useRef, useLayoutEffect, useState, useCallback} from 'react';
 import StickyChart from './components/StickyChart/StickyChart';
 import {ConversationList} from './components/ConversationList/ConversationList';
 import AnalyticsDrawer from './components/Analytics/AnalyticsDrawer';
 import {useSessionStore} from './stores/sessionStore';
 import {useChartStore} from './stores/chartStore';
-import {useAnalyticsStore} from './stores/analyticsStore';
+import {useAnalyticsStore, getInitialSplitWidth, persistSplitWidth} from './stores/analyticsStore';
 import {useSSE} from './hooks/useSSE';
 import {useScrollSync, getScrollContainer} from './hooks/useScrollSync';
 import s from './App.module.scss';
+
+const MIN_PANEL_WIDTH = 700;
+const THROTTLE_MS = 32; // ~30fps
+
+function throttle<T extends (...args: any[]) => void>(fn: T, wait: number) {
+  let last = 0;
+  return (...args: Parameters<T>) => {
+    const now = Date.now();
+    if (now - last >= wait) {
+      last = now;
+      fn(...args);
+    }
+  };
+}
 
 export default function App() {
   const fetchSessions = useSessionStore((st) => st.fetchSessions);
   const triggerResize = useChartStore((st) => st.triggerResize);
   const splitView = useAnalyticsStore((st) => st.splitView);
   const prevSplitView = useRef(splitView);
+  const [leftWidth, setLeftWidth] = useState(() => getInitialSplitWidth());
+  const [isDragging, setIsDragging] = useState(false);
 
   useSSE();
   useScrollSync(splitView);
@@ -58,15 +74,73 @@ export default function App() {
     }
   }, [splitView, triggerResize]);
 
+  const handleMouseDown = useCallback(() => {
+    setIsDragging(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMouseMove = throttle((e: MouseEvent) => {
+      const maxWidth = window.innerWidth - MIN_PANEL_WIDTH;
+      const nextWidth = Math.max(MIN_PANEL_WIDTH, Math.min(maxWidth, e.clientX));
+      setLeftWidth(nextWidth);
+    }, THROTTLE_MS);
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      persistSplitWidth(leftWidth);
+      triggerResize();
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, leftWidth, triggerResize]);
 
   if (splitView) {
     return (
       <div className={`${s.splitLayout} split-view`}>
-        <div id="splitMain" className={s.splitMain}>
-          <StickyChart />
-          <ConversationList />
+        <div id="splitMain" className={s.splitMain} style={{width: leftWidth, flex: 'none'}}>
+          {isDragging ? (
+            <div className={`${s.dragSkeleton} ${s.dragSkeletonLeft}`}>
+              <div className={s.dragSkeletonBar} />
+              <div className={s.dragSkeletonList}>
+                {Array.from({length: 12}, (_, i) => (
+                  <div className={s.dragSkeletonRow} key={i}>
+                    <div className={s.dragSkeletonBadge} />
+                    <div className={s.dragSkeletonLine} style={{width: `${40 + (i % 3) * 20}%`}} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <>
+              <StickyChart />
+              <ConversationList />
+            </>
+          )}
         </div>
-        <AnalyticsDrawer />
+        <div className={s.resizer} onMouseDown={handleMouseDown} />
+        <div className={s.splitRight} style={{flex: 1, minWidth: 0}}>
+          {isDragging ? (
+            <div className={`${s.dragSkeleton} ${s.dragSkeletonRight}`}>
+              <div className={s.dragSkeletonBar} />
+              <div className={s.dragSkeletonCards}>
+                {Array.from({length: 6}, (_, i) => (
+                  <div className={s.dragSkeletonCard} key={i} />
+                ))}
+              </div>
+              <div className={s.dragSkeletonChart} />
+              <div className={s.dragSkeletonChart} />
+            </div>
+          ) : (
+            <AnalyticsDrawer />
+          )}
+        </div>
       </div>
     );
   }

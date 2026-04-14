@@ -3,6 +3,7 @@ import {create} from 'zustand';
 export type AnalyticsTab = 'overview' | 'cache' | 'tools' | 'context' | 'subagents' | 'timing';
 
 const SPLIT_VIEW_KEY = 'token-reporter:analytics-split-view';
+const SPLIT_WIDTH_KEY = 'token-reporter:split-width';
 
 function getInitialSplitView(): boolean {
   try {
@@ -10,6 +11,20 @@ function getInitialSplitView(): boolean {
   } catch {
     return false;
   }
+}
+
+export function getInitialSplitWidth(): number {
+  try {
+    const raw = localStorage.getItem(SPLIT_WIDTH_KEY);
+    if (raw) return parseInt(raw, 10);
+  } catch {}
+  return Math.round(window.innerWidth * 0.6);
+}
+
+export function persistSplitWidth(width: number): void {
+  try {
+    localStorage.setItem(SPLIT_WIDTH_KEY, String(width));
+  } catch {}
 }
 
 interface AnalyticsStore {

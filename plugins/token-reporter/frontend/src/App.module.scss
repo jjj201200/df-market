@@ -12,10 +12,131 @@
   overflow: hidden;
 
   .splitMain {
-    flex: 1;
     min-width: 0;
     min-height: 0;
     padding: 0 24px 14px;
     height: auto;
+  }
+}
+
+.resizer {
+  width: 4px;
+  background: var(--border-default);
+  cursor: col-resize;
+  flex-shrink: 0;
+  position: relative;
+  transition: background 0.2s;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 1px;
+    height: 100%;
+    background: var(--border-muted);
+    transform: translateX(-50%);
+  }
+
+  &:hover {
+    background: var(--accent);
+
+    &::after {
+      background: var(--accent);
+    }
+  }
+}
+
+.splitRight {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.dragSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0 0 14px;
+  height: 100%;
+  overflow: hidden;
+}
+
+.dragSkeletonLeft {
+  padding: 0 24px 14px;
+}
+
+.dragSkeletonRight {
+  padding: 0 24px 14px;
+}
+
+.dragSkeletonBar {
+  height: 40px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--shimmer-from) 25%, var(--shimmer-to) 50%, var(--shimmer-from) 75%);
+  background-size: 600px 100%;
+  animation: shimmer 1.4s infinite linear;
+}
+
+.dragSkeletonList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dragSkeletonRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dragSkeletonBadge {
+  width: 48px;
+  height: 14px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--shimmer-from) 25%, var(--shimmer-to) 50%, var(--shimmer-from) 75%);
+  background-size: 600px 100%;
+  animation: shimmer 1.4s infinite linear;
+  flex-shrink: 0;
+}
+
+.dragSkeletonLine {
+  height: 14px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--shimmer-from) 25%, var(--shimmer-to) 50%, var(--shimmer-from) 75%);
+  background-size: 600px 100%;
+  animation: shimmer 1.4s infinite linear;
+  flex: 1;
+}
+
+.dragSkeletonCards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.dragSkeletonCard {
+  height: 60px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--shimmer-from) 25%, var(--shimmer-to) 50%, var(--shimmer-from) 75%);
+  background-size: 600px 100%;
+  animation: shimmer 1.4s infinite linear;
+}
+
+.dragSkeletonChart {
+  height: 120px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--shimmer-from) 25%, var(--shimmer-to) 50%, var(--shimmer-from) 75%);
+  background-size: 600px 100%;
+  animation: shimmer 1.4s infinite linear;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -600px 0;
+  }
+  100% {
+    background-position: 600px 0;
   }
 }
