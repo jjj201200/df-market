@@ -215,6 +215,11 @@ export const en = {
     avgMs: 'Avg ms',
     totalMs: 'Total ms',
     noMcp: 'No MCP tool calls in this session.',
+    methodPerformance: 'Method Performance',
+    method: 'Method',
+    turnsWithMcp: 'Turns with MCP',
+    turnNumber: 'Turn #{id}',
+    mcpCallsInTurn: '{count} MCP call(s)',
   },
 
   compact: {

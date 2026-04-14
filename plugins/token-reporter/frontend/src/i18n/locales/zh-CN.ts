@@ -217,6 +217,11 @@ export const zhCN: Translation = {
     avgMs: '平均 ms',
     totalMs: '总 ms',
     noMcp: '本会话没有 MCP 工具调用。',
+    methodPerformance: '方法性能',
+    method: '方法',
+    turnsWithMcp: '使用 MCP 的轮次',
+    turnNumber: '轮次 #{id}',
+    mcpCallsInTurn: '{count} 次 MCP 调用',
   },
 
   compact: {

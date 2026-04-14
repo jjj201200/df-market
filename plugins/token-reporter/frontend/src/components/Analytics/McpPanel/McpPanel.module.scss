@@ -31,4 +31,68 @@
     font-weight: 600;
     color: var(--accent);
   }
+
+  .methodName {
+    font-family: 'SF Mono', 'Menlo', monospace;
+    color: var(--fg-default);
+  }
+}
+
+.turnList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.turnItem {
+  padding: 8px 10px;
+  background: var(--bg-body);
+  border-radius: 6px;
+}
+
+.turnHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.turnLabel {
+  font-weight: 600;
+  color: var(--accent);
+  font-size: 12px;
+}
+
+.turnCount {
+  font-size: 11px;
+  color: var(--fg-muted);
+}
+
+.turnCalls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  font-size: 12px;
+}
+
+.turnCall {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.callOk {
+  color: var(--fg-default);
+  font-family: 'SF Mono', 'Menlo', monospace;
+}
+
+.callErr {
+  color: var(--danger);
+  font-family: 'SF Mono', 'Menlo', monospace;
+}
+
+.callDur {
+  color: var(--fg-muted);
+  font-size: 11px;
 }

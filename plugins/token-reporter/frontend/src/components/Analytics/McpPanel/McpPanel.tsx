@@ -36,6 +36,23 @@ export default function McpPanel() {
       .sort((a, b) => b.calls - a.calls);
   }, [mcp.byServer]);
 
+  const methodData = useMemo(() => {
+    const rows: {server: string; method: string; calls: number; errors: number; avgMs: number; totalMs: number}[] = [];
+    for (const [server, stats] of Object.entries(mcp.byServer)) {
+      for (const [method, m] of Object.entries(stats.methods)) {
+        rows.push({
+          server,
+          method,
+          calls: m.calls,
+          errors: m.errors,
+          avgMs: Math.round(m.avgMs),
+          totalMs: Math.round(m.totalMs),
+        });
+      }
+    }
+    return rows.sort((a, b) => b.calls - a.calls);
+  }, [mcp.byServer]);
+
   if (mcp.totalMcpCalls === 0) {
     return (
       <Panel>
@@ -107,6 +124,62 @@ export default function McpPanel() {
               ))}
             </tbody>
           </table>
+        </ChartBox>
+      )}
+
+      {/* Method Performance Table */}
+      {methodData.length > 0 && (
+        <ChartBox title={t('mcp.methodPerformance')}>
+          <table className={s.serverTable}>
+            <thead>
+              <tr>
+                <th>{t('mcp.server')}</th>
+                <th>{t('mcp.method')}</th>
+                <th>{t('mcp.calls')}</th>
+                <th>{t('mcp.errors')}</th>
+                <th>{t('mcp.avgMs')}</th>
+                <th>{t('mcp.totalMs')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {methodData.map((m) => (
+                <tr key={`${m.server}-${m.method}`}>
+                  <td className={s.serverName}>{m.server}</td>
+                  <td className={s.methodName}>{m.method}</td>
+                  <td>{m.calls}</td>
+                  <td style={{color: m.errors > 0 ? 'var(--danger)' : undefined}}>{m.errors}</td>
+                  <td>{fmtDur(m.avgMs)}</td>
+                  <td>{fmtDur(m.totalMs)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </ChartBox>
+      )}
+
+      {/* Turn-level MCP usage checklist */}
+      {mcp.turnUsage.length > 0 && (
+        <ChartBox title={t('mcp.turnsWithMcp')}>
+          <div className={s.turnList}>
+            {mcp.turnUsage.map((tu) => (
+              <div key={tu.turnId} className={s.turnItem}>
+                <div className={s.turnHeader}>
+                  <span className={s.turnLabel}>{t('mcp.turnNumber', {id: tu.turnId})}</span>
+                  <span className={s.turnCount}>{t('mcp.mcpCallsInTurn', {count: tu.calls.length})}</span>
+                </div>
+                <div className={s.turnCalls}>
+                  {tu.calls.map((c, i) => (
+                    <span key={i} className={s.turnCall}>
+                      <span className={c.isErr ? s.callErr : s.callOk}>
+                        {c.server}.{c.method}
+                      </span>
+                      {c.durMs > 0 && <span className={s.callDur}> ({fmtDur(c.durMs)})</span>}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         </ChartBox>
       )}
     </Panel>
