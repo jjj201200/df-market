@@ -23,17 +23,20 @@ export default function McpPanel() {
   const turns = useSessionStore((st) => st.turns);
   const mcp = useMemo(() => computeMcpMetrics(turns), [turns]);
 
-  const serverData = useMemo(() => {
-    return Object.entries(mcp.byServer)
-      .map(([server, stats]) => ({
-        server,
-        calls: stats.calls,
-        errors: stats.errors,
-        avgMs: Math.round(stats.avgMs),
-        totalMs: Math.round(stats.totalMs),
-        errorRate: Math.round(stats.errorRate * 100),
-      }))
-      .sort((a, b) => b.calls - a.calls);
+  const methodChartData = useMemo(() => {
+    const rows: {name: string; calls: number; errors: number; avgMs: number; totalMs: number}[] = [];
+    for (const [server, stats] of Object.entries(mcp.byServer)) {
+      for (const [method, m] of Object.entries(stats.methods)) {
+        rows.push({
+          name: `${server}.${method}`,
+          calls: m.calls,
+          errors: m.errors,
+          avgMs: Math.round(m.avgMs),
+          totalMs: Math.round(m.totalMs),
+        });
+      }
+    }
+    return rows.sort((a, b) => b.calls - a.calls).slice(0, 20);
   }, [mcp.byServer]);
 
   const methodData = useMemo(() => {
@@ -79,14 +82,14 @@ export default function McpPanel() {
         <StatCard label={t('mcp.avgDuration')} value={fmtDur(mcp.avgMcpDurationMs)} />
       </CardGrid>
 
-      {/* Calls by Server */}
-      {serverData.length > 0 && (
+      {/* Calls by Method */}
+      {methodChartData.length > 0 && (
         <ChartBox title={t('mcp.callsByServer')}>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={serverData} layout="vertical" margin={{top: 4, right: 12, bottom: 4, left: 80}}>
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart data={methodChartData} layout="vertical" margin={{top: 4, right: 12, bottom: 4, left: 120}}>
               <CartesianGrid horizontal={false} stroke={gridStroke()} strokeDasharray="3 3" />
               <XAxis type="number" tick={axisTickStyle()} />
-              <YAxis type="category" dataKey="server" tick={axisTickStyle()} width={75} />
+              <YAxis type="category" dataKey="name" tick={axisTickStyle()} width={110} />
               <Tooltip
                 contentStyle={tooltipStyle()}
                 labelStyle={tooltipLabelStyle()}
@@ -100,7 +103,7 @@ export default function McpPanel() {
       )}
 
       {/* Server Performance Table */}
-      {serverData.length > 0 && (
+      {methodData.length > 0 && (
         <ChartBox title={t('mcp.serverPerformance')}>
           <table className={s.serverTable}>
             <thead>
@@ -113,15 +116,17 @@ export default function McpPanel() {
               </tr>
             </thead>
             <tbody>
-              {serverData.map((srv) => (
-                <tr key={srv.server}>
-                  <td className={s.serverName}>{srv.server}</td>
-                  <td>{srv.calls}</td>
-                  <td style={{color: srv.errors > 0 ? 'var(--danger)' : undefined}}>{srv.errors}</td>
-                  <td>{fmtDur(srv.avgMs)}</td>
-                  <td>{fmtDur(srv.totalMs)}</td>
-                </tr>
-              ))}
+              {methodData
+                .filter((m, idx, arr) => arr.findIndex((x) => x.server === m.server) === idx)
+                .map((srv) => (
+                  <tr key={srv.server}>
+                    <td className={s.serverName}>{srv.server}</td>
+                    <td>{srv.calls}</td>
+                    <td style={{color: srv.errors > 0 ? 'var(--danger)' : undefined}}>{srv.errors}</td>
+                    <td>{fmtDur(srv.avgMs)}</td>
+                    <td>{fmtDur(srv.totalMs)}</td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </ChartBox>
