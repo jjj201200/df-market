@@ -20,6 +20,7 @@ export const en = {
     expandAll: 'Expand all',
     noOutput: '(no output)',
     close: 'Close',
+    estimated: '(estimated)',
   },
 
   error: {
@@ -259,6 +260,8 @@ export const en = {
     readEditRatio: 'Read / Edit Ratio',
     totalReadFiles: 'Read Files',
     totalEditFiles: 'Edited Files',
+    totalReadOps: 'Read Ops',
+    totalEditOps: 'Edit Ops',
     bloatedGreps: 'Bloated Greps',
     unreadReads: 'Read but Not Edited',
     filePath: 'File',

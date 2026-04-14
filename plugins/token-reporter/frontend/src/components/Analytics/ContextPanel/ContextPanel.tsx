@@ -42,8 +42,8 @@ export default function ContextPanel() {
   return (
     <Panel>
       <CardGrid>
-        <StatCard label={t('context.cumulativeTokens')} value={fmtTokens(totalTokens)} />
-        <StatCard label={t('context.avgGrowth')} value={fmtTokens(context.avgGrowthPerTurn)} />
+        <StatCard label={t('context.cumulativeTokens')} value={fmtTokens(totalTokens)} sub={t('common.estimated')} />
+        <StatCard label={t('context.avgGrowth')} value={fmtTokens(context.avgGrowthPerTurn)} sub={t('common.estimated')} />
         <StatCard
           label={t('context.compactionEvents')}
           value={String(context.compactEvents.length)}

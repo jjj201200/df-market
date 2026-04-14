@@ -22,6 +22,7 @@ export const zhCN: Translation = {
     expandAll: '展开全部',
     noOutput: '(无输出)',
     close: '关闭',
+    estimated: '(估算值)',
   },
 
   error: {
@@ -261,6 +262,8 @@ export const zhCN: Translation = {
     readEditRatio: '读取/编辑比例',
     totalReadFiles: '读取文件数',
     totalEditFiles: '编辑文件数',
+    totalReadOps: '读取操作数',
+    totalEditOps: '编辑操作数',
     bloatedGreps: '膨胀的 Grep',
     unreadReads: '只读未编辑',
     filePath: '文件',

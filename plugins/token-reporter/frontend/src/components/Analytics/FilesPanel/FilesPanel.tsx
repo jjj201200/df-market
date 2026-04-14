@@ -20,6 +20,8 @@ export default function FilesPanel() {
         <StatCard label={t('files.readEditRatio')} value={files.readEditRatio.toFixed(1)} />
         <StatCard label={t('files.totalReadFiles')} value={String(files.totalReadFiles)} />
         <StatCard label={t('files.totalEditFiles')} value={String(files.totalEditFiles)} />
+        <StatCard label={t('files.totalReadOps')} value={String(files.totalReadOps)} />
+        <StatCard label={t('files.totalEditOps')} value={String(files.totalEditOps)} />
         <StatCard label={t('files.bloatedGreps')} value={String(files.bloatedGreps.length)} />
       </CardGrid>
 

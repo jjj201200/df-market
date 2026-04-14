@@ -32,7 +32,7 @@ export default function PromptPanel() {
     <Panel>
       <CardGrid minWidth={130}>
         <StatCard label={t('prompt.avgLength')} value={`${Math.round(prompt.avgUserLength)}`} />
-        <StatCard label={t('prompt.avgTokens')} value={fmtTokens(Math.round(prompt.avgUserTokens))} />
+        <StatCard label={t('prompt.avgTokens')} value={fmtTokens(Math.round(prompt.avgUserTokens))} sub={t('common.estimated')} />
         <StatCard
           label={t('prompt.ioRatio')}
           value={fmtPct(prompt.inputOutputRatio)}
@@ -46,7 +46,7 @@ export default function PromptPanel() {
         <StatCard
           label={t('prompt.longestInput')}
           value={<TurnLink turnId={prompt.longestPromptTurn} />}
-          sub={`${prompt.longestPromptChars} chars`}
+          sub={`${prompt.longestPromptChars} chars · ${t('common.estimated')}`}
         />
       </CardGrid>
 
