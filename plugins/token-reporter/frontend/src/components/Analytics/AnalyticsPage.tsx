@@ -8,6 +8,7 @@ import ToolsPanel from './ToolsPanel/ToolsPanel';
 import ContextPanel from './ContextPanel/ContextPanel';
 import SubagentPanel from './SubagentPanel/SubagentPanel';
 import TimingPanel from './TimingPanel/TimingPanel';
+import McpPanel from './McpPanel/McpPanel';
 import s from './AnalyticsPage.module.scss';
 
 export default function AnalyticsPage() {
@@ -33,6 +34,7 @@ export default function AnalyticsPage() {
         {activeTab === 'context' && <ContextPanel />}
         {activeTab === 'subagents' && <SubagentPanel />}
         {activeTab === 'timing' && <TimingPanel />}
+        {activeTab === 'mcp' && <McpPanel />}
       </div>
     </div>
   );

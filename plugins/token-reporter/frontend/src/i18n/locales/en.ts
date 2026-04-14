@@ -37,6 +37,7 @@ export const en = {
     context: 'Context',
     subagents: 'Subagents',
     timing: 'Timing',
+    mcp: 'MCP',
     analytics: 'Analytics',
     sessionAnalytics: 'Session Analytics',
     splitView: 'Split View',
@@ -201,6 +202,21 @@ export const en = {
     errors: 'Errors',
   },
 
+  mcp: {
+    totalCalls: 'MCP Calls',
+    mcpPct: 'MCP %',
+    errorRate: 'MCP Error Rate',
+    avgDuration: 'Avg MCP Duration',
+    callsByServer: 'Calls by Server',
+    serverPerformance: 'Server Performance',
+    server: 'Server',
+    calls: 'Calls',
+    errors: 'Errors',
+    avgMs: 'Avg ms',
+    totalMs: 'Total ms',
+    noMcp: 'No MCP tool calls in this session.',
+  },
+
   compact: {
     label: 'COMPACT',
     description: 'Context window compressed',
@@ -289,6 +305,18 @@ export const en = {
       title: 'Sidechain operations: {pct} of total cost',
       detail:
         '{turns} sidechain turns consumed {amount}. Review whether all sidechain tool executions are necessary.',
+    },
+    highMcp: {
+      title: 'MCP tools account for {pct} of all calls',
+      detail: '{count} MCP calls detected. For simple queries, consider using CLI tools instead to reduce context overhead.',
+    },
+    mcpErrors: {
+      title: 'MCP server "{server}" has {rate} error rate',
+      detail: 'Server "{server}" failed on {count} calls. Check configuration or consider disabling it.',
+    },
+    slowMcp: {
+      title: 'MCP server "{server}" averages {time}s per call',
+      detail: 'Server "{server}" is slow ({count} calls). Consider caching results or using a faster alternative.',
     },
   },
 } as const;

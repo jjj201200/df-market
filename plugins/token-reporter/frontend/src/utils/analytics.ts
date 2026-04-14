@@ -502,6 +502,74 @@ export function computeTimingMetrics(turns: TurnItem[], totalCost: number): Timi
   };
 }
 
+// ─── MCP Metrics ─────────────────────────────────────────
+
+export interface McpServerStats {
+  calls: number;
+  errors: number;
+  totalMs: number;
+  avgMs: number;
+  errorRate: number;
+}
+
+export interface McpMetrics {
+  totalMcpCalls: number;
+  totalMcpErrors: number;
+  mcpPct: number;
+  avgMcpDurationMs: number;
+  byServer: Record<string, McpServerStats>;
+  totalCalls: number;
+}
+
+function parseDurToMs(dur: string): number {
+  const m = dur.match(/([\d.]+)\s*ms/);
+  return m ? parseFloat(m[1]!) : 0;
+}
+
+export function computeMcpMetrics(turns: TurnItem[]): McpMetrics {
+  let totalMcpCalls = 0;
+  let totalMcpErrors = 0;
+  let totalMcpDurationMs = 0;
+  const byServer: Record<string, McpServerStats> = {};
+  let totalCalls = 0;
+
+  for (const t of turns) {
+    for (const tool of t.tools) {
+      totalCalls++;
+      if (tool.cls !== 'mcp' || !tool.mcp) continue;
+      totalMcpCalls++;
+      if (tool.isErr) totalMcpErrors++;
+
+      const server = tool.mcp.server || 'unknown';
+      if (!byServer[server]) {
+        byServer[server] = {calls: 0, errors: 0, totalMs: 0, avgMs: 0, errorRate: 0};
+      }
+      byServer[server]!.calls++;
+      if (tool.isErr) byServer[server]!.errors++;
+
+      const ms = parseDurToMs(tool.dur);
+      if (ms > 0) {
+        byServer[server]!.totalMs += ms;
+        totalMcpDurationMs += ms;
+      }
+    }
+  }
+
+  for (const s of Object.values(byServer)) {
+    s.avgMs = s.calls > 0 ? s.totalMs / s.calls : 0;
+    s.errorRate = s.calls > 0 ? s.errors / s.calls : 0;
+  }
+
+  return {
+    totalMcpCalls,
+    totalMcpErrors,
+    mcpPct: totalCalls > 0 ? totalMcpCalls / totalCalls : 0,
+    avgMcpDurationMs: totalMcpCalls > 0 ? totalMcpDurationMs / totalMcpCalls : 0,
+    byServer,
+    totalCalls,
+  };
+}
+
 // ─── Recommendations ─────────────────────────────────────
 
 export interface Recommendation {
@@ -523,10 +591,11 @@ export interface RecommendationInput {
   thinking?: ThinkingMetrics;
   sidechain?: SidechainMetrics;
   timing?: TimingMetrics;
+  mcp?: McpMetrics;
 }
 
 export function generateRecommendations(input: RecommendationInput, t: TFunction): Recommendation[] {
-  const {cache, tools, context, subagent, cost, modelBreakdown, thinking, sidechain, timing} = input;
+  const {cache, tools, context, subagent, cost, modelBreakdown, thinking, sidechain, timing, mcp} = input;
   const recs: Recommendation[] = [];
   const usd = (v: number) => `$${v.toFixed(4)}`;
 
@@ -690,6 +759,49 @@ export function generateRecommendations(input: RecommendationInput, t: TFunction
       title: t('rec.highSidechain.title', {pct: fmtPct(sidechain.sidechainCostPct)}),
       detail: t('rec.highSidechain.detail', {turns: sidechain.sidechainTurns, amount: usd(sidechain.sidechainCost)}),
     });
+  }
+
+  // R14: High MCP usage
+  if (mcp && mcp.mcpPct > 0.3 && mcp.totalMcpCalls > 3) {
+    recs.push({
+      id: 'high-mcp',
+      severity: 'medium',
+      category: 'cost',
+      title: t('rec.highMcp.title', {pct: fmtPct(mcp.mcpPct)}),
+      detail: t('rec.highMcp.detail', {count: mcp.totalMcpCalls}),
+    });
+  }
+
+  // R15: MCP server with high error rate
+  if (mcp) {
+    for (const [server, stats] of Object.entries(mcp.byServer)) {
+      if (stats.errorRate > 0.2 && stats.calls > 2) {
+        recs.push({
+          id: `mcp-errors-${server}`,
+          severity: 'high',
+          category: 'tools',
+          title: t('rec.mcpErrors.title', {server, rate: fmtPct(stats.errorRate)}),
+          detail: t('rec.mcpErrors.detail', {server, count: stats.calls}),
+        });
+        break;
+      }
+    }
+  }
+
+  // R16: Slow MCP server
+  if (mcp) {
+    for (const [server, stats] of Object.entries(mcp.byServer)) {
+      if (stats.avgMs > 5000 && stats.calls > 2) {
+        recs.push({
+          id: `slow-mcp-${server}`,
+          severity: 'medium',
+          category: 'tools',
+          title: t('rec.slowMcp.title', {server, time: (stats.avgMs / 1000).toFixed(1)}),
+          detail: t('rec.slowMcp.detail', {server, count: stats.calls}),
+        });
+        break;
+      }
+    }
   }
 
   return recs.sort((a, b) => {

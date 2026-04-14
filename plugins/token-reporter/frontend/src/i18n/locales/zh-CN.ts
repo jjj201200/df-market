@@ -39,6 +39,7 @@ export const zhCN: Translation = {
     context: '上下文',
     subagents: '子代理',
     timing: '时间',
+    mcp: 'MCP',
     analytics: '分析',
     sessionAnalytics: '会话分析',
     splitView: '分栏视图',
@@ -203,6 +204,21 @@ export const zhCN: Translation = {
     errors: '错误',
   },
 
+  mcp: {
+    totalCalls: 'MCP 调用数',
+    mcpPct: 'MCP 占比',
+    errorRate: 'MCP 错误率',
+    avgDuration: 'MCP 平均耗时',
+    callsByServer: '各 Server 调用分布',
+    serverPerformance: 'Server 性能',
+    server: 'Server',
+    calls: '调用数',
+    errors: '错误数',
+    avgMs: '平均 ms',
+    totalMs: '总 ms',
+    noMcp: '本会话没有 MCP 工具调用。',
+  },
+
   compact: {
     label: '压缩',
     description: '上下文窗口已压缩',
@@ -283,6 +299,18 @@ export const zhCN: Translation = {
     highSidechain: {
       title: '侧链操作: 占总费用的 {pct}',
       detail: '{turns} 轮侧链消耗了 {amount}。请检查是否所有侧链工具执行都是必要的。',
+    },
+    highMcp: {
+      title: 'MCP 工具占总调用的 {pct}',
+      detail: '检测到 {count} 次 MCP 调用。对于简单查询，建议改用 CLI 工具以减少上下文开销。',
+    },
+    mcpErrors: {
+      title: 'MCP server "{server}" 错误率达 {rate}',
+      detail: 'Server "{server}" 在 {count} 次调用中失败。请检查配置或考虑禁用。',
+    },
+    slowMcp: {
+      title: 'MCP server "{server}" 平均每次调用耗时 {time} 秒',
+      detail: 'Server "{server}" 响应较慢（{count} 次调用）。建议缓存结果或寻找更快的替代方案。',
     },
   },
 } as const;
