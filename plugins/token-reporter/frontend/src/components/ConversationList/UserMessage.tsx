@@ -4,6 +4,7 @@ import type {TurnItem} from '../../types/state';
 import {useI18n} from '../../i18n';
 import {useUIStore} from '../../stores/uiStore';
 import {TokenBadges} from '../common/TokenBadges';
+import {CopyButton} from '../common/CopyButton';
 import s from './TurnItem.module.scss';
 import {IconChevronUp, IconChevronDown} from '@tabler/icons-react';
 
@@ -54,6 +55,7 @@ export const UserMessage: React.FC<UserMessageProps> = React.memo(({turn, isHove
               }
           </span>
         )}
+        <CopyButton getText={() => userText} className={s.msgCopyBtn} />
       </div>
     </div>
   );

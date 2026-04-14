@@ -4,6 +4,7 @@ import type {TurnItem} from '../../types/state';
 import {useI18n} from '../../i18n';
 import {useUIStore} from '../../stores/uiStore';
 import {TokenBadges} from '../common/TokenBadges';
+import {CopyButton} from '../common/CopyButton';
 import {ThinkingBlock} from './ThinkingBlock';
 import s from './TurnItem.module.scss';
 import {IconChevronUp, IconChevronDown} from '@tabler/icons-react';
@@ -57,6 +58,7 @@ export const AssistantMessage: React.FC<AssistantMessageProps> = React.memo(({tu
                 }
             </span>
           )}
+          <CopyButton getText={() => assistantText} className={s.msgCopyBtn} />
         </div>
       )}
     </div>
