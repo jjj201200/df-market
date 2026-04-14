@@ -1,6 +1,6 @@
 import {create} from 'zustand';
 
-export type AnalyticsTab = 'overview' | 'cache' | 'tools' | 'context' | 'subagents' | 'timing' | 'mcp';
+export type AnalyticsTab = 'overview' | 'cache' | 'tools' | 'context' | 'subagents' | 'timing' | 'mcp' | 'prompt';
 
 const SPLIT_VIEW_KEY = 'token-reporter:analytics-split-view';
 const SPLIT_WIDTH_KEY = 'token-reporter:split-width';

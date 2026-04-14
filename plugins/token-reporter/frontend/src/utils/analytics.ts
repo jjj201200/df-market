@@ -605,6 +605,73 @@ export function computeMcpMetrics(turns: TurnItem[]): McpMetrics {
   };
 }
 
+// ─── Prompt Metrics ──────────────────────────────────────
+
+export interface PromptMetrics {
+  avgUserLength: number;
+  avgUserTokens: number;
+  inputOutputRatio: number;
+  shortPromptStreak: number;
+  longestPromptTurn: number;
+  longestPromptChars: number;
+  promptTrend: {turnId: number; chars: number; tokens: number; inputTokens: number; outputTokens: number; ratio: number}[];
+}
+
+export function computePromptMetrics(turns: TurnItem[]): PromptMetrics {
+  let totalChars = 0;
+  let totalTokens = 0;
+  let longestPromptChars = 0;
+  let longestPromptTurn = -1;
+  let maxShortStreak = 0;
+  let currentStreak = 0;
+  let totalInput = 0;
+  let totalOutput = 0;
+  const promptTrend: PromptMetrics['promptTrend'] = [];
+
+  for (const t of turns) {
+    const chars = t.user ? t.user.length : 0;
+    const estTokens = Math.round(chars / 4);
+    totalChars += chars;
+    totalTokens += estTokens;
+    totalInput += t.input;
+    totalOutput += t.output;
+
+    if (chars > longestPromptChars) {
+      longestPromptChars = chars;
+      longestPromptTurn = t.id;
+    }
+
+    if (chars < 20) {
+      currentStreak++;
+    } else {
+      maxShortStreak = Math.max(maxShortStreak, currentStreak);
+      currentStreak = 0;
+    }
+
+    const ratio = t.output > 0 ? t.input / t.output : 0;
+    promptTrend.push({
+      turnId: t.id,
+      chars,
+      tokens: estTokens,
+      inputTokens: t.input,
+      outputTokens: t.output,
+      ratio: ratio,
+    });
+  }
+
+  maxShortStreak = Math.max(maxShortStreak, currentStreak);
+
+  return {
+    avgUserLength: turns.length > 0 ? totalChars / turns.length : 0,
+    avgUserTokens: turns.length > 0 ? totalTokens / turns.length : 0,
+    inputOutputRatio: totalOutput > 0 ? totalInput / totalOutput : 0,
+    shortPromptStreak: maxShortStreak,
+    longestPromptTurn,
+    longestPromptChars,
+    promptTrend,
+  };
+}
+
 // ─── Recommendations ─────────────────────────────────────
 
 export interface Recommendation {
@@ -627,10 +694,11 @@ export interface RecommendationInput {
   sidechain?: SidechainMetrics;
   timing?: TimingMetrics;
   mcp?: McpMetrics;
+  prompt?: PromptMetrics;
 }
 
 export function generateRecommendations(input: RecommendationInput, t: TFunction): Recommendation[] {
-  const {cache, tools, context, subagent, cost, modelBreakdown, thinking, sidechain, timing, mcp} = input;
+  const {cache, tools, context, subagent, cost, modelBreakdown, thinking, sidechain, timing, mcp, prompt} = input;
   const recs: Recommendation[] = [];
   const usd = (v: number) => `$${v.toFixed(4)}`;
 
@@ -836,6 +904,45 @@ export function generateRecommendations(input: RecommendationInput, t: TFunction
         });
         break;
       }
+    }
+  }
+
+  // R17: Fragmented prompts
+  if (prompt && prompt.shortPromptStreak >= 3) {
+    recs.push({
+      id: 'fragmented-prompts',
+      severity: 'medium',
+      category: 'cost',
+      title: t('rec.fragmentedPrompts.title', {count: prompt.shortPromptStreak}),
+      detail: t('rec.fragmentedPrompts.detail'),
+    });
+  }
+
+  // R18: Bloated prompt
+  if (prompt && prompt.longestPromptChars > 2000) {
+    const turn = prompt.promptTrend.find((p) => p.turnId === prompt.longestPromptTurn);
+    if (turn && turn.outputTokens < turn.inputTokens * 0.1) {
+      recs.push({
+        id: 'bloated-prompt',
+        severity: 'medium',
+        category: 'cost',
+        title: t('rec.bloatedPrompt.title', {chars: prompt.longestPromptChars}),
+        detail: t('rec.bloatedPrompt.detail'),
+      });
+    }
+  }
+
+  // R19: Vague prompt (low input, high output)
+  if (prompt && prompt.inputOutputRatio < 0.1) {
+    const highOutputTurns = prompt.promptTrend.filter((p) => p.outputTokens > 5000).length;
+    if (highOutputTurns > 0) {
+      recs.push({
+        id: 'vague-prompt',
+        severity: 'medium',
+        category: 'cost',
+        title: t('rec.vaguePrompt.title', {ratio: fmtPct(prompt.inputOutputRatio)}),
+        detail: t('rec.vaguePrompt.detail', {count: highOutputTurns}),
+      });
     }
   }
 

@@ -13,6 +13,8 @@ import {
   computeThinkingMetrics,
   computeSidechainMetrics,
   computeTimingMetrics,
+  computeMcpMetrics,
+  computePromptMetrics,
   generateRecommendations,
 } from '../../../utils/analytics';
 import {tokenColors, toolColors, MODEL_COLORS, tooltipStyle, tooltipLabelStyle, tooltipItemStyle, cursorStyle, gridStroke, axisTickStyle} from '../../../utils/chartTheme';
@@ -41,11 +43,13 @@ export default function OverviewPanel() {
   const thinking = useMemo(() => computeThinkingMetrics(turns, modelBreakdown.dominantModelId), [turns, modelBreakdown.dominantModelId]);
   const sidechain = useMemo(() => computeSidechainMetrics(turns), [turns]);
   const timing = useMemo(() => computeTimingMetrics(turns, cost.total), [turns, cost.total]);
+  const mcp = useMemo(() => computeMcpMetrics(turns), [turns]);
+  const prompt = useMemo(() => computePromptMetrics(turns), [turns]);
   const {t} = useI18n();
 
   const recommendations = useMemo(
-    () => generateRecommendations({cache, tools, context, subagent, cost, modelBreakdown, thinking, sidechain, timing}, t),
-    [cache, tools, context, subagent, cost, modelBreakdown, thinking, sidechain, timing, t]
+    () => generateRecommendations({cache, tools, context, subagent, cost, modelBreakdown, thinking, sidechain, timing, mcp, prompt}, t),
+    [cache, tools, context, subagent, cost, modelBreakdown, thinking, sidechain, timing, mcp, prompt, t]
   );
   const tc = tokenColors();
 

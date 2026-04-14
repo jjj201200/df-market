@@ -38,6 +38,7 @@ export const en = {
     subagents: 'Subagents',
     timing: 'Timing',
     mcp: 'MCP',
+    prompt: 'Prompt',
     analytics: 'Analytics',
     sessionAnalytics: 'Session Analytics',
     splitView: 'Split View',
@@ -222,6 +223,20 @@ export const en = {
     mcpCallsInTurn: '{count} MCP call(s)',
   },
 
+  prompt: {
+    title: 'Prompt Efficiency',
+    avgLength: 'Avg Input Length',
+    avgTokens: 'Avg Input Tokens',
+    ioRatio: 'Input / Output Ratio',
+    shortStreak: 'Short Input Streak',
+    longestInput: 'Longest Input',
+    trend: 'Input Trend',
+    turn: 'Turn',
+    chars: 'Chars',
+    tokens: 'Tokens',
+    ratio: 'Ratio',
+  },
+
   compact: {
     label: 'COMPACT',
     description: 'Context window compressed',
@@ -322,6 +337,18 @@ export const en = {
     slowMcp: {
       title: 'MCP server "{server}" averages {time}s per call',
       detail: 'Server "{server}" is slow ({count} calls). Consider caching results or using a faster alternative.',
+    },
+    fragmentedPrompts: {
+      title: '{count} consecutive very short user inputs detected',
+      detail: 'Multiple short inputs in a row suggest fragmented prompting. Consider merging them into a single, complete request.',
+    },
+    bloatedPrompt: {
+      title: 'One prompt is very long ({chars} chars)',
+      detail: 'The longest user input generated relatively little output. Consider trimming unnecessary context from that turn.',
+    },
+    vaguePrompt: {
+      title: 'Input/output ratio is only {ratio}',
+      detail: '{count} turn(s) produced >5K output tokens from small inputs. More specific prompts may reduce verbose responses.',
     },
   },
 } as const;

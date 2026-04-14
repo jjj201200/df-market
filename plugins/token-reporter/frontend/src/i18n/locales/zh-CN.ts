@@ -40,6 +40,7 @@ export const zhCN: Translation = {
     subagents: '子代理',
     timing: '时间',
     mcp: 'MCP',
+    prompt: 'Prompt',
     analytics: '分析',
     sessionAnalytics: '会话分析',
     splitView: '分栏视图',
@@ -224,6 +225,20 @@ export const zhCN: Translation = {
     mcpCallsInTurn: '{count} 次 MCP 调用',
   },
 
+  prompt: {
+    title: 'Prompt 效率',
+    avgLength: '平均输入长度',
+    avgTokens: '平均输入 Token',
+    ioRatio: '输入/输出比例',
+    shortStreak: '短输入连续轮数',
+    longestInput: '最长输入',
+    trend: '输入长度趋势',
+    turn: '轮次',
+    chars: '字符',
+    tokens: 'Token',
+    ratio: '比例',
+  },
+
   compact: {
     label: '压缩',
     description: '上下文窗口已压缩',
@@ -316,6 +331,18 @@ export const zhCN: Translation = {
     slowMcp: {
       title: 'MCP server "{server}" 平均每次调用耗时 {time} 秒',
       detail: 'Server "{server}" 响应较慢（{count} 次调用）。建议缓存结果或寻找更快的替代方案。',
+    },
+    fragmentedPrompts: {
+      title: '检测到连续 {count} 轮极短输入',
+      detail: '多轮短输入表明 prompt 可能过于碎片化。建议合并为一条完整、明确的请求。',
+    },
+    bloatedPrompt: {
+      title: '某轮输入过长（{chars} 字符）',
+      detail: '该轮最长的用户输入产生了相对较少的输出。建议精简该轮中不必要的上下文。',
+    },
+    vaguePrompt: {
+      title: '输入/输出比例仅为 {ratio}',
+      detail: '{count} 轮从小输入产生了超过 5K 的输出 token。更具体的 prompt 可能减少冗长回复。',
     },
   },
 } as const;
