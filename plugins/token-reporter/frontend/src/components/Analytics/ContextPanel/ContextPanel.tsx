@@ -11,13 +11,14 @@ import {
 } from 'recharts';
 import {useSessionStore} from '../../../stores/sessionStore';
 import {useI18n} from '../../../i18n';
-import {computeContextGrowth, computeThinkingMetrics} from '../../../utils/analytics';
+import {computeContextGrowth, computeThinkingMetrics, computePressureMetrics} from '../../../utils/analytics';
 import {tooltipStyle, tooltipLabelStyle, tooltipItemStyle, cursorStyle, gridStroke, axisTickStyle, cssVar} from '../../../utils/chartTheme';
 import {fmtTokens} from '../../../utils/format';
 import Panel from '../common/Panel';
 import CardGrid from '../common/CardGrid';
 import ChartBox from '../common/ChartBox';
 import StatCard from '../common/StatCard';
+import s from './ContextPanel.module.scss';
 
 export default function ContextPanel() {
   const {t} = useI18n();
@@ -25,6 +26,7 @@ export default function ContextPanel() {
   const data = useSessionStore((st) => st.data);
   const context = useMemo(() => computeContextGrowth(data, turns), [data, turns]);
   const thinking = useMemo(() => computeThinkingMetrics(turns), [turns]);
+  const pressure = useMemo(() => computePressureMetrics(data, turns), [data, turns]);
   const hasThinking = thinking.turnsWithThinking > 0;
 
   const chartData = context.points.map((p, i) => ({
@@ -46,6 +48,17 @@ export default function ContextPanel() {
           value={String(context.compactEvents.length)}
           color={context.compactEvents.length > 2 ? 'var(--warning)' : undefined}
         />
+        <StatCard label={t('pressure.peakTokens')} value={fmtTokens(pressure.peakTokens)} />
+        <StatCard
+          label={t('pressure.avgTurnsBetweenCompact')}
+          value={Math.round(pressure.avgTurnsBetweenCompact).toString()}
+          color={pressure.avgTurnsBetweenCompact < 10 ? 'var(--danger)' : pressure.avgTurnsBetweenCompact < 15 ? 'var(--warning)' : undefined}
+        />
+        <StatCard
+          label={t('pressure.estimatedToLimit')}
+          value={pressure.estimatedTurnsToLimit !== null ? String(pressure.estimatedTurnsToLimit) : '-'}
+          color={pressure.estimatedTurnsToLimit !== null && pressure.estimatedTurnsToLimit < 20 ? 'var(--danger)' : undefined}
+        />
       </CardGrid>
 
       <ChartBox title={t('context.contextWindowGrowth')}>
@@ -66,6 +79,17 @@ export default function ContextPanel() {
               itemStyle={tooltipItemStyle()}
               formatter={(value) => fmtTokens(Number(value))}
               cursor={cursorStyle()}
+            />
+            <ReferenceLine
+              y={200_000}
+              stroke={cssVar('--danger') || '#f85149'}
+              strokeDasharray="4 4"
+              label={{
+                value: '200K limit',
+                fill: cssVar('--danger') || '#f85149',
+                fontSize: 10,
+                position: 'right',
+              }}
             />
             <Area
               type="monotone"
@@ -131,6 +155,28 @@ export default function ContextPanel() {
           </AreaChart>
         </ResponsiveContainer>
       </ChartBox>
+
+      {/* High spike turns */}
+      {pressure.highSpikeTurns.length > 0 && (
+        <ChartBox title={t('pressure.highSpikeTurns')}>
+          <table className={s.spikeTable}>
+            <thead>
+              <tr>
+                <th>{t('pressure.turn')}</th>
+                <th>{t('pressure.delta')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pressure.highSpikeTurns.map((st) => (
+                <tr key={st.turnId}>
+                  <td>#{st.turnId}</td>
+                  <td className={s.spikeDelta}>{fmtTokens(st.delta)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </ChartBox>
+      )}
     </Panel>
   );
 }
