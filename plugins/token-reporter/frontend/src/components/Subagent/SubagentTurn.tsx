@@ -3,6 +3,7 @@ import clsx from 'clsx';
 import type {SubagentTurnItem} from '../../types/state';
 import {TOOL_COLORS} from '../../types/toolColors';
 import {CopyButton} from '../common/CopyButton';
+import {MarkdownContent} from '../common/MarkdownContent';
 import {SubagentToolGroup} from './SubagentToolGroup';
 import s from './SubagentSummary.module.scss';
 
@@ -50,14 +51,18 @@ export const SubagentTurn: React.FC<SubagentTurnProps> = ({turn}) => {
 
         {hasUser && (
           <div className={clsx(s.saSection, s.saSectionUser)}>
-            <div className={s.saScrollableContent}>{userText}</div>
+            <div className={s.saScrollableContent}>
+              <MarkdownContent>{userText}</MarkdownContent>
+            </div>
             <CopyButton getText={() => userText} />
           </div>
         )}
 
         {hasAssistant && (
           <div className={clsx(s.saSection, s.saSectionAssistant)}>
-            <div className={s.saScrollableContent}>{assistantText}</div>
+            <div className={s.saScrollableContent}>
+              <MarkdownContent>{assistantText}</MarkdownContent>
+            </div>
             <CopyButton getText={() => assistantText} />
           </div>
         )}

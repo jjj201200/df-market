@@ -10,6 +10,7 @@ export const TOOL_COLORS: Record<string, string> = {
   agent: 'var(--tool-agent)',
   mcp: 'var(--tool-mcp)',
   toolsearch: 'var(--tool-toolsearch)',
+  cccmd: 'var(--tool-cccmd)',
   other: 'var(--tool-other)',
 };
 
@@ -24,5 +25,6 @@ export const TOOL_NAME_COLORS: Record<string, string> = {
   web: 'var(--tool-web)',
   agent: 'var(--tool-agent)',
   mcp: 'var(--tool-mcp)',
+  cccmd: 'var(--tool-cccmd)',
   other: 'var(--tool-other)',
 };

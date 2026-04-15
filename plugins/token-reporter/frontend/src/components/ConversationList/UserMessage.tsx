@@ -5,6 +5,7 @@ import {useI18n} from '../../i18n';
 import {useUIStore} from '../../stores/uiStore';
 import {TokenBadges} from '../common/TokenBadges';
 import {CopyButton} from '../common/CopyButton';
+import {MarkdownContent} from '../common/MarkdownContent';
 import s from './TurnItem.module.scss';
 import {IconChevronUp, IconChevronDown} from '@tabler/icons-react';
 
@@ -46,7 +47,9 @@ export const UserMessage: React.FC<UserMessageProps> = React.memo(({turn, isHove
         <TokenBadges input={turn.input} output={turn.output} cacheR={turn.cacheR} cacheC={turn.cacheC} />
       </div>
       <div className={s.msgBody}>
-        <div ref={textRef} className={clsx(s.msgText, !expanded && s.clamped)}>{userText}</div>
+        <div ref={textRef} className={clsx(s.msgText, !expanded && s.clamped)}>
+          <MarkdownContent>{userText}</MarkdownContent>
+        </div>
         {overflows && (
           <span className={s.expandBtn} onClick={handleToggle}>
             {expanded

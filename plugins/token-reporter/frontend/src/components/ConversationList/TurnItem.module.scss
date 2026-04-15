@@ -141,7 +141,7 @@
   color: var(--fg-default);
   font-size: $font-size-sm;
   line-height: 1.65;
-  font-family: -apple-system, 'Segoe UI', sans-serif;
+  font-family: Menlo, Monaco, 'Courier New', monospace;
   white-space: pre-wrap;
 
   &.clamped {

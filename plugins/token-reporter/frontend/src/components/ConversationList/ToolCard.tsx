@@ -6,6 +6,7 @@ import {useI18n} from '../../i18n';
 import {useUIStore} from '../../stores/uiStore';
 import {CopyButton} from '../common/CopyButton';
 import {SubagentCard} from '../Subagent/SubagentCard';
+import {MarkdownContent} from '../common/MarkdownContent';
 import s from './ToolCard.module.scss';
 import {IconArrowRight, IconChevronRight} from '@tabler/icons-react';
 
@@ -118,7 +119,9 @@ export const ToolCard: React.FC<ToolCardProps> = React.memo(({tool, detailId, tu
                 {tool.retLines && tool.retLines !== '—' && <span className={s.rmLines}>{tool.retLines}</span>}
               </div>
               <div className={clsx(s.tcResultPreview, tool.isErr && s.isErr)}>
-                <div className={s.tcResultText}>{tool.output || t('common.noOutput')}</div>
+                <div className={s.tcResultText}>
+                  <MarkdownContent>{tool.output || t('common.noOutput')}</MarkdownContent>
+                </div>
                 <CopyButton getText={getOutputText} />
               </div>
             </div>

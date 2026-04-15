@@ -224,7 +224,7 @@
 .tcResultText {
   font-size: $font-size-sm;
   color: var(--gray-9);
-  font-family: monospace;
+  font-family: Menlo, Monaco, 'Courier New', monospace;
   white-space: pre-wrap;
   padding: 5px 8px;
   @include scrollable(150px);

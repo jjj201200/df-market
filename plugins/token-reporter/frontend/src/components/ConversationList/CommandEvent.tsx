@@ -4,6 +4,7 @@ import type {CommandItem} from '../../types/state';
 import {useI18n} from '../../i18n';
 import {useUIStore} from '../../stores/uiStore';
 import {CopyButton} from '../common/CopyButton';
+import {MarkdownContent} from '../common/MarkdownContent';
 import s from './CommandEvent.module.scss';
 import {IconCommand, IconTerminal2, IconChevronRight} from '@tabler/icons-react';
 
@@ -46,7 +47,9 @@ export const CommandEvent: React.FC<CommandEventProps> = React.memo(({item}) => 
       )}
       {hasOutput && expanded && (
         <div className={clsx(s.evCmdResultPreview, item.isError && s.isErr)}>
-          <div className={s.evCmdResultText}>{item.output}</div>
+          <div className={s.evCmdResultText}>
+            <MarkdownContent>{item.output}</MarkdownContent>
+          </div>
           <CopyButton getText={getOutputText} />
         </div>
       )}

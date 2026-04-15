@@ -681,6 +681,14 @@ function toolNameToCls(name) {
   if (n === "web" || n === "web_search" || n === "web_fetch") return "web";
   if (n === "agent") return "agent";
   if (n.startsWith("mcp__")) return "mcp";
+  // Claude Code built-in slash commands exposed as tools
+  if (
+    n === "exitplanmode" ||
+    n === "enterplanmode" ||
+    n === "remember" ||
+    n === "clear" ||
+    n === "compact"
+  ) return "cccmd";
   return "other";
 }
 

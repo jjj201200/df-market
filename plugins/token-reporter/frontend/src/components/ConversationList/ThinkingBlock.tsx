@@ -1,6 +1,7 @@
 import React, {useCallback} from 'react';
 import {useI18n} from '../../i18n';
 import {useUIStore} from '../../stores/uiStore';
+import {MarkdownContent} from '../common/MarkdownContent';
 import s from './ThinkingBlock.module.scss';
 import {IconBrain, IconChevronDown, IconChevronRight} from '@tabler/icons-react';
 
@@ -33,7 +34,11 @@ export const ThinkingBlock: React.FC<ThinkingBlockProps> = React.memo(({id, text
             }
           </span>
       </div>
-      {expanded && <div className={s.thinkingBody}>{text}</div>}
+      {expanded && (
+        <div className={s.thinkingBody}>
+          <MarkdownContent>{text}</MarkdownContent>
+        </div>
+      )}
     </div>
   );
 });

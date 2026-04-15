@@ -6,6 +6,7 @@ import {useUIStore} from '../../stores/uiStore';
 import {TokenBadges} from '../common/TokenBadges';
 import {CopyButton} from '../common/CopyButton';
 import {ThinkingBlock} from './ThinkingBlock';
+import {MarkdownContent} from '../common/MarkdownContent';
 import s from './TurnItem.module.scss';
 import {IconChevronUp, IconChevronDown} from '@tabler/icons-react';
 
@@ -49,7 +50,9 @@ export const AssistantMessage: React.FC<AssistantMessageProps> = React.memo(({tu
       {turn.thinking && <ThinkingBlock id={`th-${turn.id}`} text={turn.thinking} />}
       {assistantText && (
         <div className={s.msgBody}>
-          <div ref={textRef} className={clsx(s.msgText, !expanded && s.clamped)}>{assistantText}</div>
+          <div ref={textRef} className={clsx(s.msgText, !expanded && s.clamped)}>
+            <MarkdownContent>{assistantText}</MarkdownContent>
+          </div>
           {overflows && (
             <span className={s.expandBtn} onClick={handleToggle}>
               {expanded

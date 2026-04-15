@@ -46,7 +46,7 @@
   font-size: $font-size-sm;
   color: var(--gray-9);
   line-height: 1.6;
-  font-family: -apple-system, 'Segoe UI', sans-serif;
+  font-family: Menlo, Monaco, 'Courier New', monospace;
   white-space: pre-wrap;
   @include scrollable(160px);
 }
