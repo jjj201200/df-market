@@ -27,7 +27,7 @@ export interface SessionResponse {
   systemEvents: ApiSystemEvent[];
   hooks: ApiHookEvent[];
   stopReasons: Record<string, number>;
-  cacheTtl: { ephemeral1h: number; ephemeral5m: number };
+  cacheTtl: {ephemeral1h: number; ephemeral5m: number};
   subagents: Record<string, ApiSubagentStats>;
 }
 

@@ -4,7 +4,15 @@ import {useSessionStore} from '../../../stores/sessionStore';
 import {useI18n} from '../../../i18n';
 import {computePromptMetrics} from '../../../utils/analytics';
 import {fmtTokens, fmtPct} from '../../../utils/format';
-import {tooltipStyle, tooltipLabelStyle, tooltipItemStyle, cursorStyle, gridStroke, axisTickStyle, cssVar} from '../../../utils/chartTheme';
+import {
+  tooltipStyle,
+  tooltipLabelStyle,
+  tooltipItemStyle,
+  cursorStyle,
+  gridStroke,
+  axisTickStyle,
+  cssVar,
+} from '../../../utils/chartTheme';
 import Panel from '../common/Panel';
 import CardGrid from '../common/CardGrid';
 import ChartBox from '../common/ChartBox';
@@ -34,7 +42,11 @@ export default function PromptPanel() {
     <Panel>
       <CardGrid minWidth={130}>
         <StatCard label={t('prompt.avgLength')} value={`${Math.round(prompt.avgUserLength)}`} />
-        <StatCard label={t('prompt.avgTokens')} value={fmtTokens(Math.round(prompt.avgUserTokens))} sub={t('common.estimated')} />
+        <StatCard
+          label={t('prompt.avgTokens')}
+          value={fmtTokens(Math.round(prompt.avgUserTokens))}
+          sub={t('common.estimated')}
+        />
         <StatCard
           label={t('prompt.ioRatio')}
           value={fmtPct(prompt.inputOutputRatio)}

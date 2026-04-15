@@ -7,6 +7,10 @@ interface Props {
 }
 
 export default function CardGrid({children, minWidth}: Props) {
-  const style = minWidth ? {'--card-min': `${minWidth}px`} as CSSProperties : undefined;
-  return <div className={s.grid} style={style}>{children}</div>;
+  const style = minWidth ? ({'--card-min': `${minWidth}px`} as CSSProperties) : undefined;
+  return (
+    <div className={s.grid} style={style}>
+      {children}
+    </div>
+  );
 }

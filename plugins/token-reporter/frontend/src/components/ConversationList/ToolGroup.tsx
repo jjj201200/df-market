@@ -53,7 +53,9 @@ export const ToolGroup: React.FC<ToolGroupProps> = React.memo(({turn, subagents}
   return (
     <div className={s.tcGroup}>
       <div className={s.tcToggle} onClick={handleToggle}>
-        <span className={clsx(s.arrow, expanded && s.open)}><IconChevronRight size={14} stroke={1.5} /></span>
+        <span className={clsx(s.arrow, expanded && s.open)}>
+          <IconChevronRight size={14} stroke={1.5} />
+        </span>
         <span className={s.tcBadge}>
           {total} {total === 1 ? t('conversation.toolCall') : t('conversation.toolCalls')}
         </span>

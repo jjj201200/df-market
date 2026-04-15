@@ -132,8 +132,19 @@ export function updateViewRange() {
   }
 
   if (loIdx >= 0) {
-    const {viewLoIdx: prevLo, viewHiIdx: prevHi, viewLoPct: prevLoPct, viewHiPct: prevHiPct, setViewRange} = useChartStore.getState();
-    if (loIdx !== prevLo || hiIdx !== prevHi || Math.abs(loPct - prevLoPct) > 0.001 || Math.abs(hiPct - prevHiPct) > 0.001) {
+    const {
+      viewLoIdx: prevLo,
+      viewHiIdx: prevHi,
+      viewLoPct: prevLoPct,
+      viewHiPct: prevHiPct,
+      setViewRange,
+    } = useChartStore.getState();
+    if (
+      loIdx !== prevLo ||
+      hiIdx !== prevHi ||
+      Math.abs(loPct - prevLoPct) > 0.001 ||
+      Math.abs(hiPct - prevHiPct) > 0.001
+    ) {
       setViewRange(loIdx, hiIdx, loPct, hiPct);
     }
   }

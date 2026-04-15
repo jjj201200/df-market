@@ -7,8 +7,8 @@ import {lockBrushDriving, deferScrollToTurn} from '../../hooks/useScrollSync';
 import {pixelToBrushPct, brushToFirstIdx, brushToLastIdx} from '../../utils/brushCoords';
 import styles from './BrushChart.module.scss';
 const BAR_H = 32;
-const CONV_LINE_GAP = 4;  // gap between bars and conversation lines
-const CONV_LINE_H = 4;    // height of conversation line area
+const CONV_LINE_GAP = 4; // gap between bars and conversation lines
+const CONV_LINE_H = 4; // height of conversation line area
 const BRUSH_H = BAR_H + CONV_LINE_GAP + CONV_LINE_H;
 const ZOOM_FACTOR = 0.05;
 const WHEEL_THROTTLE_MS = 80; // 节流间隔，防止惯性滚动触发过快
@@ -138,9 +138,7 @@ export default function BrushChart() {
       const segs = getSegs(d, dims);
       const total = segs.reduce((s, x) => s + x.val, 0);
       const height = total > 0 ? (total / maxT) * (BAR_H - 2) : 0;
-      const segRatios = total > 0
-        ? segs.map((seg) => ({key: seg.key, ratio: seg.val / total, col: seg.col}))
-        : [];
+      const segRatios = total > 0 ? segs.map((seg) => ({key: seg.key, ratio: seg.val / total, col: seg.col})) : [];
       return {height, segs: segRatios};
     });
 

@@ -1,0 +1,1 @@
+import{j as t}from"./index-Dwawsa1E.js";const d="_grid_128y8_1",e={grid:d};function x({children:r}){return t.jsx("div",{className:e.grid,children:r})}function f(r){const{fill:i,x:o,y:s,width:n,height:a,color:c}=r;return t.jsx("rect",{x:o,y:s,width:n,height:a,rx:4,fill:c??i})}export{x as C,f as a};

@@ -52,10 +52,15 @@ export const UserMessage: React.FC<UserMessageProps> = React.memo(({turn, isHove
         </div>
         {overflows && (
           <span className={s.expandBtn} onClick={handleToggle}>
-            {expanded
-                ? <><IconChevronUp size={12} stroke={1.5} style={{verticalAlign: 'middle'}} /> {t('common.collapse')}</>
-                : <><IconChevronDown size={12} stroke={1.5} style={{verticalAlign: 'middle'}} /> {t('common.expandAll')}</>
-              }
+            {expanded ? (
+              <>
+                <IconChevronUp size={12} stroke={1.5} style={{verticalAlign: 'middle'}} /> {t('common.collapse')}
+              </>
+            ) : (
+              <>
+                <IconChevronDown size={12} stroke={1.5} style={{verticalAlign: 'middle'}} /> {t('common.expandAll')}
+              </>
+            )}
           </span>
         )}
         <CopyButton getText={() => userText} className={s.msgCopyBtn} />

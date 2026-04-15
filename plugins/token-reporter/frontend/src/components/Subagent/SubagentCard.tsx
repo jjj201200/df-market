@@ -49,7 +49,9 @@ export const SubagentCard: React.FC<SubagentCardProps> = ({subagent, turnId, too
 
       {hasTurns && (
         <div className={s.saExpandRow} onClick={() => toggleSubagent(saId)}>
-          <span className={`${s.arrow} ${expanded ? s.open : ''}`}><IconChevronRight size={14} stroke={1.5} /></span>
+          <span className={`${s.arrow} ${expanded ? s.open : ''}`}>
+            <IconChevronRight size={14} stroke={1.5} />
+          </span>
           <span>{t('conversation.viewTurns', {count: subagent.totalTurns})}</span>
         </div>
       )}

@@ -1,18 +1,17 @@
 import {useMemo} from 'react';
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-  ReferenceLine,
-} from 'recharts';
+import {AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine} from 'recharts';
 import {useSessionStore} from '../../../stores/sessionStore';
 import {useI18n} from '../../../i18n';
 import {computeContextGrowth, computeThinkingMetrics, computePressureMetrics} from '../../../utils/analytics';
-import {tooltipStyle, tooltipLabelStyle, tooltipItemStyle, cursorStyle, gridStroke, axisTickStyle, cssVar} from '../../../utils/chartTheme';
+import {
+  tooltipStyle,
+  tooltipLabelStyle,
+  tooltipItemStyle,
+  cursorStyle,
+  gridStroke,
+  axisTickStyle,
+  cssVar,
+} from '../../../utils/chartTheme';
 import {fmtTokens} from '../../../utils/format';
 import Panel from '../common/Panel';
 import CardGrid from '../common/CardGrid';
@@ -45,7 +44,11 @@ export default function ContextPanel() {
     <Panel>
       <CardGrid>
         <StatCard label={t('context.cumulativeTokens')} value={fmtTokens(totalTokens)} sub={t('common.estimated')} />
-        <StatCard label={t('context.avgGrowth')} value={fmtTokens(context.avgGrowthPerTurn)} sub={t('common.estimated')} />
+        <StatCard
+          label={t('context.avgGrowth')}
+          value={fmtTokens(context.avgGrowthPerTurn)}
+          sub={t('common.estimated')}
+        />
         <StatCard
           label={t('context.compactionEvents')}
           value={String(context.compactEvents.length)}
@@ -55,12 +58,20 @@ export default function ContextPanel() {
         <StatCard
           label={t('pressure.avgTurnsBetweenCompact')}
           value={Math.round(pressure.avgTurnsBetweenCompact).toString()}
-          color={pressure.avgTurnsBetweenCompact < 10 ? 'var(--danger)' : pressure.avgTurnsBetweenCompact < 15 ? 'var(--warning)' : undefined}
+          color={
+            pressure.avgTurnsBetweenCompact < 10
+              ? 'var(--danger)'
+              : pressure.avgTurnsBetweenCompact < 15
+                ? 'var(--warning)'
+                : undefined
+          }
         />
         <StatCard
           label={t('pressure.estimatedToLimit')}
           value={pressure.estimatedTurnsToLimit !== null ? String(pressure.estimatedTurnsToLimit) : '-'}
-          color={pressure.estimatedTurnsToLimit !== null && pressure.estimatedTurnsToLimit < 20 ? 'var(--danger)' : undefined}
+          color={
+            pressure.estimatedTurnsToLimit !== null && pressure.estimatedTurnsToLimit < 20 ? 'var(--danger)' : undefined
+          }
         />
       </CardGrid>
 
@@ -172,7 +183,9 @@ export default function ContextPanel() {
             <tbody>
               {pressure.highSpikeTurns.map((st) => (
                 <tr key={st.turnId}>
-                  <td><TurnLink turnId={st.turnId} /></td>
+                  <td>
+                    <TurnLink turnId={st.turnId} />
+                  </td>
                   <td className={s.spikeDelta}>{fmtTokens(st.delta)}</td>
                 </tr>
               ))}

@@ -33,7 +33,7 @@ export function useI18n() {
       const value = getNestedValue(dict, key) ?? getNestedValue(translations['en'], key) ?? key;
       return params ? interpolate(value, params) : value;
     },
-    [locale]
+    [locale],
   );
 
   return {t, locale};

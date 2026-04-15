@@ -60,12 +60,13 @@ export const useChartStore = create<ChartStore>((set) => ({
 
   setBarRects: (rects) => set({barRects: rects}),
 
-  setViewRange: (lo, hi, loPct, hiPct) => set({
-    viewLoIdx: lo,
-    viewHiIdx: hi,
-    viewLoPct: loPct ?? lo / 100,
-    viewHiPct: hiPct ?? hi / 100,
-  }),
+  setViewRange: (lo, hi, loPct, hiPct) =>
+    set({
+      viewLoIdx: lo,
+      viewHiIdx: hi,
+      viewLoPct: loPct ?? lo / 100,
+      viewHiPct: hiPct ?? hi / 100,
+    }),
 
   triggerResize: () => set((s) => ({resizeTick: s.resizeTick + 1})),
 

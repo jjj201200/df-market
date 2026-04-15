@@ -135,21 +135,21 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
 
   addNewSessionId: (id) => {
     if (!id) return;
-    set((s) => ({ newSessionIds: new Set([...s.newSessionIds, id]) }));
+    set((s) => ({newSessionIds: new Set([...s.newSessionIds, id])}));
   },
 
   clearNewSessionId: (id) => {
     set((s) => {
       const next = new Set(s.newSessionIds);
       next.delete(id);
-      return { newSessionIds: next };
+      return {newSessionIds: next};
     });
   },
 
   fetchSessionsQuietly: async () => {
     try {
       const list = await getSessions();
-      set({ sessions: list });
+      set({sessions: list});
     } catch {
       // Silent failure — don't disrupt the current session view
     }

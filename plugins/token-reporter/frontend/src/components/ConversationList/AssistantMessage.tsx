@@ -55,10 +55,15 @@ export const AssistantMessage: React.FC<AssistantMessageProps> = React.memo(({tu
           </div>
           {overflows && (
             <span className={s.expandBtn} onClick={handleToggle}>
-              {expanded
-                  ? <><IconChevronUp size={12} stroke={1.5} style={{verticalAlign: 'middle'}} /> {t('common.collapse')}</>
-                  : <><IconChevronDown size={12} stroke={1.5} style={{verticalAlign: 'middle'}} /> {t('common.expandAll')}</>
-                }
+              {expanded ? (
+                <>
+                  <IconChevronUp size={12} stroke={1.5} style={{verticalAlign: 'middle'}} /> {t('common.collapse')}
+                </>
+              ) : (
+                <>
+                  <IconChevronDown size={12} stroke={1.5} style={{verticalAlign: 'middle'}} /> {t('common.expand')}
+                </>
+              )}
             </span>
           )}
           <CopyButton getText={() => assistantText} className={s.msgCopyBtn} />

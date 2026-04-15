@@ -170,7 +170,9 @@ export default function McpPanel() {
             {mcp.turnUsage.map((tu) => (
               <div key={tu.turnId} className={s.turnItem}>
                 <div className={s.turnHeader}>
-                  <span className={s.turnLabel}><TurnLink turnId={tu.turnId} /></span>
+                  <span className={s.turnLabel}>
+                    <TurnLink turnId={tu.turnId} />
+                  </span>
                   <span className={s.turnCount}>{t('mcp.mcpCallsInTurn', {count: tu.calls.length})}</span>
                 </div>
                 <div className={s.turnCalls}>

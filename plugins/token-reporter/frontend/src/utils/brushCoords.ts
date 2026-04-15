@@ -39,12 +39,12 @@ export function snapBrushRange(l: number, r: number, N: number): [number, number
   // brushL snaps left (floor) to include the bar under the cursor
   // brushR snaps right (ceil) to include the bar under the cursor
   // li/ri = index of bar to the LEFT of the gap
-  let li = Math.ceil(l * Nm1) - 1;   // snap left edge leftward
+  let li = Math.ceil(l * Nm1) - 1; // snap left edge leftward
   li = Math.max(-1, Math.min(Nm1 - 1, li));
   const sl = (li + 0.5) / Nm1;
 
-  let ri = Math.floor(r * Nm1);      // snap right edge rightward
-  ri = Math.max(li + 1, Math.min(Nm1, ri));  // ensure at least one bar
+  let ri = Math.floor(r * Nm1); // snap right edge rightward
+  ri = Math.max(li + 1, Math.min(Nm1, ri)); // ensure at least one bar
   const sr = (ri + 0.5) / Nm1;
 
   return [sl, sr];

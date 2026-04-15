@@ -17,3 +17,21 @@
   color: var(--fg-subtle);
   font-size: 13px;
 }
+
+.skeleton {
+  min-height: 200px;
+  background: var(--bg-surface-raised);
+  border-radius: 8px;
+  margin: 12px 0;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}

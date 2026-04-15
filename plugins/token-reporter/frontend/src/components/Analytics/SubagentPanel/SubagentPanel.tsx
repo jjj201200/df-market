@@ -25,8 +25,16 @@ export default function SubagentPanel() {
   return (
     <Panel>
       <CardGrid>
-        <StatCard label={t('subagents.mainSessionCost')} value={fmtUsd(sa.mainTokens.cost)} sub={t('subagents.nTurns', {count: sa.mainTokens.turns})} />
-        <StatCard label={t('subagents.totalSubagentCost')} value={fmtUsd(sa.totalSubagentCost)} sub={t('subagents.nAgents', {count: sa.agents.length})} />
+        <StatCard
+          label={t('subagents.mainSessionCost')}
+          value={fmtUsd(sa.mainTokens.cost)}
+          sub={t('subagents.nTurns', {count: sa.mainTokens.turns})}
+        />
+        <StatCard
+          label={t('subagents.totalSubagentCost')}
+          value={fmtUsd(sa.totalSubagentCost)}
+          sub={t('subagents.nAgents', {count: sa.agents.length})}
+        />
         <StatCard
           label={t('subagents.subagentCostPct')}
           value={pct(sa.subagentCostPct)}
@@ -63,7 +71,7 @@ export default function SubagentPanel() {
                 {sa.mainTokens.turns > 0
                   ? fmtTokens(
                       (sa.mainTokens.input + sa.mainTokens.output + sa.mainTokens.cacheR + sa.mainTokens.cacheC) /
-                        sa.mainTokens.turns
+                        sa.mainTokens.turns,
                     )
                   : t('subagents.na')}
               </td>

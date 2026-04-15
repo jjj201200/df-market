@@ -35,11 +35,7 @@ export const SubagentTurn: React.FC<SubagentTurnProps> = ({turn}) => {
           {Object.keys(toolCounts).length > 0 && (
             <div className={s.saTurnToolsSummary}>
               {Object.entries(toolCounts).map(([name, info]) => (
-                <span
-                  key={name}
-                  className={s.saToolPill}
-                  style={{color: TOOL_COLORS[info.cls] ?? TOOL_COLORS.other}}
-                >
+                <span key={name} className={s.saToolPill} style={{color: TOOL_COLORS[info.cls] ?? TOOL_COLORS.other}}>
                   {name}
                   {info.count > 1 ? `\u00d7${info.count}` : ''}
                 </span>

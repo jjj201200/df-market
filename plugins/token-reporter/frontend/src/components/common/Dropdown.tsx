@@ -107,18 +107,13 @@ export default function Dropdown({
           {selected?.sub && <span className={styles.triggerSub}>{selected.sub}</span>}
         </span>
         <span className={clsx(styles.chevron, open && styles.chevronOpen)}>
-            <IconChevronDown size={12} stroke={1.5} />
-          </span>
+          <IconChevronDown size={12} stroke={1.5} />
+        </span>
       </button>
 
       {open && (
         <FloatingPortal>
-          <div
-            ref={refs.setFloating}
-            style={floatingStyles}
-            className={styles.popover}
-            {...getFloatingProps()}
-          >
+          <div ref={refs.setFloating} style={floatingStyles} className={styles.popover} {...getFloatingProps()}>
             <div ref={scrollRef} className={styles.listWrap} style={{maxHeight}}>
               {useVirtual ? (
                 <div style={{height: virtualizer.getTotalSize(), position: 'relative'}}>

@@ -27,7 +27,8 @@ function adaptTool(tool: ApiTool): ToolItem {
 
 /** Transform API session response to internal data model */
 export function adaptSession(session: SessionResponse | null): AdaptedSession {
-  if (!session?.turns) return {items: [], subagents: {}, hooks: [], stopReasons: {}, cacheTtl: {ephemeral1h: 0, ephemeral5m: 0}};
+  if (!session?.turns)
+    return {items: [], subagents: {}, hooks: [], stopReasons: {}, cacheTtl: {ephemeral1h: 0, ephemeral5m: 0}};
 
   const items: DataItem[] = session.turns.map((t) => ({
     type: 'turn' as const,

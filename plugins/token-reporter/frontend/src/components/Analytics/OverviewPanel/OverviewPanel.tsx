@@ -19,7 +19,17 @@ import {
   computeFileMetrics,
   generateRecommendations,
 } from '../../../utils/analytics';
-import {tokenColors, toolColors, MODEL_COLORS, tooltipStyle, tooltipLabelStyle, tooltipItemStyle, cursorStyle, gridStroke, axisTickStyle} from '../../../utils/chartTheme';
+import {
+  tokenColors,
+  toolColors,
+  MODEL_COLORS,
+  tooltipStyle,
+  tooltipLabelStyle,
+  tooltipItemStyle,
+  cursorStyle,
+  gridStroke,
+  axisTickStyle,
+} from '../../../utils/chartTheme';
 import Panel from '../common/Panel';
 import CardGrid from '../common/CardGrid';
 import ChartGrid from '../common/ChartGrid';
@@ -43,7 +53,10 @@ export default function OverviewPanel() {
   const context = useMemo(() => computeContextGrowth(data, turns), [data, turns]);
   const subagent = useMemo(() => computeSubagentEfficiency(subagents, turns), [subagents, turns]);
   const modelBreakdown = useMemo(() => computeModelBreakdown(turns), [turns]);
-  const thinking = useMemo(() => computeThinkingMetrics(turns, modelBreakdown.dominantModelId), [turns, modelBreakdown.dominantModelId]);
+  const thinking = useMemo(
+    () => computeThinkingMetrics(turns, modelBreakdown.dominantModelId),
+    [turns, modelBreakdown.dominantModelId],
+  );
   const sidechain = useMemo(() => computeSidechainMetrics(turns), [turns]);
   const timing = useMemo(() => computeTimingMetrics(turns, cost.total), [turns, cost.total]);
   const mcp = useMemo(() => computeMcpMetrics(turns), [turns]);
@@ -53,8 +66,41 @@ export default function OverviewPanel() {
   const {t} = useI18n();
 
   const recommendations = useMemo(
-    () => generateRecommendations({cache, tools, context, subagent, cost, modelBreakdown, thinking, sidechain, timing, mcp, prompt, pressure, files}, t),
-    [cache, tools, context, subagent, cost, modelBreakdown, thinking, sidechain, timing, mcp, prompt, pressure, files, t]
+    () =>
+      generateRecommendations(
+        {
+          cache,
+          tools,
+          context,
+          subagent,
+          cost,
+          modelBreakdown,
+          thinking,
+          sidechain,
+          timing,
+          mcp,
+          prompt,
+          pressure,
+          files,
+        },
+        t,
+      ),
+    [
+      cache,
+      tools,
+      context,
+      subagent,
+      cost,
+      modelBreakdown,
+      thinking,
+      sidechain,
+      timing,
+      mcp,
+      prompt,
+      pressure,
+      files,
+      t,
+    ],
   );
   const tc = tokenColors();
 
@@ -83,7 +129,11 @@ export default function OverviewPanel() {
     <Panel>
       {/* Summary Cards */}
       <CardGrid>
-        <StatCard label={t('overview.totalCost')} value={fmtUsd(cost.total)} sub={t('overview.nTurns', {count: turns.length})} />
+        <StatCard
+          label={t('overview.totalCost')}
+          value={fmtUsd(cost.total)}
+          sub={t('overview.nTurns', {count: turns.length})}
+        />
         <StatCard label={t('overview.totalTokens')} value={fmtTokens(totalTokens)} />
         <StatCard label={t('overview.avgPerTurn')} value={fmtUsd(cost.avgPerTurn)} />
         <StatCard
@@ -131,7 +181,16 @@ export default function OverviewPanel() {
         <ChartBox title={t('overview.costByTokenType')}>
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
-              <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" stroke="none" isAnimationActive={false} />
+              <Pie
+                data={pieData}
+                cx="50%"
+                cy="50%"
+                innerRadius={50}
+                outerRadius={80}
+                dataKey="value"
+                stroke="none"
+                isAnimationActive={false}
+              />
               <Tooltip
                 contentStyle={tooltipStyle()}
                 labelStyle={tooltipLabelStyle()}
@@ -157,7 +216,12 @@ export default function OverviewPanel() {
               <CartesianGrid horizontal={false} stroke={gridStroke()} strokeDasharray="3 3" />
               <XAxis type="number" tick={axisTickStyle()} />
               <YAxis type="category" dataKey="cls" tick={axisTickStyle()} width={45} />
-              <Tooltip contentStyle={tooltipStyle()} labelStyle={tooltipLabelStyle()} itemStyle={tooltipItemStyle()} cursor={cursorStyle()} />
+              <Tooltip
+                contentStyle={tooltipStyle()}
+                labelStyle={tooltipLabelStyle()}
+                itemStyle={tooltipItemStyle()}
+                cursor={cursorStyle()}
+              />
               <Bar dataKey="count" shape={<ColoredBar />} />
             </BarChart>
           </ResponsiveContainer>

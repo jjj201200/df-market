@@ -43,7 +43,9 @@ export function getModelPricing(model: string): ModelPricing {
   if (model.includes('haiku')) return PRICING['claude-haiku-4-5-20251001']!;
   // Warn about unknown models so users know the cost estimate may be inaccurate
   if (typeof console !== 'undefined') {
-    console.warn(`[token-reporter] Unknown model "${model}", falling back to Sonnet pricing. Cost estimate may be inaccurate.`);
+    console.warn(
+      `[token-reporter] Unknown model "${model}", falling back to Sonnet pricing. Cost estimate may be inaccurate.`,
+    );
   }
   return DEFAULT_PRICING;
 }

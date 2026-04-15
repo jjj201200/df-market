@@ -64,10 +64,7 @@ export default function AnalyticsDrawer() {
 
   return (
     <>
-      <div
-        className={clsx(s.backdrop, drawerOpen && s.open)}
-        onClick={closeDrawer}
-      />
+      <div className={clsx(s.backdrop, drawerOpen && s.open)} onClick={closeDrawer} />
       <div className={clsx(s.drawer, drawerOpen && s.open)}>
         <div className={s.header}>
           <span className={s.title}>{t('nav.sessionAnalytics')}</span>

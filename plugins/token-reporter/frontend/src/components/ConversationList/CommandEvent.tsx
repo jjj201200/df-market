@@ -41,7 +41,9 @@ export const CommandEvent: React.FC<CommandEventProps> = React.memo(({item}) => 
       </div>
       {hasOutput && (
         <div className={clsx(s.evCmdExpandRow, expanded && s.open)} onClick={handleToggle}>
-          <span className={s.arrow}><IconChevronRight size={14} stroke={1.5} /></span>
+          <span className={s.arrow}>
+            <IconChevronRight size={14} stroke={1.5} />
+          </span>
           <span>{t('conversation.commandOutput')}</span>
         </div>
       )}

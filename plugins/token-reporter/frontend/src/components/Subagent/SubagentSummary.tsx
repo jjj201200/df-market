@@ -68,7 +68,9 @@ function SubagentCardItem({agentId, stats}: {agentId: string; stats: SubagentSta
 
       {hasTurns && (
         <div className={s.saExpandRow} onClick={() => setExpanded(!expanded)}>
-          <span className={clsx(s.arrow, expanded && s.open)}><IconChevronRight size={14} stroke={1.5} /></span>
+          <span className={clsx(s.arrow, expanded && s.open)}>
+            <IconChevronRight size={14} stroke={1.5} />
+          </span>
           <span>View {stats.totalTurns} turns</span>
         </div>
       )}

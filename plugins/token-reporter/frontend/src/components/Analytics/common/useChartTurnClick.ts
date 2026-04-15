@@ -20,7 +20,7 @@ export function useChartTurnClick() {
         setSelected(turnId);
       }
     },
-    [turns, setSelected]
+    [turns, setSelected],
   );
 
   return handleClick;

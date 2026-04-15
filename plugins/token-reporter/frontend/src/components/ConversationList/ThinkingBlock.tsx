@@ -24,15 +24,22 @@ export const ThinkingBlock: React.FC<ThinkingBlockProps> = React.memo(({id, text
   return (
     <div className={s.thinkingBlock}>
       <div className={s.thinkingHeader} onClick={handleToggle}>
-        <span className={s.thinkingIcon}><IconBrain size={14} stroke={1.5} /></span>
+        <span className={s.thinkingIcon}>
+          <IconBrain size={14} stroke={1.5} />
+        </span>
         <span>{t('conversation.internalReasoning')}</span>
         <span className={s.thinkingEstimate}>{t('conversation.tokensEst', {count: estimatedTokens})}</span>
         <span className={s.thinkingToggle}>
-            {expanded
-              ? <><IconChevronDown size={12} stroke={1.5} style={{verticalAlign: 'middle'}} /> {t('common.collapse')}</>
-              : <><IconChevronRight size={12} stroke={1.5} style={{verticalAlign: 'middle'}} /> {t('common.expand')}</>
-            }
-          </span>
+          {expanded ? (
+            <>
+              <IconChevronDown size={12} stroke={1.5} style={{verticalAlign: 'middle'}} /> {t('common.collapse')}
+            </>
+          ) : (
+            <>
+              <IconChevronRight size={12} stroke={1.5} style={{verticalAlign: 'middle'}} /> {t('common.expand')}
+            </>
+          )}
+        </span>
       </div>
       {expanded && (
         <div className={s.thinkingBody}>

@@ -1,15 +1,17 @@
-import React from 'react';
+import React, {Suspense, lazy} from 'react';
 import ReactMarkdown from 'react-markdown';
 import type {Components} from 'react-markdown';
-import {Prism as SyntaxHighlighter} from 'react-syntax-highlighter';
-import type {SyntaxHighlighterProps} from 'react-syntax-highlighter';
-import {ansiDarkTheme} from '../../styles/syntax-theme';
 import '../../styles/markdown.scss';
 
 interface MarkdownContentProps {
   children: string;
   className?: string;
 }
+
+// Lazy-load the lightweight PrismLight wrapper (only registers selected languages)
+const LazySyntaxHighlighter = lazy(() =>
+  import('./LazySyntaxHighlighter').then((mod) => ({default: mod.LazySyntaxHighlighter}))
+);
 
 // Box / Text inspired by Ink's component model
 const Box: React.FC<{className?: string; children: React.ReactNode}> = ({className, children}) => (
@@ -20,6 +22,15 @@ const Text: React.FC<{className?: string; children: React.ReactNode}> = ({classN
   <span className={className}>{children}</span>
 );
 
+// Lightweight fallback while syntax highlighter chunk loads
+const CodeSkeleton: React.FC<{code: string}> = ({code}) => (
+  <div className="md-pre md-pre-skeleton">
+    <pre>
+      <code>{code}</code>
+    </pre>
+  </div>
+);
+
 export const MarkdownContent: React.FC<MarkdownContentProps> = ({children, className}) => {
   const components: Components = {
     // Block containers
@@ -28,26 +39,14 @@ export const MarkdownContent: React.FC<MarkdownContentProps> = ({children, class
 
     // Code blocks
     pre: ({children}) => <Box className="md-pre">{children}</Box>,
-    code: ({className, children}) => {
-      const match = /language-(\w+)/.exec(String(className || ''));
+    code: ({className: cls, children}) => {
+      const match = /language-(\w+)/.exec(String(cls || ''));
       const code = String(children).replace(/\n$/, '');
-      if (match) {
+      if (match && match[1]) {
         return (
-          <SyntaxHighlighter
-            style={ansiDarkTheme as unknown as SyntaxHighlighterProps['style']}
-            language={match[1]}
-            PreTag="div"
-            customStyle={{
-              margin: 0,
-              padding: '10px 12px',
-              borderRadius: '4px',
-              fontSize: '11px',
-              lineHeight: '1.5',
-              background: '#0d1117',
-            }}
-          >
-            {code}
-          </SyntaxHighlighter>
+          <Suspense fallback={<CodeSkeleton code={code} />}>
+            <LazySyntaxHighlighter language={match[1]} code={code} />
+          </Suspense>
         );
       }
       return <code className="md-inline-code">{code}</code>;

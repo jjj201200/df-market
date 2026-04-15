@@ -19,7 +19,9 @@ export default function RecommendationCard({rec}: {rec: Recommendation}) {
         <span className={s.badge}>{rec.category}</span>
       </div>
       <div className={s.detail}>{rec.detail}</div>
-      {rec.estimatedSavings && <div className={s.savings}>{t('rec.potentialSavings', {amount: rec.estimatedSavings})}</div>}
+      {rec.estimatedSavings && (
+        <div className={s.savings}>{t('rec.potentialSavings', {amount: rec.estimatedSavings})}</div>
+      )}
     </div>
   );
 }

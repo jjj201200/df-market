@@ -55,14 +55,20 @@ export default function TimingPanel() {
       totalMs += h.durationMs;
     }
     const rows = Object.entries(byName)
-      .map(([name, v]) => ({name, avgMs: Math.round(v.totalMs / v.count), totalMs: v.totalMs, count: v.count, errors: v.errors}))
+      .map(([name, v]) => ({
+        name,
+        avgMs: Math.round(v.totalMs / v.count),
+        totalMs: v.totalMs,
+        count: v.count,
+        errors: v.errors,
+      }))
       .sort((a, b) => b.totalMs - a.totalMs);
     return {rows, totalMs};
   }, [hooks]);
 
   const intervalData = timing.turnIntervals.map((ti) => ({
     turn: `#${ti.turnId}`,
-    interval: Math.round(ti.intervalMs / 1000 * 10) / 10, // seconds with 1 decimal
+    interval: Math.round((ti.intervalMs / 1000) * 10) / 10, // seconds with 1 decimal
     isIdle: ti.isIdle,
   }));
 
@@ -82,10 +88,7 @@ export default function TimingPanel() {
     <Panel>
       <CardGrid minWidth={130}>
         <StatCard label={t('timing.sessionDuration')} value={fmtDur(timing.sessionDurationMs)} />
-        <StatCard
-          label={t('timing.costPerMinute')}
-          value={fmtUsd(timing.costPerMinute)}
-        />
+        <StatCard label={t('timing.costPerMinute')} value={fmtUsd(timing.costPerMinute)} />
         <StatCard
           label={t('timing.idleTime')}
           value={`${(timing.idlePct * 100).toFixed(0)}%`}
@@ -121,7 +124,12 @@ export default function TimingPanel() {
                 y={IDLE_THRESHOLD_MS / 1000}
                 stroke={cssVar('--warning') || '#d29922'}
                 strokeDasharray="4 4"
-                label={{value: t('timing.idleThreshold', {seconds: IDLE_THRESHOLD_MS / 1000}), fill: cssVar('--warning') || '#d29922', fontSize: 10, position: 'right'}}
+                label={{
+                  value: t('timing.idleThreshold', {seconds: IDLE_THRESHOLD_MS / 1000}),
+                  fill: cssVar('--warning') || '#d29922',
+                  fontSize: 10,
+                  position: 'right',
+                }}
               />
               <Area
                 type="monotone"
@@ -178,7 +186,9 @@ export default function TimingPanel() {
               {timing.slowestTools.map((st, i) => (
                 <tr key={i}>
                   <td className={s.toolName}>{st.toolName}</td>
-                  <td><TurnLink turnId={st.turnId} /></td>
+                  <td>
+                    <TurnLink turnId={st.turnId} />
+                  </td>
                   <td>{fmtDur(st.durationMs)}</td>
                 </tr>
               ))}

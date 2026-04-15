@@ -59,8 +59,18 @@ export default function ToolsPanel() {
                 itemStyle={tooltipItemStyle()}
                 cursor={cursorStyle()}
               />
-              <Bar dataKey="total" fill={cssVar('--accent') || '#58a6ff'} radius={[0, 4, 4, 0]} name={t('tools.total')} />
-              <Bar dataKey="errors" fill={cssVar('--danger') || '#f85149'} radius={[0, 4, 4, 0]} name={t('tools.errors')} />
+              <Bar
+                dataKey="total"
+                fill={cssVar('--accent') || '#58a6ff'}
+                radius={[0, 4, 4, 0]}
+                name={t('tools.total')}
+              />
+              <Bar
+                dataKey="errors"
+                fill={cssVar('--danger') || '#f85149'}
+                radius={[0, 4, 4, 0]}
+                name={t('tools.errors')}
+              />
             </BarChart>
           </ResponsiveContainer>
         </ChartBox>
@@ -100,7 +110,9 @@ export default function ToolsPanel() {
               <div key={i} className={s.largeItem}>
                 <span className={s.largeTool}>{lc.toolName}</span>
                 <span className={s.largeSize}>{lc.retSize}</span>
-                <span className={s.largeTurn}><TurnLink turnId={lc.turnId} /></span>
+                <span className={s.largeTurn}>
+                  <TurnLink turnId={lc.turnId} />
+                </span>
               </div>
             ))}
           </div>
