@@ -1,6 +1,6 @@
 ---
 name: release-creator-welcome
-description: "release-creator 插件首次安装后的渐进式派生引导。当用户首次安装 release-creator、运行 /release-creator-welcome、或表达「为本项目派生一份 release skill」「把 release 流程固化成 skill」等意图时使用。职责：用 AskUserQuestion 同时收集沟通语言 + 骨架正文语言 → 价值阐述 → 意向分流 → skill-creator 依赖检测 → 选分支维度（生态 / 哲学 / 打包+tag / 穷举）→ 按维度追问 → 通用参数 / 命名 → Override（展示骨架 + 各维度替代 + 自定义）→ 委派 skill-creator 落盘。允许用户随时放弃。触发词：release-creator 欢迎、派生 release skill、welcome、release-creator-welcome、为本项目定制发布流程。"
+description: "release-creator 插件首次安装后的渐进式派生引导。当用户首次安装 release-creator、运行 /release-creator-welcome、或表达「为本项目派生一份 release skill」「把 release 流程固化成 skill」等意图时使用。职责：用 AskUserQuestion 同时收集沟通语言 + 骨架正文语言 → 价值阐述 → 意向分流 → skill-creator 依赖检测 → 选分支维度（生态 / 哲学 / 打包+tag / 穷举）→ 按维度追问 → Bump+Check 子环节（版本结构 / bump 方式 / check 范围与时机）→ 通用参数 / 命名 / 脚本落盘位置 → Override（展示骨架 + 各维度替代 + 自定义）→ 委派 skill-creator 同时落盘 SKILL.md + 配套脚本/hook/CI。允许用户随时放弃。触发词：release-creator 欢迎、派生 release skill、welcome、release-creator-welcome、为本项目定制发布流程。"
 ---
 
 # release-creator 首次安装引导（派生专属 release skill）
@@ -36,14 +36,18 @@ description: "release-creator 插件首次安装后的渐进式派生引导。�
 - `references/template-tag-simple.md` —— tag 子模板：`v<version>`
 - `references/template-tag-prefixed.md` —— tag 子模板：`<plugin>-v<version>`
 - `references/template-tag-scoped.md` —— tag 子模板：`@scope/pkg@<version>` / monorepo 聚合
+- `references/bump-check-flow.md` —— 环节 6.5 Bump+Check 子环节 flow（6 道 AUQ 题干 / 去重规则 / 默认值推导表）
+- `references/bump-catalog.md` —— 6.5 Q2 每个选项的命令片段 + 脚本骨架库（生态 × 触发方式交叉）
+- `references/check-catalog.md` —— 6.5 Q4 每个检查项的 bash/hook/CI 三种宿主展开
+- `references/hook-templates.md` —— 6.5 Q5 pre-push/pre-commit/CI yaml 的宿主文件骨架
 - `references/override-catalog.md` —— 环节 8 Override 的替代选项清单 + 自定义字段提示
-- `references/skill-creator-prompt-template.md` —— 委派 skill-creator 的 prompt 模板
+- `references/skill-creator-prompt-template.md` —— 委派 skill-creator 的 prompt 模板（含附属资产落盘段）
 
 执行到对应环节时 Read 对应 reference；不要在本 SKILL.md 中重复那里的内容。
 
 ## 执行流程
 
-流程分为下述 10 个有序环节。**对用户不要展示环节编号或"Step X"标题**——直接用自然段和 AUQ 与用户沟通；编号只供本 SKILL.md 内部交叉引用。
+流程分为下述 11 个有序环节（其中 6.5 是 6 之后、7 之前的子环节）。**对用户不要展示环节编号或"Step X"标题**——直接用自然段和 AUQ 与用户沟通；编号只供本 SKILL.md 内部交叉引用。
 
 ### 环节 1. 语言（一次 AUQ 同时发起两问）
 
@@ -121,7 +125,26 @@ description: "release-creator 插件首次安装后的渐进式派生引导。�
 - 推荐/可选字段未填 → `TODO: 请补充 <字段名>` 占位
 - 不得凭空编造答案
 
-输出一个键值映射 `{{projectAnswers}}`，供环节 7 / 9 使用。
+输出一个键值映射 `{{projectAnswers}}`，供环节 6.5 / 7 / 9 使用。
+
+### 环节 6.5. Bump + Check 子环节（所有维度共同后置）
+
+**无论环节 5 选了哪个维度，本子环节都必须走一遍**（穷举派把它作为第四轮前半强制展示）。
+
+**Read `references/bump-check-flow.md`**，按其中 6 道 AUQ（分 2 轮）采集版本决策的执行细节：
+
+- 轮 A（单选 × 3）：版本号结构 / Bump 触发方式 / Bump 范围（仅 monorepo）
+- 轮 B（多选 × 1 + 单选 × 2）：Check 范围 / Check 时机 / 镜像字段复用
+
+本子环节的核心产出是 `{{projectAnswers}}` 里新增的 7 个字段：`versionStructure` / `versionRegex` / `bumpTrigger` / `bumpScope` / `checkScope[]` / `checkTiming` / `extraMirrorFiles[]`。
+
+这些字段将在环节 9 被 skill-creator **查表组装成**：
+
+1. 派生 SKILL.md 里的 `{{bumpBlock}}` / `{{checkBlock}}` 章节文字
+2. 配套脚本 `{{scriptsDir}}/bump-version.<ext>` / `{{scriptsDir}}/check-version.<ext>`（按 `bumpTrigger` / `checkTiming` 决定是否生成）
+3. Hook / CI 文件 `.githooks/pre-push` / `.github/workflows/release-check.yml`（按 `checkTiming` 决定）
+
+**去重规则**：进入 6.5 前按 `bump-check-flow.md` 第 1 节"去重快速通道"表判断跳过哪些题；穷举派即使命中跳过条件也强制展示，继承值作为 option 第一位。
 
 ### 环节 7. 通用参数（命名 + 落盘位置）
 
@@ -144,6 +167,23 @@ description: "release-creator 插件首次安装后的渐进式派生引导。�
 - **项目层** `.claude/skills/`（随 git 共享，推荐）
 - **个人层** `~/.claude/skills/`（只对当前用户）
 
+#### 环节 7.4 脚本落盘目录 `{{scriptsDir}}`（单选，仅当环节 6.5 会生成脚本/hook/CI 时出现）
+
+当 `{{projectAnswers}}.bumpTrigger = generate-script` 或 `{{projectAnswers}}.checkTiming ∈ {pre-push-hook, pre-commit-hook, ci}` 时出现。否则跳过。
+
+- **仓库根 `scripts/`**（推荐默认）
+- **`.claude/scripts/`**（不与仓库其他构建脚本混淆）
+- **`<targetRoot>/../scripts/`**（与派生 skill 同级 skills 目录平级）
+- **Other**（用户自由输入）
+
+#### 环节 7.5 脚本语言 `{{scriptLanguage}}`（单选，仅当 6.5 会生成脚本时出现）
+
+默认值按生态推导（npm→`cjs` / Python→`py` / claude-plugin→`cjs` / docs-only→`sh` / Other→`sh`），用户可在此 override：
+
+- `cjs`（Node.js CommonJS，无需额外依赖）
+- `py`（Python 3.11+，需要 `tomllib` 或用户生态自带）
+- `sh`（POSIX bash，任意平台兜底）
+
 ### 环节 8. Override（展示默认骨架 + 各维度替代 + 自定义字段）
 
 **Read `references/override-catalog.md`**，根据 `{{dimension}}` 和 `{{projectAnswers}}` 组装一份**默认骨架预览**（纯文本展示章节标题与关键决策；**不展示完整正文**——完整 SKILL.md 由环节 9 的 skill-creator 生成）。
@@ -165,6 +205,11 @@ description: "release-creator 插件首次安装后的渐进式派生引导。�
 
 - 目标 name、目标绝对路径
 - 维度、选中的生态 / 哲学 / 打包模式 / tag 格式
+- 版本结构 / Bump 触发方式 / Check 时机（来自环节 6.5）
+- **附属资产清单**（根据 6.5 + 7.4 + 7.5 派生）：
+  - 若 `bumpTrigger = generate-script` → `{{scriptsDir}}/bump-version.{{scriptExt}}`
+  - 若 `checkTiming ∈ {pre-push-hook, pre-commit-hook}` → `{{scriptsDir}}/check-version.{{scriptExt}}` + `.githooks/<timing>`
+  - 若 `checkTiming = ci` → `.github/workflows/release-check.yml`
 - 必填字段是否全部有实值（有/留 `TODO:`）
 
 简洁列出，不要逐段粘贴完整正文。
@@ -178,7 +223,7 @@ AUQ 单选 2 选项：
 
 #### 环节 9.3 委派 skill-creator
 
-**Read `references/skill-creator-prompt-template.md`**，按模板变量填空后用 Skill 工具调用 `skill-creator`。单次调用只建一份 skill。
+**Read `references/skill-creator-prompt-template.md`**，按模板变量填空后用 Skill 工具调用 `skill-creator`。单次调用让 skill-creator 建**一份 SKILL.md + 若干附属资产**（脚本 / hook / CI yaml）。
 
 根据 `{{dimension}}` 选择主模板：
 
@@ -187,7 +232,13 @@ AUQ 单选 2 选项：
 - `packaging` → `template-master-packaging.md`
 - `exhaustive` → 三份主模板按需组合（穷举维度自带四象限，正文最长）
 
-再根据 `{{projectAnswers}}` 里的具体值拼入对应的生态 / 哲学 / tag 子模板。
+再根据 `{{projectAnswers}}` 里的具体值拼入对应的生态 / 哲学 / tag 子模板，以及 **bump-catalog.md / check-catalog.md / hook-templates.md 对应章节**（由 6.5 采集的字段决定拼入哪些）。
+
+skill-creator 需要同时完成：
+
+1. 落派生 SKILL.md（路径：`{{targetRoot}}/{{targetName}}/SKILL.md`）
+2. 按 6.5 Q2/Q5 落附属资产文件（bump 脚本 / check 脚本 / hook / CI yaml）；不需要时**不落**
+3. 为所有脚本 / hook 文件设可执行位
 
 skill-creator 返回错误 → AUQ 单选让用户选择「重试 / 终止」，不要静默失败。
 
@@ -195,10 +246,12 @@ skill-creator 返回错误 → AUQ 单选让用户选择「重试 / 终止」，
 
 用 `{{uiLanguage}}` 书写：
 
-1. 列出 skill-creator 本次落盘的文件路径
+1. 列出 skill-creator 本次落盘的**所有文件路径**（SKILL.md + 附属脚本 / hook / CI yaml）
 2. **⚠️ 修改了 skill 文件，需要重启 Claude Code 才能使改动生效**（加粗 + emoji 强调）
-3. 告知用户：未填字段以 `TODO:` 形式留在正文，可稍后手动补全；补全后无需再跑 welcome
-4. 提示：首次 release 时直接对 Claude 说「release 一下」或「发布 `<plugin>` 到 X.Y.Z」即可触发派生出的 skill
+3. 若 `checkTiming ∈ {pre-push-hook, pre-commit-hook}` 且落盘位置是 `.githooks/` → 提醒用户执行 `git config core.hooksPath .githooks` 启用
+4. 若 `checkTiming = ci` 且仓库非 GitHub → 提醒用户按顶部 TODO 翻译 workflow 到目标 CI 平台
+5. 告知用户：未填字段以 `TODO:` 形式留在正文，可稍后手动补全；补全后无需再跑 welcome
+6. 提示：首次 release 时直接对 Claude 说「release 一下」或「发布 `<plugin>` 到 X.Y.Z」即可触发派生出的 skill
 
 ## 交互纪律
 

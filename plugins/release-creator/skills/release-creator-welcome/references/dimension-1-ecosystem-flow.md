@@ -167,21 +167,14 @@
         { "label": "外部仓库集中维护", "description": "其他仓库统一列出所有插件" },
         { "label": "无 marketplace", "description": "用户直接 git 源安装" }
       ]
-    },
-    {
-      "question": "是否有 version bump 脚本？",
-      "header": "Bump script",
-      "multiSelect": false,
-      "options": [
-        { "label": "有（例：plugins/<name>/scripts/bump-version.cjs）", "description": "welcome 会把命令写进派生 skill" },
-        { "label": "没有", "description": "派生 skill 里留 `TODO: 请补充 version bump 命令或手动步骤`" }
-      ]
     }
   ]
 }
 ```
 
-> 预扫到 `plugins/*/scripts/bump-version.*` → 最后一问默认选「有」并把检测到的路径作为 default。
+> **版本 bump / check 的决策不在本维度问**——由后置环节 6.5 统一采集（含"是否生成 bump 脚本"/"check 放哪"/"版本号结构"等）。本维度只负责登记 `{{versionFiles}}` 供 6.5 使用。
+>
+> 预扫到 `plugins/*/scripts/bump-version.*` → welcome 在 6.5 Q2 默认选「生成专用 bump 脚本」并在描述里提示「检测到你有现成脚本；本 flow 建议由 skill-creator 重新生成标准化版本」。
 
 ### 3.d · 生态 = Docs-only
 
@@ -246,5 +239,7 @@ welcome 根据生态 + 预扫结果合成默认值，用纯文本展示给用户
 }
 ```
 
-选非「都满意」→ 暂存 `dimension-1` 的结果，先跳到环节 8 对应 override，再回来走环节 7。
-选「都满意」→ 直接进入环节 7（通用参数）。
+选非「都满意」→ 暂存 `dimension-1` 的结果，先跳到环节 8 对应 override，再回来走环节 6.5 → 7。
+选「都满意」→ 直接进入**环节 6.5（Bump + Check 子环节）**，之后再到环节 7。
+
+> 无论是否满意默认哲学 / tag / 打包粒度，**环节 6.5 都会强制走一遍**——它负责采集版本号结构 / bump 触发方式 / check 检查项与时机，是派生 SKILL.md bump/check 章节和附属脚本/hook 的唯一输入来源。

@@ -4,7 +4,7 @@
 
 ## 使用方式
 
-环节 8 的 AUQ 顶层单选（4 选项）命中「**改某个维度的决策**」后，追加一轮 AUQ 单选让用户选「改哪个维度」（4 选项：生态 / 哲学 / tag / 打包粒度）。用户选定一个维度后，Read 本文件对应章节，按其中的 JSON 骨架发起 AUQ（每问 ≤ 4 选项）。
+环节 8 的 AUQ 顶层单选（4 选项）命中「**改某个维度的决策**」后，追加一轮 AUQ 单选让用户选「改哪个维度」（6 选项：生态 / 哲学 / tag / 打包粒度 / bump 策略 / check 范围）。用户选定一个维度后，Read 本文件对应章节，按其中的 JSON 骨架发起 AUQ（每问 ≤ 4 选项）。
 
 用户选「**添加自定义字段**」→ 纯文本自由采集：字段名 + 默认值（空值允许，生成时会留 `TODO:`）。
 
@@ -117,6 +117,50 @@
   ]
 }
 ```
+
+---
+
+## 改 bump 策略（bumpTrigger / versionStructure）
+
+直接重走 `bump-check-flow.md` 的**轮 A**（Q1 版本号结构 + Q2 Bump 触发方式 + Q3 Bump 范围）。
+
+```json
+{
+  "question": "想改 Bump 哪一项？",
+  "header": "Bump",
+  "multiSelect": false,
+  "options": [
+    { "label": "改版本号结构", "description": "SemVer / CalVer / 单调递增" },
+    { "label": "改触发方式", "description": "生态 CLI / 手动 / 生成脚本 / CI" },
+    { "label": "改 bump 范围（monorepo）", "description": "单包独立 / 批量同步 / Changeset 选中" },
+    { "label": "三项都重问一遍", "description": "重走整个轮 A" }
+  ]
+}
+```
+
+选中后 welcome 跳回 `bump-check-flow.md` 的对应单题；其他字段保持原值。选「三项都重问」则重走整个轮 A。
+
+---
+
+## 改 check 范围（checkScope / checkTiming）
+
+直接重走 `bump-check-flow.md` 的**轮 B**（Q4 Check 范围 + Q5 Check 时机 + Q6 镜像字段）。
+
+```json
+{
+  "question": "想改 Check 哪一项？",
+  "header": "Check",
+  "multiSelect": false,
+  "options": [
+    { "label": "改检查项", "description": "镜像 / tag 冲突 / workdir / bump-in-diff" },
+    { "label": "改触发时机", "description": "内嵌 / pre-push / pre-commit / CI" },
+    { "label": "改镜像字段集", "description": "复用生态维度 / 追加额外文件" },
+    { "label": "三项都重问一遍", "description": "重走整个轮 B" }
+  ]
+}
+```
+
+改动可能影响附属资产落盘清单（例如从 `inline` 切到 `pre-push-hook` 会新增脚本和 hook 文件）——welcome 在环节 9.1 展示清单前必须重新计算。
 
 ---
 

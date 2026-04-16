@@ -4,38 +4,23 @@
 
 ---
 
-## `{{bumpBlock}}` 内容
-
-```markdown
-两个文件必须保持相同版本字符串：
-
-1. `plugins/<plugin-name>/.claude-plugin/plugin.json > version`
-2. `.claude-plugin/marketplace.json > plugins[].version`（对应 entry）
-
-优先用 bump 脚本（如果有）：
-
-```bash
-{{bumpScript}}
-# 或指定 bump 类型
-{{bumpScript}} patch
-{{bumpScript}} minor
-{{bumpScript}} major
-```
-
-没有 bump 脚本时：手动编辑两个 JSON 文件，改动后执行 diff 验证两值一致：
-
-```bash
-grep -n '"version"' plugins/<plugin-name>/.claude-plugin/plugin.json
-grep -n '"version"' .claude-plugin/marketplace.json
-```
-```
-
-## `{{versionFiles}}` 内容
+## `{{versionFiles}}` 内容（供 6.5 Q6 默认值 + `bump-catalog` / `check-catalog` 消费）
 
 ```
 - plugins/<plugin-name>/.claude-plugin/plugin.json > version
-- .claude-plugin/marketplace.json > plugins[].version（对应 entry）
+- .claude-plugin/marketplace.json > plugins[name=<plugin-name>].version
 ```
+
+**两个文件必须保持相同版本字符串**，一致性由 6.5 Q4 勾选的「镜像一致性」检查项强制。
+
+## Bump 章节（`{{bumpBlock}}` 来源）
+
+本子模板**不硬编码** bump 命令——实际命令由 6.5 Q2 的选择 + `bump-catalog.md` 查表生成。典型路径：
+
+- 6.5 Q2 = `generate-script` → `bump-catalog.md §3.cjs` 骨架（`claude-plugin` + `cjs` 组合最常见）
+- 6.5 Q2 = `manual` → `bump-catalog.md §2`（手动编辑 + grep/diff 验证）
+
+**Claude plugin 多镜像场景默认推荐 `generate-script`**——手动同步双文件易漏，脚本化更安全；若用户坚持 `manual`，派生 SKILL.md 的 `{{bumpBlock}}` 里保留 grep/diff 验证步骤。
 
 ## `{{testCommand}}` 内容
 
@@ -61,7 +46,7 @@ Claude plugin 多插件仓库**必须**用 `<plugin-name>-v<version>`，**不要
 
 ## 硬性约束补充
 
-- **plugin.json 和 marketplace.json 镜像的 version 字段必须完全一致**——不一致即版本漂移
+- **plugin.json 和 marketplace.json 镜像的 version 字段必须完全一致**——不一致即版本漂移（由 6.5 `mirror-consistency` 检查强制）
 - **tag 格式**：`<plugin-name>-v<version>`（不要用短 `v<version>`）
 - **只推本次新 tag**：`git push origin <plugin-name>-v<version>`，不要 `git push --tags`
 - **commit scope = plugin name**：`chore(<plugin-name>): bump version to X.Y.Z`
@@ -69,6 +54,17 @@ Claude plugin 多插件仓库**必须**用 `<plugin-name>-v<version>`，**不要
 
 ## 变量
 
-| 变量             | 取值示例                                                  |
-| ---------------- | --------------------------------------------------------- |
-| `{{bumpScript}}` | `node plugins/<plugin-name>/scripts/bump-version.cjs` 或 `TODO:` |
+| 变量                   | 来源                                                                  |
+| ---------------------- | --------------------------------------------------------------------- |
+| `{{versionFiles}}`     | 本子模板固定为双文件镜像；可被 6.5 Q6 追加                            |
+| `{{bumpCommand}}`      | 6.5 Q2 + `bump-catalog.md` 查表动态生成（命令行文本）                 |
+| `{{bumpBlock}}`        | 整个 Bump 章节正文，由 `bump-catalog.md` 对应章节展开而来             |
+| `{{scriptsDir}}`       | 环节 7.4（例：`scripts/`），`bumpTrigger = generate-script` 时使用    |
+| `{{tagFormat}}`        | `<plugin-name>-v<version>`（由 `template-tag-prefixed.md` 管辖）      |
+
+## 说明：为什么把 bump 细节移出本子模板
+
+旧版本的本子模板硬编码了 `{{bumpScript}} = node plugins/<plugin-name>/scripts/bump-version.cjs`，假设所有 Claude plugin 项目都用 Node.js 手写脚本。新版本把"是否生成脚本 / 用什么语言 / 落在哪里"的决策移到 6.5 统一采集，带来两个好处：
+
+1. 其他语言栈的 Claude plugin 项目（例如用 bash / Python 维护版本）也能走本子模板
+2. 脚本文件由 skill-creator 按 `bump-catalog.md` 动态生成，不再依赖项目里预先放好的 bump 脚本

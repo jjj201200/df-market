@@ -18,7 +18,7 @@
 
 ## 2. 完整字段矩阵
 
-共 4 轮 AUQ，每轮最多 4 问，完整走下来约 12–16 道题。用户可以随时终止（每轮最后有「跳过剩余，直接落盘 + 留 TODO:」按钮）。
+共 5 轮 AUQ，每轮最多 4 问，完整走下来约 18–24 道题。用户可以随时终止（每轮最后有「跳过剩余，直接落盘 + 留 TODO:」按钮）。
 
 ### 2.a · 第一轮：生态维度
 
@@ -32,7 +32,13 @@
 
 直接读 `dimension-3-packaging-flow.md` 的第 2 节 + 3 节 + 4 节 + 5 节（完整 4 轮）。
 
-### 2.d · 第四轮：项目特有扩展字段
+### 2.d · 第四轮：Bump + Check 子环节
+
+直接读 `bump-check-flow.md` 的 6 道题，**不走去重快速通道**——即使前序维度能推导出默认值，也强制把 6 题都展示出来，继承值作为 option 第一位（符合穷举派"所有决策显式化"的原则）。
+
+这一轮产出 `versionStructure / versionRegex / bumpTrigger / bumpScope / checkScope[] / checkTiming / extraMirrorFiles[]` 7 个字段。
+
+### 2.e · 第五轮：项目特有扩展字段
 
 ```json
 {
@@ -121,6 +127,10 @@
 2. `template-master-philosophy.md` 主骨架（作为哲学入口章节）
 3. `template-master-packaging.md` 主骨架（作为打包入口章节）
 4. 对应的三份子模板全部拼入
-5. `{{projectFieldsBlock}}` 完整列出所有字段
+5. `{{bumpBlock}}`（来自 `bump-catalog.md` 对应章节）
+6. `{{checkBlock}}`（来自 `check-catalog.md` 按选中项 × 宿主展开）
+7. `{{projectFieldsBlock}}` 完整列出所有字段
+
+附属资产（bump/check 脚本、hook、CI yaml）按 2.d 的答案落盘——规则与其他维度一致，见 `skill-creator-prompt-template.md` 的「附属资产落盘」段。
 
 生成的 SKILL.md 会比其他三派长 2–3 倍，但所有决策都显式写死，团队交接不会有模糊地带。

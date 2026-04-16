@@ -48,7 +48,7 @@
       "name": "release-creator",
       "source": "./plugins/release-creator",
       "description": "Meta-skill derivation plugin for project-specific release workflows. Ships /release-creator-welcome — a progressive guide that helps you derive a tailored release skill for your repo (ecosystem / philosophy / packaging-and-tag / exhaustive dimensions) via skill-creator. The plugin itself performs no releases; the derived skill does.",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "author": {
         "name": "jjj201200",
         "email": "jjj201200@gmail.com"

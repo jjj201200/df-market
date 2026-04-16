@@ -219,7 +219,7 @@ welcome skill 本身不写任何 SKILL.md 文件——落盘交给 `skill-creato
 - 派生流程从 4 个维度分支（`ecosystem` / `philosophy` / `packaging` / `exhaustive`），每个维度对应一份 flow reference + 主模板 + 若干子模板
 - 派生出的 release skill 的 frontmatter `name` / `description` 的 YAML key 保持英文；只有 description 值与正文受用户选择的 `docLanguage` 影响
 
-### welcome skill 流程（v0.1.0 起 10 环节）
+### welcome skill 流程（v0.2.0 起 11 环节）
 
 `/release-creator-welcome` 命令 → 触发 `release-creator-welcome` skill → 渐进式 AskUserQuestion：
 
@@ -229,24 +229,35 @@ welcome skill 本身不写任何 SKILL.md 文件——落盘交给 `skill-creato
 4. 检测官方 `skill-creator`
 5. **第一道核心 AUQ：选分支维度**（生态 / 哲学 / 打包+tag / 穷举 · 单选 4）
 6. 分维度追问（读对应 flow reference，含预扫项目档案）
-7. 通用参数（项目代号 / 命名 / 落盘位置）
-8. Override（展示默认骨架 + 各维度替代 + 自定义字段）
-9. 落盘清单确认 + 委派 `skill-creator`
-10. 收尾提示（含重启 Claude Code 才能生效的警告）
+7. **Bump + Check 子环节**（所有维度共同后置，6 题分 2 轮：版本号结构 / Bump 触发方式 / Bump 范围 / Check 范围 / Check 时机 / 镜像字段复用——见 `bump-check-flow.md`）
+8. 通用参数（项目代号 / 命名 / 落盘位置 / 脚本落盘目录 / 脚本语言）
+9. Override（展示默认骨架 + 各维度替代 + 自定义字段；新增「改 bump 策略」「改 check 范围」）
+10. 落盘清单确认 + 委派 `skill-creator`（同时落派生 SKILL.md + 配套脚本/hook/CI）
+11. 收尾提示（含重启 Claude Code 才能生效的警告 + hook 启用步骤提示）
+
+> 环节 6.5 的 bump/check 决策统一采集，不再分散在生态/哲学/packaging 维度；claude-plugin 多镜像场景默认推荐 `generate-script`（skill-creator 动态组装 bump 脚本本体落盘），其他场景按生态推导。**release-creator 插件本身不预置任何脚本**——所有配套脚本/hook/CI 文件都由 skill-creator 在派生时从 catalog 骨架动态拼装。
 
 ### references 拓扑
 
-为避免 SKILL.md 过长，`release-creator-welcome` 把所有可抽离内容移到 `references/` 下（20 份）：
+为避免 SKILL.md 过长，`release-creator-welcome` 把所有可抽离内容移到 `references/` 下（24 份）：
 
 | 类别          | 数量 | 文件                                                                 |
 | ------------- | ---- | -------------------------------------------------------------------- |
 | 语言          | 1    | `language-options.md`                                                |
 | 维度 flow     | 4    | `dimension-{1-ecosystem,2-philosophy,3-packaging,4-exhaustive}-flow.md` |
+| Bump+Check    | 4    | `bump-check-flow.md` / `bump-catalog.md` / `check-catalog.md` / `hook-templates.md` |
 | 主模板        | 3    | `template-master-{ecosystem,philosophy,packaging}.md`                |
 | 生态子模板    | 4    | `template-ecosystem-{npm,python,claude-plugin,docs}.md`              |
 | 哲学子模板    | 3    | `template-philosophy-{commit,changeset,manual}.md`                   |
 | tag 子模板    | 3    | `template-tag-{simple,prefixed,scoped}.md`                           |
 | 工具          | 2    | `override-catalog.md` / `skill-creator-prompt-template.md`           |
+
+Bump+Check 4 份 reference 的职责：
+
+- `bump-check-flow.md` —— 环节 6.5 主 flow（6 题 AUQ 题干 + 去重规则 + 默认值推导）
+- `bump-catalog.md` —— Q2 命令片段 + 脚本骨架库（生态 × 触发方式交叉）
+- `check-catalog.md` —— Q4 检查项的 bash / hook / CI 三种宿主展开
+- `hook-templates.md` —— Q5 pre-push / pre-commit / CI yaml 的宿主骨架
 
 `validate-frontmatter.sh`（来自 `skill-keeper`）同样适用于本插件的 SKILL.md 合规校验。
 
