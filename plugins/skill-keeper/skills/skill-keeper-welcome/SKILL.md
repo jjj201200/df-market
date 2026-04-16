@@ -1,6 +1,6 @@
 ---
 name: skill-keeper-welcome
-description: "skill-keeper 插件首次安装后的渐进式派生引导。当用户首次安装 skill-keeper、运行 /skill-keeper-welcome、或表达「想为本项目派生 recap/audit/sync-check 的定制版」「把 skill-keeper 的 skill 接入本项目」等意图时使用。职责：用 AskUserQuestion 串起沟通语言 → 价值阐述 → 意向分流 → skill-creator 依赖检测 → 派生范围（多选）/ 通用参数 / 命名方案 → 逐份收集项目特有字段 → 委派 skill-creator 落盘。允许用户随时放弃。触发词：skill-keeper 欢迎、派生定制版、welcome、skill-keeper-welcome、派生 recap/audit/sync-check 定制版。"
+description: "skill-keeper 插件首次安装后的渐进式派生引导。当用户首次安装 skill-keeper、运行 /skill-keeper-welcome、或表达「想为本项目派生 recap/audit/sync-check 的定制版」「把 skill-keeper 的 skill 接入本项目」等意图时使用。职责：用 AskUserQuestion 同时收集沟通语言 + 骨架正文语言 → 价值阐述 → 意向分流 → skill-creator 依赖检测 → 派生范围（多选）/ 通用参数 / 命名方案 → 逐份收集项目特有字段 → 委派 skill-creator 落盘。允许用户随时放弃。触发词：skill-keeper 欢迎、派生定制版、welcome、skill-keeper-welcome、派生 recap/audit/sync-check 定制版。"
 ---
 
 # skill-keeper 首次安装引导（派生定制版）
@@ -21,9 +21,8 @@ description: "skill-keeper 插件首次安装后的渐进式派生引导。当�
 
 ## 本 skill 的辅助文件
 
-- `references/language-options.md` —— 环节 1（沟通语言）与环节 5.3（骨架正文语言）的 AUQ 选项清单（每个语言选项自描述）
-- `references/df-market-sample.md` —— 意向分流阶段「先看示例」分支展示的范例（含 recap + sync-check 两份示范）
-- `references/scope-split-plan.md` —— 环节 5.1 派生范围 AUQ 的固定拆分方案
+- `references/language-options.md` —— 环节 1 语言 AUQ（同时采集沟通语言与骨架正文语言）
+- `references/scope-split-plan.md` —— 环节 4 派生范围 AUQ 的固定拆分方案
 - `references/derivation-fields-catalog.md` —— 逐份追问的字段清单、默认推导规则、预扫项目档案策略
 - `references/skill-creator-prompt-template.md` —— 委派 skill-creator 的 prompt 模板
 
@@ -31,17 +30,16 @@ description: "skill-keeper 插件首次安装后的渐进式派生引导。当�
 
 ## 执行流程
 
-流程分为下述 9 个有序环节。**对用户不要展示环节编号或"Step X"标题**——直接用自然段和 AUQ 与用户沟通；编号只供本 SKILL.md 内部交叉引用。
+流程分为下述 8 个有序环节。**对用户不要展示环节编号或"Step X"标题**——直接用自然段和 AUQ 与用户沟通；编号只供本 SKILL.md 内部交叉引用。
 
-### 环节 1. 沟通语言（AUQ 单选，Other 自由输入）
+### 环节 1. 语言（一次 AUQ 同时发起两问）
 
-welcome 流程的**对话语言**（本 skill 输出的所有纯文本 / AUQ 问题与选项文案）单独一问，**最先发起**。
+**Read `references/language-options.md`**，按其中 JSON 骨架同时发起**两个问题**（AUQ 的 `questions` 数组含 2 个 object）：
 
-**Read `references/language-options.md` 的「环节 1 使用」章节**，按其中 JSON 骨架直接填入 AskUserQuestion 的 question + options。不要自己造选项文案——reference 里的 label / description 是每个语言自我描述（中文用中文、英文用英文、日文用日文），这是让用户一眼识别选项的关键。
+- 第一问 → `{{uiLanguage}}`：welcome 跟用户沟通用的语言（所有后续纯文本段、AUQ 文案、错误提示都用这个）
+- 第二问 → `{{docLanguage}}`：派生出的 SKILL.md 正文语言（frontmatter 的 YAML 标识符保持英文不变，只有 description 值与正文受此影响）
 
-记为 `{{uiLanguage}}`。本问题之后的所有纯文本段、AUQ 问题文案、错误提示都用该语言书写。
-
-> ⚠️ 注意区分：`{{uiLanguage}}` 是**welcome 跟用户沟通**用的；与后续环节 5.3 `{{docLanguage}}`（骨架正文语言）是两个独立变量，不要把一个答案同时当两用——除非用户显式说"两边一样"。
+> 两个变量相互独立——用户可能用中文沟通但生成英文 SKILL.md，反之亦然。不要凭一个答案推断另一个。
 
 ### 环节 2. 价值阐述（纯文本，不用 AUQ）
 
@@ -51,12 +49,11 @@ welcome 流程的**对话语言**（本 skill 输出的所有纯文本 / AUQ 问
 2. 派生定制版的价值：把本项目的绝对路径 / 核心业务链路 / 忽略项台账 / commit 约定写进一份 `-<project>` 后缀的 skill；否则 recap 里"调用项目定制版"的指令就是悬空的
 3. 派生成本很低：每份骨架 1-3 句话填空即可，其余部分留 TODO
 
-### 环节 3. 意向分流（AUQ 单选，3 选项）
+### 环节 3. 意向分流（AUQ 单选，2 选项）
 
 问题：「是否现在为本项目派生 skill-keeper 的 5 份通用 skill 的定制版？」
 
 - **直接开始派生** → 进入环节 4
-- **先看 df-market 自用的派生范例** → Read `references/df-market-sample.md`，按其**展示纪律**要求（段落叙述 + 关键字段分行 + 必要时短代码块，**不要把整份 SKILL.md 塞进一个代码块**），并**按 `{{uiLanguage}}` 翻译文案**后展示 2 份示范（编排型 + 守门型）；展示完回到环节 3 再问一次
 - **暂时跳过** → 直接结束，用一句话提示"随时可再跑 `/skill-keeper-welcome`"后退出
 
 ### 环节 4. 前置依赖检测：skill-creator
@@ -81,7 +78,7 @@ welcome 流程的**对话语言**（本 skill 输出的所有纯文本 / AUQ 问
 
 ### 环节 5. 通用参数 + 派生范围
 
-本环节一次性采集 4 项参数。**派生范围用 multiSelect**，其余按下述类型。因为派生范围候选有 5 个（超出单个 AUQ 的 4 选项上限），需要**拆成两个 AUQ 同轮发起**：第一个专问派生范围（multiSelect），第二个合并 5.2/5.3/5.4 的单选问题。
+本环节一次性采集多项参数。**派生范围用 multiSelect**，其余按下述类型。因为派生范围候选有 5 个（超出单个 AUQ 的 4 选项上限），需要**拆成两个 AUQ 同轮发起**。
 
 #### 环节 5.1 派生范围（**multiSelect = true，拆成 2 个 AUQ**）
 
@@ -97,13 +94,7 @@ AUQ 单个问题最多 4 个 options，派生候选有 5 个，必须拆。**Rea
 - 备选：仓库根目录名的首字母缩写；其他（Other 自由输入）
 - 如果 `git rev-parse` 失败（不在 git 仓库内）→ fallback 到 `basename $(pwd)`，并在 AUQ 里提醒用户"未检测到 git 仓库，代号基于当前目录"
 
-#### 环节 5.3 骨架正文语言 `{{docLanguage}}`（单选，Other 自由输入）
-
-**Read `references/language-options.md` 的「环节 5.3 使用」章节**，按其中 JSON 骨架填入 AskUserQuestion 的 question + options。question 文案**必须显式提醒用户**"这与对话语言独立"——与 `{{uiLanguage}}` 相互独立。
-
-- frontmatter 的 YAML 标识符保持英文不变；只有 description 值与正文受 `{{docLanguage}}` 影响
-
-#### 环节 5.4 生成位置 `{{targetRoot}}`（单选）
+#### 环节 5.3 生成位置 `{{targetRoot}}`（单选）
 
 - **项目层** `.claude/skills/`（随 git 共享）
 - **个人层** `~/.claude/skills/`（只对当前用户）
@@ -145,7 +136,7 @@ AUQ 单个问题最多 4 个 options，派生候选有 5 个，必须拆。**Rea
 
 不得凭空编造答案。
 
-### 环节 8. 落盘清单确认 + 委派 skill-creator
+### 环节 8. 落盘清单确认 + 委派 skill-creator + 收尾
 
 #### 环节 8.1 展示落盘清单（纯文本，不用 AUQ）
 
@@ -164,7 +155,7 @@ AUQ 单选 2 选项：
 
 每次调用只建一份 skill。skill-creator 返回错误 → AUQ 单选让用户选择"重试 / 跳过该份 / 终止全部"，不要静默失败。
 
-### 环节 9. 收尾提示（纯文本）
+#### 环节 8.4 收尾提示（纯文本）
 
 用 `{{uiLanguage}}` 书写：
 
