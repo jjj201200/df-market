@@ -18,26 +18,31 @@
 **最后更新**：2026-04-15（实施完成）
 
 ### 阶段 0：前置准备（已完成）
+
 - [x] 0a 确认当前工作区干净，无未提交更改
 - [x] 0b 运行全部现有测试，记录基线结果
-- [x] 0c 确认版本是否需要更新（运行 `node plugins/token-reporter/scripts/check-version.js`）
+- [x] 0c 确认版本是否需要更新（运行 `node plugins/token-reporter/scripts/check-version.cjs`）
 
 ### 阶段 1：补全核心 Analytics 测试 + 修复 R18 规则（已完成）
+
 - [x] Task 1：为 `computeCacheMetrics` 编写测试
 - [x] Task 2：为 `computeToolEfficiency` 编写测试（含冗余检测精度验证）
 - [x] Task 3：修复 R18 (Bloated Prompt) 推荐规则逻辑
 - [x] Task 4：为 `generateRecommendations` 编写集成测试（重点覆盖 R12、R18）
 
 ### 阶段 2：改进估算指标与命名/语义问题（已完成）
+
 - [x] Task 5：重命名 `mcpTokenPct` → `mcpTurnPct`
 - [x] Task 6：明确 `readEditRatio` 语义并补充 `totalReadOps / totalEditOps` 指标
 - [x] Task 7：为 Context Growth、Thinking Tokens、Prompt Tokens 增加 "Estimated" UI 标注
 
 ### 阶段 3：定价表维护与数据准确性（已完成）
+
 - [x] Task 8：更新 `cost.ts` 定价表，补充最新模型并增加未知模型日志警告
 - [x] Task 9：改进子代理成本计算，使用实际 turn 级模型而非默认 Haiku
 
 ### 阶段 4：回归验证与提交（已完成）
+
 - [x] Task 10：运行全部测试并确认通过
 - [x] Task 11：构建前端并确认无错误
 - [x] Task 12：按规范提交并更新版本（如需要）
@@ -66,22 +71,22 @@
 
 ## File Structure
 
-| 文件 | 职责变更 |
-|------|----------|
-| `plugins/token-reporter/frontend/src/utils/analytics.ts` | 修改 R18 规则、重命名 `mcpTokenPct`、补充 `totalReadOps/totalEditOps`、改进子代理成本计算 |
-| `plugins/token-reporter/frontend/src/utils/cost.ts` | 更新定价表、增加未知模型警告 |
-| `plugins/token-reporter/frontend/src/types/state.ts` | 如有需要，扩展 `FileMetrics` / `ToolEfficiency` / `SubagentEfficiency` 类型 |
-| `plugins/token-reporter/frontend/src/components/Analytics/CachePanel/CachePanel.tsx` | 增加 "Estimated" 标注 |
-| `plugins/token-reporter/frontend/src/components/Analytics/ThinkingPanel/ThinkingPanel.tsx` | 增加 "Estimated" 标注 |
-| `plugins/token-reporter/frontend/src/components/Analytics/PromptPanel/PromptPanel.tsx` | 增加 "Estimated" 标注 |
-| `plugins/token-reporter/frontend/src/components/Analytics/ContextPanel/ContextPanel.tsx` | 增加 "Estimated" 标注 |
-| `plugins/token-reporter/frontend/src/components/Analytics/ToolsPanel/ToolsPanel.tsx` | 更新 `mcpTokenPct` 引用为 `mcpTurnPct` |
-| `plugins/token-reporter/frontend/src/components/Analytics/FilesPanel/FilesPanel.tsx` | 更新 `readEditRatio` 显示逻辑 |
-| `plugins/token-reporter/frontend/src/i18n/locales/en.ts` | 增加/修改相关翻译键 |
-| `plugins/token-reporter/frontend/src/i18n/locales/zh-CN.ts` | 增加/修改相关翻译键 |
-| `plugins/token-reporter/test/test-analytics-cache.js` | 新建：cache metrics 测试 |
-| `plugins/token-reporter/test/test-analytics-tools.js` | 新建：tool efficiency 测试 |
-| `plugins/token-reporter/test/test-analytics-recommendations.js` | 新建：recommendations 测试 |
+| 文件                                                                                       | 职责变更                                                                                  |
+| ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| `plugins/token-reporter/frontend/src/utils/analytics.ts`                                   | 修改 R18 规则、重命名 `mcpTokenPct`、补充 `totalReadOps/totalEditOps`、改进子代理成本计算 |
+| `plugins/token-reporter/frontend/src/utils/cost.ts`                                        | 更新定价表、增加未知模型警告                                                              |
+| `plugins/token-reporter/frontend/src/types/state.ts`                                       | 如有需要，扩展 `FileMetrics` / `ToolEfficiency` / `SubagentEfficiency` 类型               |
+| `plugins/token-reporter/frontend/src/components/Analytics/CachePanel/CachePanel.tsx`       | 增加 "Estimated" 标注                                                                     |
+| `plugins/token-reporter/frontend/src/components/Analytics/ThinkingPanel/ThinkingPanel.tsx` | 增加 "Estimated" 标注                                                                     |
+| `plugins/token-reporter/frontend/src/components/Analytics/PromptPanel/PromptPanel.tsx`     | 增加 "Estimated" 标注                                                                     |
+| `plugins/token-reporter/frontend/src/components/Analytics/ContextPanel/ContextPanel.tsx`   | 增加 "Estimated" 标注                                                                     |
+| `plugins/token-reporter/frontend/src/components/Analytics/ToolsPanel/ToolsPanel.tsx`       | 更新 `mcpTokenPct` 引用为 `mcpTurnPct`                                                    |
+| `plugins/token-reporter/frontend/src/components/Analytics/FilesPanel/FilesPanel.tsx`       | 更新 `readEditRatio` 显示逻辑                                                             |
+| `plugins/token-reporter/frontend/src/i18n/locales/en.ts`                                   | 增加/修改相关翻译键                                                                       |
+| `plugins/token-reporter/frontend/src/i18n/locales/zh-CN.ts`                                | 增加/修改相关翻译键                                                                       |
+| `plugins/token-reporter/test/test-analytics-cache.js`                                      | 新建：cache metrics 测试                                                                  |
+| `plugins/token-reporter/test/test-analytics-tools.js`                                      | 新建：tool efficiency 测试                                                                |
+| `plugins/token-reporter/test/test-analytics-recommendations.js`                            | 新建：recommendations 测试                                                                |
 
 ---
 
@@ -90,20 +95,24 @@
 ### Task 0a：确认工作区状态
 
 **Files:**
+
 - 读取：`plugins/token-reporter/package.json`
 - 读取：`.claude-plugin/marketplace.json`
 
 - [ ] **Step 1: 检查 git 状态**
 
 Run:
+
 ```bash
 cd /Users/df2025/github/df-market && git status
 ```
+
 Expected: 干净的工作区，无未提交更改。
 
 - [ ] **Step 2: 运行现有测试基线**
 
 Run:
+
 ```bash
 cd /Users/df2025/github/df-market/plugins/token-reporter
 node test/test-parser.js
@@ -112,14 +121,17 @@ node test/test-mcp-metrics.js
 node test/test-pressure-metrics.js
 node test/test-prompt-metrics.js
 ```
+
 Expected: 全部通过。
 
 - [ ] **Step 3: 检查版本**
 
 Run:
+
 ```bash
-node scripts/check-version.js
+node scripts/check-version.cjs
 ```
+
 Expected: 若提示需要 bump，先记录当前版本，待全部修改完成后再统一 bump。
 
 ---
@@ -129,6 +141,7 @@ Expected: 若提示需要 bump，先记录当前版本，待全部修改完成�
 ### Task 1：为 `computeCacheMetrics` 编写测试
 
 **Files:**
+
 - Create: `plugins/token-reporter/test/test-analytics-cache.js`
 - Read: `plugins/token-reporter/frontend/src/utils/analytics.ts:20-46`
 - Read: `plugins/token-reporter/test/test-file-metrics.js`（参考测试风格）
@@ -137,11 +150,11 @@ Expected: 若提示需要 bump，先记录当前版本，待全部修改完成�
 
 ```javascript
 // plugins/token-reporter/test/test-analytics-cache.js
-"use strict";
-const assert = require("assert");
+'use strict';
+const assert = require('assert');
 
 // Mock the analytics module dependencies
-const { computeCacheMetrics } = require("../frontend/dist/utils/analytics.js");
+const {computeCacheMetrics} = require('../frontend/dist/utils/analytics.js');
 
 // Since frontend is TS, we need to test against compiled output or create a JS test harness.
 // Better approach: create a test harness that imports the TS logic via a small JS bridge.
@@ -158,10 +171,13 @@ const { computeCacheMetrics } = require("../frontend/dist/utils/analytics.js");
 - [ ] **Step 1: 确认前端构建产物可用**
 
 Run:
+
 ```bash
 ls /Users/df2025/github/df-market/plugins/token-reporter/frontend/dist/utils/analytics.js
 ```
+
 若不存在：
+
 ```bash
 cd /Users/df2025/github/df-market/plugins/token-reporter/frontend && npm run build
 ```
@@ -171,9 +187,9 @@ cd /Users/df2025/github/df-market/plugins/token-reporter/frontend && npm run bui
 Create `plugins/token-reporter/test/test-analytics-cache.js`:
 
 ```javascript
-"use strict";
-const assert = require("assert");
-const { computeCacheMetrics } = require("../frontend/dist/utils/analytics.js");
+'use strict';
+const assert = require('assert');
+const {computeCacheMetrics} = require('../frontend/dist/utils/analytics.js');
 
 function makeTurn(overrides) {
   return {
@@ -182,7 +198,7 @@ function makeTurn(overrides) {
     output: 0,
     cacheR: 0,
     cacheC: 0,
-    model: "claude-sonnet-4-6",
+    model: 'claude-sonnet-4-6',
     ...overrides,
   };
 }
@@ -197,7 +213,7 @@ function makeTurn(overrides) {
   assert.strictEqual(result.efficiencyRatio, 0);
   assert.strictEqual(result.estimatedSavings, 0);
   assert.deepStrictEqual(result.perTurnHitRate, []);
-  console.log("✓ empty turns");
+  console.log('✓ empty turns');
 }
 
 // Test 2: single turn with cache read
@@ -211,7 +227,7 @@ function makeTurn(overrides) {
   assert.strictEqual(result.efficiencyRatio, 2000 / 500);
   assert.ok(result.estimatedSavings > 0);
   assert.deepStrictEqual(result.perTurnHitRate, [{turnId: 1, rate: 2000 / 3000}]);
-  console.log("✓ single turn with cache read");
+  console.log('✓ single turn with cache read');
 }
 
 // Test 3: multiple turns accumulate correctly
@@ -225,7 +241,7 @@ function makeTurn(overrides) {
   assert.strictEqual(result.totalCacheC, 500);
   assert.strictEqual(result.totalInput, 1500);
   assert.strictEqual(result.hitRate, 2000 / 3500);
-  console.log("✓ multiple turns accumulate correctly");
+  console.log('✓ multiple turns accumulate correctly');
 }
 
 // Test 4: per-turn hit rate with zero denominator
@@ -233,19 +249,21 @@ function makeTurn(overrides) {
   const turns = [makeTurn({id: 1, input: 0, cacheR: 0, cacheC: 100})];
   const result = computeCacheMetrics(turns);
   assert.strictEqual(result.perTurnHitRate[0].rate, 0);
-  console.log("✓ per-turn hit rate with zero denominator");
+  console.log('✓ per-turn hit rate with zero denominator');
 }
 
-console.log("\nAll cache metrics tests passed!");
+console.log('\nAll cache metrics tests passed!');
 ```
 
 - [ ] **Step 3: 运行测试**
 
 Run:
+
 ```bash
 cd /Users/df2025/github/df-market/plugins/token-reporter
 node test/test-analytics-cache.js
 ```
+
 Expected: 全部通过。
 
 - [ ] **Step 4: Commit**
@@ -260,6 +278,7 @@ git commit -m "test(token-reporter): add cache metrics tests"
 ### Task 2：为 `computeToolEfficiency` 编写测试
 
 **Files:**
+
 - Create: `plugins/token-reporter/test/test-analytics-tools.js`
 - Read: `plugins/token-reporter/frontend/src/utils/analytics.ts:48-171`
 
@@ -272,9 +291,9 @@ git commit -m "test(token-reporter): add cache metrics tests"
 Create `plugins/token-reporter/test/test-analytics-tools.js`:
 
 ```javascript
-"use strict";
-const assert = require("assert");
-const { computeToolEfficiency } = require("../frontend/dist/utils/analytics.js");
+'use strict';
+const assert = require('assert');
+const {computeToolEfficiency} = require('../frontend/dist/utils/analytics.js');
 
 function makeTurn(overrides) {
   return {
@@ -283,7 +302,7 @@ function makeTurn(overrides) {
     output: 0,
     cacheR: 0,
     cacheC: 0,
-    model: "claude-sonnet-4-6",
+    model: 'claude-sonnet-4-6',
     tools: [],
     ...overrides,
   };
@@ -291,14 +310,14 @@ function makeTurn(overrides) {
 
 function makeTool(overrides) {
   return {
-    name: "read",
-    cls: "read",
-    input: [{k: "file_path", v: "/tmp/test.js"}],
-    output: "content",
-    retSize: "10 B",
-    retLines: "1 line",
+    name: 'read',
+    cls: 'read',
+    input: [{k: 'file_path', v: '/tmp/test.js'}],
+    output: 'content',
+    retSize: '10 B',
+    retLines: '1 line',
     isErr: false,
-    dur: "—",
+    dur: '—',
     ...overrides,
   };
 }
@@ -311,16 +330,16 @@ function makeTool(overrides) {
   assert.strictEqual(result.errorRate, 0);
   assert.deepStrictEqual(result.redundantGroups, []);
   assert.deepStrictEqual(result.largeCalls, []);
-  console.log("✓ empty turns");
+  console.log('✓ empty turns');
 }
 
 // Test 2: basic counts and error rate
 {
   const turns = [
-    makeTurn({id: 1, tools: [
-      makeTool({name: "read", cls: "read"}),
-      makeTool({name: "bash", cls: "bash", isErr: true}),
-    ]}),
+    makeTurn({
+      id: 1,
+      tools: [makeTool({name: 'read', cls: 'read'}), makeTool({name: 'bash', cls: 'bash', isErr: true})],
+    }),
   ];
   const result = computeToolEfficiency(turns);
   assert.strictEqual(result.totalCalls, 2);
@@ -329,55 +348,55 @@ function makeTool(overrides) {
   assert.strictEqual(result.errorsByClass.read.total, 1);
   assert.strictEqual(result.errorsByClass.bash.total, 1);
   assert.strictEqual(result.errorsByClass.bash.errors, 1);
-  console.log("✓ basic counts and error rate");
+  console.log('✓ basic counts and error rate');
 }
 
 // Test 3: redundant detection with identical outputs
 {
   const turns = [
-    makeTurn({id: 1, tools: [makeTool({output: "same content"})]}),
-    makeTurn({id: 2, tools: [makeTool({output: "same content"})]}),
+    makeTurn({id: 1, tools: [makeTool({output: 'same content'})]}),
+    makeTurn({id: 2, tools: [makeTool({output: 'same content'})]}),
   ];
   const result = computeToolEfficiency(turns);
   assert.strictEqual(result.redundantGroups.length, 1);
   assert.strictEqual(result.redundantGroups[0].count, 2);
-  console.log("✓ redundant detection with identical outputs");
+  console.log('✓ redundant detection with identical outputs');
 }
 
 // Test 4: redundant detection should NOT flag diverging outputs beyond 200 chars
 {
-  const prefix = "a".repeat(200);
+  const prefix = 'a'.repeat(200);
   const turns = [
-    makeTurn({id: 1, tools: [makeTool({output: prefix + "-suffix-1"})]}),
-    makeTurn({id: 2, tools: [makeTool({output: prefix + "-suffix-2"})]}),
+    makeTurn({id: 1, tools: [makeTool({output: prefix + '-suffix-1'})]}),
+    makeTurn({id: 2, tools: [makeTool({output: prefix + '-suffix-2'})]}),
   ];
   const result = computeToolEfficiency(turns);
   // This documents the CURRENT behavior (false positive) — will be fixed in later task
   assert.strictEqual(result.redundantGroups.length, 1);
-  console.log("✓ redundant detection 200-char truncation behavior documented");
+  console.log('✓ redundant detection 200-char truncation behavior documented');
 }
 
 // Test 5: large calls detection (>50KB)
 {
-  const turns = [
-    makeTurn({id: 1, tools: [makeTool({retSize: "60 KB"})]}),
-  ];
+  const turns = [makeTurn({id: 1, tools: [makeTool({retSize: '60 KB'})]})];
   const result = computeToolEfficiency(turns);
   assert.strictEqual(result.largeCalls.length, 1);
   assert.strictEqual(result.largeCalls[0].retBytes, 60 * 1024);
-  console.log("✓ large calls detection");
+  console.log('✓ large calls detection');
 }
 
-console.log("\nAll tool efficiency tests passed!");
+console.log('\nAll tool efficiency tests passed!');
 ```
 
 - [ ] **Step 3: 运行测试**
 
 Run:
+
 ```bash
 cd /Users/df2025/github/df-market/plugins/token-reporter
 node test/test-analytics-tools.js
 ```
+
 Expected: 全部通过。
 
 - [ ] **Step 4: Commit**
@@ -392,11 +411,13 @@ git commit -m "test(token-reporter): add tool efficiency tests"
 ### Task 3：修复 R18 (Bloated Prompt) 推荐规则逻辑
 
 **Files:**
+
 - Modify: `plugins/token-reporter/frontend/src/utils/analytics.ts:1085-1097`
 - Read: `plugins/token-reporter/frontend/src/utils/analytics.ts:675-739`（prompt metrics）
 
 **问题分析：**
 当前 R18：
+
 ```ts
 if (prompt && prompt.longestPromptChars > 2000) {
   const turn = prompt.promptTrend.find((p) => p.turnId === prompt.longestPromptTurn);
@@ -405,11 +426,13 @@ if (prompt && prompt.longestPromptChars > 2000) {
   }
 }
 ```
+
 `turn.inputTokens` 是 API 报告的 `input_tokens`，包含全上下文历史。对于长会话后期，这个值很大，导致 `outputTokens < inputTokens * 0.1` 几乎恒成立。
 
 **修复方案：** 改用用户 prompt 的估算 token 数 `turn.tokens`（即 `chars / 4`）作为输入长度基准。这个指标更接近"用户本次输入的长度"，而非全上下文长度。
 
 修改后逻辑：
+
 ```ts
 if (prompt && prompt.longestPromptChars > 2000) {
   const turn = prompt.promptTrend.find((p) => p.turnId === prompt.longestPromptTurn);
@@ -424,11 +447,13 @@ if (prompt && prompt.longestPromptChars > 2000) {
 Edit `plugins/token-reporter/frontend/src/utils/analytics.ts` line ~1088:
 
 Old:
+
 ```ts
     if (turn && turn.outputTokens < turn.inputTokens * 0.1) {
 ```
 
 New:
+
 ```ts
     if (turn && turn.outputTokens < turn.tokens * 0.1) {
 ```
@@ -436,10 +461,12 @@ New:
 - [ ] **Step 2: 重新构建前端**
 
 Run:
+
 ```bash
 cd /Users/df2025/github/df-market/plugins/token-reporter/frontend
 npm run build
 ```
+
 Expected: 构建成功。
 
 - [ ] **Step 3: Commit**
@@ -454,6 +481,7 @@ git commit -m "fix(token-reporter): use estimated prompt tokens instead of full 
 ### Task 4：为 `generateRecommendations` 编写集成测试
 
 **Files:**
+
 - Create: `plugins/token-reporter/test/test-analytics-recommendations.js`
 - Read: `plugins/token-reporter/frontend/src/utils/analytics.ts:864-1175`
 
@@ -464,9 +492,9 @@ git commit -m "fix(token-reporter): use estimated prompt tokens instead of full 
 Create `plugins/token-reporter/test/test-analytics-recommendations.js`:
 
 ```javascript
-"use strict";
-const assert = require("assert");
-const { generateRecommendations } = require("../frontend/dist/utils/analytics.js");
+'use strict';
+const assert = require('assert');
+const {generateRecommendations} = require('../frontend/dist/utils/analytics.js');
 
 function mockT(key, vars) {
   let s = key;
@@ -505,14 +533,72 @@ function makeInput(overrides) {
       totalSubagentCost: 0,
       subagentCostPct: 0,
     },
-    cost: {total: 0, byType: {input: 0, output: 0, cacheRead: 0, cacheCreation: 0}, perTurn: [], avgPerTurn: 0, maxTurnIdx: 0, maxTurnCost: 0},
-    modelBreakdown: {models: [], modelSwitches: 0, dominantModel: "", dominantModelId: ""},
-    thinking: {turnsWithThinking: 0, turnsTotal: 0, thinkingPct: 0, totalThinkingChars: 0, avgThinkingLength: 0, estimatedThinkingTokens: 0, estimatedThinkingCost: 0, perTurn: []},
-    sidechain: {mainTurns: 0, sidechainTurns: 0, sidechainPct: 0, mainCost: 0, sidechainCost: 0, sidechainCostPct: 0, sidechainToolCounts: {}},
-    timing: {sessionDurationMs: 0, totalToolDurationMs: 0, avgTurnIntervalMs: 0, idleTimeMs: 0, idlePct: 0, costPerMinute: 0, toolDurByClass: {}, slowestTools: [], turnIntervals: []},
-    mcp: {totalMcpCalls: 0, totalMcpErrors: 0, mcpPct: 0, avgMcpDurationMs: 0, byServer: {}, totalCalls: 0, turnUsage: []},
-    prompt: {avgUserLength: 0, avgUserTokens: 0, inputOutputRatio: 0, shortPromptStreak: 0, longestPromptTurn: -1, longestPromptChars: 0, promptTrend: []},
-    pressure: {peakTokens: 0, peakTurnId: -1, compactionCount: 0, avgTurnsBetweenCompact: 0, highSpikeTurns: [], growthRatePer10Turns: 0, estimatedTurnsToLimit: null},
+    cost: {
+      total: 0,
+      byType: {input: 0, output: 0, cacheRead: 0, cacheCreation: 0},
+      perTurn: [],
+      avgPerTurn: 0,
+      maxTurnIdx: 0,
+      maxTurnCost: 0,
+    },
+    modelBreakdown: {models: [], modelSwitches: 0, dominantModel: '', dominantModelId: ''},
+    thinking: {
+      turnsWithThinking: 0,
+      turnsTotal: 0,
+      thinkingPct: 0,
+      totalThinkingChars: 0,
+      avgThinkingLength: 0,
+      estimatedThinkingTokens: 0,
+      estimatedThinkingCost: 0,
+      perTurn: [],
+    },
+    sidechain: {
+      mainTurns: 0,
+      sidechainTurns: 0,
+      sidechainPct: 0,
+      mainCost: 0,
+      sidechainCost: 0,
+      sidechainCostPct: 0,
+      sidechainToolCounts: {},
+    },
+    timing: {
+      sessionDurationMs: 0,
+      totalToolDurationMs: 0,
+      avgTurnIntervalMs: 0,
+      idleTimeMs: 0,
+      idlePct: 0,
+      costPerMinute: 0,
+      toolDurByClass: {},
+      slowestTools: [],
+      turnIntervals: [],
+    },
+    mcp: {
+      totalMcpCalls: 0,
+      totalMcpErrors: 0,
+      mcpPct: 0,
+      avgMcpDurationMs: 0,
+      byServer: {},
+      totalCalls: 0,
+      turnUsage: [],
+    },
+    prompt: {
+      avgUserLength: 0,
+      avgUserTokens: 0,
+      inputOutputRatio: 0,
+      shortPromptStreak: 0,
+      longestPromptTurn: -1,
+      longestPromptChars: 0,
+      promptTrend: [],
+    },
+    pressure: {
+      peakTokens: 0,
+      peakTurnId: -1,
+      compactionCount: 0,
+      avgTurnsBetweenCompact: 0,
+      highSpikeTurns: [],
+      growthRatePer10Turns: 0,
+      estimatedTurnsToLimit: null,
+    },
     files: {topReads: [], readEditRatio: 0, totalReadFiles: 0, totalEditFiles: 0, bloatedGreps: [], unreadReads: []},
     ...overrides,
   };
@@ -522,33 +608,35 @@ function makeInput(overrides) {
 {
   const recs = generateRecommendations(makeInput(), mockT);
   assert.deepStrictEqual(recs, []);
-  console.log("✓ empty input returns no recommendations");
+  console.log('✓ empty input returns no recommendations');
 }
 
 // Test 2: R12 - Opus simple tasks
 {
   const input = makeInput({
     modelBreakdown: {
-      models: [{
-        model: "claude-opus-4-6",
-        displayName: "Opus",
-        turns: 10,
-        tokens: {input: 1000, output: 3000, cacheR: 0, cacheC: 0},
-        cost: 1.0,
-        costPct: 1,
-        avgCostPerTurn: 0.1,
-        avgOutputPerTurn: 300, // < 500 threshold
-      }],
+      models: [
+        {
+          model: 'claude-opus-4-6',
+          displayName: 'Opus',
+          turns: 10,
+          tokens: {input: 1000, output: 3000, cacheR: 0, cacheC: 0},
+          cost: 1.0,
+          costPct: 1,
+          avgCostPerTurn: 0.1,
+          avgOutputPerTurn: 300, // < 500 threshold
+        },
+      ],
       modelSwitches: 0,
-      dominantModel: "Opus",
-      dominantModelId: "claude-opus-4-6",
+      dominantModel: 'Opus',
+      dominantModelId: 'claude-opus-4-6',
     },
   });
   const recs = generateRecommendations(input, mockT);
-  const r12 = recs.find((r) => r.id === "opus-simple-tasks");
-  assert.ok(r12, "R12 should trigger for Opus with avgOutputPerTurn < 500");
-  assert.strictEqual(r12.severity, "medium");
-  console.log("✓ R12 Opus simple tasks triggers correctly");
+  const r12 = recs.find((r) => r.id === 'opus-simple-tasks');
+  assert.ok(r12, 'R12 should trigger for Opus with avgOutputPerTurn < 500');
+  assert.strictEqual(r12.severity, 'medium');
+  console.log('✓ R12 Opus simple tasks triggers correctly');
 }
 
 // Test 3: R18 - Bloated prompt (FIXED logic)
@@ -569,10 +657,10 @@ function makeInput(overrides) {
     },
   });
   const recs = generateRecommendations(input, mockT);
-  const r18 = recs.find((r) => r.id === "bloated-prompt");
-  assert.ok(r18, "R18 should trigger when outputTokens < tokens * 0.1");
+  const r18 = recs.find((r) => r.id === 'bloated-prompt');
+  assert.ok(r18, 'R18 should trigger when outputTokens < tokens * 0.1');
   // 30 < 750 * 0.1 = 75  → should trigger
-  console.log("✓ R18 bloated prompt triggers with fixed logic");
+  console.log('✓ R18 bloated prompt triggers with fixed logic');
 }
 
 // Test 4: R18 should NOT trigger when output is proportional to prompt tokens
@@ -585,15 +673,13 @@ function makeInput(overrides) {
       shortPromptStreak: 0,
       longestPromptTurn: 3,
       longestPromptChars: 3000,
-      promptTrend: [
-        {turnId: 3, chars: 3000, tokens: 750, inputTokens: 5000, outputTokens: 500, ratio: 10},
-      ],
+      promptTrend: [{turnId: 3, chars: 3000, tokens: 750, inputTokens: 5000, outputTokens: 500, ratio: 10}],
     },
   });
   const recs = generateRecommendations(input, mockT);
-  const r18 = recs.find((r) => r.id === "bloated-prompt");
-  assert.strictEqual(r18, undefined, "R18 should NOT trigger when outputTokens >= tokens * 0.1");
-  console.log("✓ R18 correctly suppressed when output is proportional to prompt tokens");
+  const r18 = recs.find((r) => r.id === 'bloated-prompt');
+  assert.strictEqual(r18, undefined, 'R18 should NOT trigger when outputTokens >= tokens * 0.1');
+  console.log('✓ R18 correctly suppressed when output is proportional to prompt tokens');
 }
 
 // Test 5: R18 should NOT trigger for short prompts
@@ -606,27 +692,27 @@ function makeInput(overrides) {
       shortPromptStreak: 0,
       longestPromptTurn: 1,
       longestPromptChars: 500, // <= 2000 threshold
-      promptTrend: [
-        {turnId: 1, chars: 500, tokens: 125, inputTokens: 1000, outputTokens: 10, ratio: 100},
-      ],
+      promptTrend: [{turnId: 1, chars: 500, tokens: 125, inputTokens: 1000, outputTokens: 10, ratio: 100}],
     },
   });
   const recs = generateRecommendations(input, mockT);
-  const r18 = recs.find((r) => r.id === "bloated-prompt");
-  assert.strictEqual(r18, undefined, "R18 should NOT trigger for prompts <= 2000 chars");
-  console.log("✓ R18 correctly suppressed for short prompts");
+  const r18 = recs.find((r) => r.id === 'bloated-prompt');
+  assert.strictEqual(r18, undefined, 'R18 should NOT trigger for prompts <= 2000 chars');
+  console.log('✓ R18 correctly suppressed for short prompts');
 }
 
-console.log("\nAll recommendation tests passed!");
+console.log('\nAll recommendation tests passed!');
 ```
 
 - [ ] **Step 2: 运行测试**
 
 Run:
+
 ```bash
 cd /Users/df2025/github/df-market/plugins/token-reporter
 node test/test-analytics-recommendations.js
 ```
+
 Expected: 全部通过。
 
 - [ ] **Step 3: Commit**
@@ -643,6 +729,7 @@ git commit -m "test(token-reporter): add recommendation engine tests covering R1
 ### Task 5：重命名 `mcpTokenPct` → `mcpTurnPct`
 
 **Files:**
+
 - Modify: `plugins/token-reporter/frontend/src/utils/analytics.ts:64`, `:169`
 - Modify: `plugins/token-reporter/frontend/src/components/Analytics/ToolsPanel/ToolsPanel.tsx`（查找引用）
 - Modify: `plugins/token-reporter/frontend/src/components/Analytics/SummaryPanel/SummaryPanel.tsx`（如引用）
@@ -650,6 +737,7 @@ git commit -m "test(token-reporter): add recommendation engine tests covering R1
 - [ ] **Step 1: 查找所有 `mcpTokenPct` 引用**
 
 Run:
+
 ```bash
 cd /Users/df2025/github/df-market/plugins/token-reporter
 grep -r "mcpTokenPct" frontend/src/
@@ -661,20 +749,26 @@ Edit `frontend/src/utils/analytics.ts`:
 
 Line ~64 (ToolEfficiency interface):
 Old:
+
 ```ts
-  mcpTokenPct: number;
+mcpTokenPct: number;
 ```
+
 New:
+
 ```ts
-  mcpTurnPct: number;
+mcpTurnPct: number;
 ```
 
 Line ~169 (return statement in computeToolEfficiency):
 Old:
+
 ```ts
     mcpTokenPct: turns.length > 0 ? mcpTurns / turns.length : 0,
 ```
+
 New:
+
 ```ts
     mcpTurnPct: turns.length > 0 ? mcpTurns / turns.length : 0,
 ```
@@ -686,6 +780,7 @@ New:
 - [ ] **Step 4: 重新构建前端**
 
 Run:
+
 ```bash
 cd /Users/df2025/github/df-market/plugins/token-reporter/frontend
 npm run build
@@ -703,6 +798,7 @@ git commit -m "refactor(token-reporter): rename mcpTokenPct to mcpTurnPct for ac
 ### Task 6：明确 `readEditRatio` 语义并补充操作量指标
 
 **Files:**
+
 - Modify: `plugins/token-reporter/frontend/src/utils/analytics.ts:751-835`
 - Modify: `plugins/token-reporter/frontend/src/types/state.ts`（FileMetrics 类型）
 - Modify: `plugins/token-reporter/frontend/src/components/Analytics/FilesPanel/FilesPanel.tsx`
@@ -713,6 +809,7 @@ git commit -m "refactor(token-reporter): rename mcpTokenPct to mcpTurnPct for ac
 当前 `readEditRatio = editSet.size > 0 ? readMap.size / editSet.size : readMap.size`，这是 unique files 的覆盖比。用户可能误解为"读了多少次才编辑一次"。
 
 **方案：**
+
 1. 保留 `readEditRatio`（unique files 比），但 UI 显示时加上说明
 2. 新增 `totalReadOps` 和 `totalEditOps` 表示实际操作次数
 
@@ -723,6 +820,7 @@ Edit `frontend/src/types/state.ts`（查找 FileMetrics 相关类型，若内联
 假设 `FileMetrics` 定义在 `analytics.ts` line ~751-758，修改如下：
 
 Old:
+
 ```ts
 export interface FileMetrics {
   topReads: FileReadEntry[];
@@ -735,14 +833,15 @@ export interface FileMetrics {
 ```
 
 New:
+
 ```ts
 export interface FileMetrics {
   topReads: FileReadEntry[];
   readEditRatio: number; // unique read files / unique edit files (coverage ratio)
   totalReadFiles: number;
   totalEditFiles: number;
-  totalReadOps: number;  // total read tool invocations
-  totalEditOps: number;  // total edit + write tool invocations
+  totalReadOps: number; // total read tool invocations
+  totalEditOps: number; // total edit + write tool invocations
   bloatedGreps: {pattern: string; glob: string; retLines: number; turnId: number}[];
   unreadReads: FileReadEntry[];
 }
@@ -751,24 +850,27 @@ export interface FileMetrics {
 Edit `frontend/src/utils/analytics.ts` line ~784-835 (`computeFileMetrics`):
 
 在函数开头增加计数器：
+
 ```ts
-  let totalReadOps = 0;
-  let totalEditOps = 0;
+let totalReadOps = 0;
+let totalEditOps = 0;
 ```
 
 在循环中计数：
+
 ```ts
-      if (tool.cls === 'read') {
-        totalReadOps++;
-        // ... existing read logic
-      }
-      if (tool.cls === 'edit' || tool.cls === 'write') {
-        totalEditOps++;
-        // ... existing edit logic
-      }
+if (tool.cls === 'read') {
+  totalReadOps++;
+  // ... existing read logic
+}
+if (tool.cls === 'edit' || tool.cls === 'write') {
+  totalEditOps++;
+  // ... existing edit logic
+}
 ```
 
 在 return 中增加：
+
 ```ts
     totalReadOps,
     totalEditOps,
@@ -779,6 +881,7 @@ Edit `frontend/src/utils/analytics.ts` line ~784-835 (`computeFileMetrics`):
 Read `frontend/src/components/Analytics/FilesPanel/FilesPanel.tsx`，找到 `readEditRatio` 的显示位置。
 
 修改显示为：
+
 ```tsx
 <div>
   <span>{t('files.readEditRatio')}: {files.readEditRatio.toFixed(1)}</span>
@@ -794,6 +897,7 @@ Read `frontend/src/components/Analytics/FilesPanel/FilesPanel.tsx`，找到 `rea
 - [ ] **Step 3: 添加 i18n 翻译**
 
 Edit `frontend/src/i18n/locales/en.ts`，在 `files` 命名空间下添加：
+
 ```ts
   files: {
     // ... existing keys
@@ -803,6 +907,7 @@ Edit `frontend/src/i18n/locales/en.ts`，在 `files` 命名空间下添加：
 ```
 
 Edit `frontend/src/i18n/locales/zh-CN.ts`：
+
 ```ts
   files: {
     // ... existing keys
@@ -814,6 +919,7 @@ Edit `frontend/src/i18n/locales/zh-CN.ts`：
 - [ ] **Step 4: 重新构建前端并运行测试**
 
 Run:
+
 ```bash
 cd /Users/df2025/github/df-market/plugins/token-reporter/frontend
 npm run build
@@ -833,6 +939,7 @@ git commit -m "feat(token-reporter): add totalReadOps/totalEditOps to file metri
 ### Task 7：为估算指标增加 "Estimated" UI 标注
 
 **Files:**
+
 - Modify: `plugins/token-reporter/frontend/src/i18n/locales/en.ts`
 - Modify: `plugins/token-reporter/frontend/src/i18n/locales/zh-CN.ts`
 - Modify: 以下面板组件（查找标题/标签位置）：
@@ -843,6 +950,7 @@ git commit -m "feat(token-reporter): add totalReadOps/totalEditOps to file metri
 
 **分析：**
 需要标注的估算指标：
+
 - **Context Growth**: `computeContextGrowth` 中的 cumulative context 是估算值
 - **Thinking Tokens**: `estimatedThinkingTokens` 基于 `chars / 4`
 - **Prompt Tokens**: `avgUserTokens` 基于 `chars / 4`
@@ -854,6 +962,7 @@ Cache 的 `estimatedSavings` 虽然带 "estimated" 前缀，但 UI 可能未明�
 - [ ] **Step 1: 添加 i18n 键**
 
 Edit `frontend/src/i18n/locales/en.ts`：
+
 ```ts
   common: {
     // ... existing keys
@@ -862,6 +971,7 @@ Edit `frontend/src/i18n/locales/en.ts`：
 ```
 
 Edit `frontend/src/i18n/locales/zh-CN.ts`：
+
 ```ts
   common: {
     // ... existing keys
@@ -874,6 +984,7 @@ Edit `frontend/src/i18n/locales/zh-CN.ts`：
 对每个面板组件，找到对应的标题/标签，追加 `t('common.estimated')`。
 
 示例（以 ThinkingPanel 为例）：
+
 ```tsx
 // 原标题
 <h3>{t('thinking.estimatedTokens')}</h3>
@@ -882,6 +993,7 @@ Edit `frontend/src/i18n/locales/zh-CN.ts`：
 ```
 
 需要对以下指标追加标注：
+
 1. **ContextPanel**: "Cumulative Context" / "上下文累积增长"
 2. **ThinkingPanel**: "Estimated Thinking Tokens" / "思考 Token 估算"
 3. **PromptPanel**: "Avg User Tokens" / "平均输入 Token"
@@ -892,6 +1004,7 @@ Edit `frontend/src/i18n/locales/zh-CN.ts`：
 - [ ] **Step 3: 重新构建前端**
 
 Run:
+
 ```bash
 cd /Users/df2025/github/df-market/plugins/token-reporter/frontend
 npm run build
@@ -911,15 +1024,18 @@ git commit -m "feat(token-reporter): add estimated labels to context growth, thi
 ### Task 8：更新 `cost.ts` 定价表并增加未知模型警告
 
 **Files:**
+
 - Modify: `plugins/token-reporter/frontend/src/utils/cost.ts`
 - Read: Anthropic 最新定价文档（若本地无信息则通过 WebSearch 查询）
 
 - [ ] **Step 1: 查询 Anthropic 2026 年最新定价**
 
 Run:
+
 ```bash
 # 或者使用 WebSearch 工具查询
 ```
+
 使用 WebSearch 查询 "Anthropic Claude API pricing 2026" 或 "Claude model pricing April 2026"。
 
 - [ ] **Step 2: 更新 pricing 表**
@@ -931,6 +1047,7 @@ Edit `frontend/src/utils/cost.ts`：
 同时修改 `getModelPricing`：
 
 Old:
+
 ```ts
 export function getModelPricing(model: string): ModelPricing {
   if (PRICING[model]) return PRICING[model];
@@ -943,6 +1060,7 @@ export function getModelPricing(model: string): ModelPricing {
 ```
 
 New:
+
 ```ts
 export function getModelPricing(model: string): ModelPricing {
   if (PRICING[model]) return PRICING[model];
@@ -952,7 +1070,9 @@ export function getModelPricing(model: string): ModelPricing {
   if (model.includes('haiku')) return PRICING['claude-haiku-4-5-20251001']!;
   // Warn about unknown models so users know the cost estimate may be inaccurate
   if (typeof console !== 'undefined') {
-    console.warn(`[token-reporter] Unknown model "${model}", falling back to Sonnet pricing. Cost estimate may be inaccurate.`);
+    console.warn(
+      `[token-reporter] Unknown model "${model}", falling back to Sonnet pricing. Cost estimate may be inaccurate.`,
+    );
   }
   return DEFAULT_PRICING;
 }
@@ -961,6 +1081,7 @@ export function getModelPricing(model: string): ModelPricing {
 - [ ] **Step 3: 重新构建前端**
 
 Run:
+
 ```bash
 cd /Users/df2025/github/df-market/plugins-token-reporter/frontend
 npm run build
@@ -978,16 +1099,19 @@ git commit -m "feat(token-reporter): update model pricing table and add warning 
 ### Task 9：改进子代理成本计算，使用实际 turn 级模型
 
 **Files:**
+
 - Modify: `plugins/token-reporter/frontend/src/utils/analytics.ts:295-341`
 - Read: `plugins/token-reporter/frontend/src/types/state.ts`（SubagentStats 类型）
 
 **分析：**
 当前 `computeSubagentEfficiency`：
+
 ```ts
 const model = sa.turns[0]?.model ?? 'claude-haiku-4-5-20251001';
 const p = getModelPricing(model);
 const tk = sa.totalTokens;
-const cost = (tk.input * p.input + tk.output * p.output + tk.cacheR * p.cacheRead + tk.cacheC * p.cacheCreation) / 1_000_000;
+const cost =
+  (tk.input * p.input + tk.output * p.output + tk.cacheR * p.cacheRead + tk.cacheC * p.cacheCreation) / 1_000_000;
 ```
 
 问题：子代理可能使用多种模型，但当前只用首 turn 的模型定价计算全部 token 成本。
@@ -999,27 +1123,30 @@ const cost = (tk.input * p.input + tk.output * p.output + tk.cacheR * p.cacheRea
 Edit `frontend/src/utils/analytics.ts` line ~311-318：
 
 Old:
+
 ```ts
-    // Estimate cost from subagent token counts using haiku pricing as default for subagents
-    const model = sa.turns[0]?.model ?? 'claude-haiku-4-5-20251001';
-    const p = getModelPricing(model);
-    const tk = sa.totalTokens;
-    const cost =
-      (tk.input * p.input + tk.output * p.output + tk.cacheR * p.cacheRead + tk.cacheC * p.cacheCreation) / 1_000_000;
+// Estimate cost from subagent token counts using haiku pricing as default for subagents
+const model = sa.turns[0]?.model ?? 'claude-haiku-4-5-20251001';
+const p = getModelPricing(model);
+const tk = sa.totalTokens;
+const cost =
+  (tk.input * p.input + tk.output * p.output + tk.cacheR * p.cacheRead + tk.cacheC * p.cacheCreation) / 1_000_000;
 ```
 
 New:
+
 ```ts
-    // Calculate cost per-turn to handle model switching within subagents
-    let cost = 0;
-    for (const t of sa.turns) {
-      cost += computeTurnCost(t);
-    }
+// Calculate cost per-turn to handle model switching within subagents
+let cost = 0;
+for (const t of sa.turns) {
+  cost += computeTurnCost(t);
+}
 ```
 
 - [ ] **Step 2: 重新构建前端**
 
 Run:
+
 ```bash
 cd /Users/df2025/github/df-market/plugins/token-reporter/frontend
 npm run build
@@ -1041,6 +1168,7 @@ git commit -m "fix(token-reporter): compute subagent cost per-turn to support mo
 - [ ] **Step 1: 运行所有测试**
 
 Run:
+
 ```bash
 cd /Users/df2025/github/df-market/plugins/token-reporter
 node test/test-parser.js
@@ -1052,6 +1180,7 @@ node test/test-analytics-cache.js
 node test/test-analytics-tools.js
 node test/test-analytics-recommendations.js
 ```
+
 Expected: 全部通过。
 
 - [ ] **Step 2: 更新计划 Progress**
@@ -1065,10 +1194,12 @@ Expected: 全部通过。
 - [ ] **Step 1: 前端构建**
 
 Run:
+
 ```bash
 cd /Users/df2025/github/df-market/plugins/token-reporter/frontend
 npm run build
 ```
+
 Expected: 0 errors, 0 warnings（或仅有不相关的警告）。
 
 - [ ] **Step 2: 检查 dist 产物是否已更新**
@@ -1086,22 +1217,26 @@ Expected: 0 errors, 0 warnings（或仅有不相关的警告）。
 - [ ] **Step 1: 检查是否需要 bump 版本**
 
 Run:
+
 ```bash
 cd /Users/df2025/github/df-market/plugins/token-reporter
-node scripts/check-version.js
+node scripts/check-version.cjs
 ```
 
 若提示需要更新：
+
 ```bash
-node scripts/bump-version.js patch
+node scripts/bump-version.cjs patch
 ```
 
 - [ ] **Step 2: 确认所有修改已提交**
 
 Run:
+
 ```bash
 git status
 ```
+
 Expected: 干净。
 
 - [ ] **Step 3: 最终 commit（如有未提交的 dist 或版本变更）**
@@ -1114,6 +1249,7 @@ git commit -m "chore(token-reporter): bump version after analysis improvements"
 - [ ] **Step 4: 更新计划最终状态**
 
 在 Progress 顶部标记：
+
 ```
 **状态**：🟢 全部完成
 **最后更新**：2026-04-15（Task 12 完成）

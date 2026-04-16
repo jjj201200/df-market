@@ -13,6 +13,7 @@
 ### Task 1: 安装 @tabler/icons-react 依赖
 
 **Files:**
+
 - Modify: `plugins/token-reporter/frontend/package.json`
 
 - [ ] **Step 1: 安装依赖**
@@ -27,6 +28,7 @@ npm install @tabler/icons-react
 ```bash
 node -e "const {IconX} = require('@tabler/icons-react'); console.log('ok', typeof IconX)"
 ```
+
 预期输出：`ok function`
 
 - [ ] **Step 3: 提交**
@@ -42,6 +44,7 @@ git commit -m "feat(token-reporter): install @tabler/icons-react"
 ### Task 2: 替换 Dropdown.tsx 的下拉箭头
 
 **Files:**
+
 - Modify: `plugins/token-reporter/frontend/src/components/common/Dropdown.tsx`
 - Modify: `plugins/token-reporter/frontend/src/components/common/Dropdown.module.scss`
 
@@ -59,19 +62,23 @@ import {IconChevronDown} from '@tabler/icons-react';
 - [ ] **Step 2: 替换 chevron span**
 
 将第 107 行：
+
 ```tsx
-        <span className={clsx(styles.chevron, open && styles.chevronOpen)}>&#x25BE;</span>
+<span className={clsx(styles.chevron, open && styles.chevronOpen)}>&#x25BE;</span>
 ```
+
 替换为：
+
 ```tsx
-        <span className={clsx(styles.chevron, open && styles.chevronOpen)}>
-          <IconChevronDown size={12} stroke={1.5} />
-        </span>
+<span className={clsx(styles.chevron, open && styles.chevronOpen)}>
+  <IconChevronDown size={12} stroke={1.5} />
+</span>
 ```
 
 - [ ] **Step 3: 更新 chevron CSS（移除 font-size，SVG 不需要）**
 
 在 `Dropdown.module.scss` 中，将：
+
 ```scss
 .chevron {
   font-size: 10px;
@@ -80,7 +87,9 @@ import {IconChevronDown} from '@tabler/icons-react';
   flex-shrink: 0;
 }
 ```
+
 替换为：
+
 ```scss
 .chevron {
   color: var(--fg-subtle);
@@ -111,9 +120,11 @@ git commit -m "feat(token-reporter): replace dropdown chevron with IconChevronDo
 ### Task 3: 替换 AnalyticsDrawer.tsx 的图标
 
 **Files:**
+
 - Modify: `plugins/token-reporter/frontend/src/components/Analytics/AnalyticsDrawer.tsx`
 
 当前符号：
+
 - 第 47 行 `⊞` — 退出分屏（split view 模式下）
 - 第 52 行 `✕` — 关闭（split view 模式下）
 - 第 76 行 `⊟` — 进入分屏（普通 drawer 模式下）
@@ -130,6 +141,7 @@ import {IconX, IconLayoutColumns, IconLayoutSidebarRight} from '@tabler/icons-re
 - [ ] **Step 2: 替换 split view 模式下的图标（第 46-54 行）**
 
 将：
+
 ```tsx
             <Tooltip content={t('nav.exitSplitView')}>
               <button className={s.closeBtn} onClick={toggleSplitView}>
@@ -142,7 +154,9 @@ import {IconX, IconLayoutColumns, IconLayoutSidebarRight} from '@tabler/icons-re
               </button>
             </Tooltip>
 ```
+
 替换为：
+
 ```tsx
             <Tooltip content={t('nav.exitSplitView')}>
               <button className={s.closeBtn} onClick={toggleSplitView}>
@@ -159,6 +173,7 @@ import {IconX, IconLayoutColumns, IconLayoutSidebarRight} from '@tabler/icons-re
 - [ ] **Step 3: 替换普通 drawer 模式下的图标（第 74-83 行）**
 
 将：
+
 ```tsx
             <Tooltip content={t('nav.splitView')}>
               <button className={s.closeBtn} onClick={toggleSplitView}>
@@ -171,7 +186,9 @@ import {IconX, IconLayoutColumns, IconLayoutSidebarRight} from '@tabler/icons-re
               </button>
             </Tooltip>
 ```
+
 替换为：
+
 ```tsx
             <Tooltip content={t('nav.splitView')}>
               <button className={s.closeBtn} onClick={toggleSplitView}>
@@ -204,6 +221,7 @@ git commit -m "feat(token-reporter): replace AnalyticsDrawer symbols with Tabler
 ### Task 4: 替换 StickyChart.tsx 的跳转箭头
 
 **Files:**
+
 - Modify: `plugins/token-reporter/frontend/src/components/StickyChart/StickyChart.tsx`
 
 当前：第 78 行 `{t('nav.analytics')} ↗`
@@ -219,12 +237,18 @@ import {IconExternalLink} from '@tabler/icons-react';
 - [ ] **Step 2: 替换跳转箭头**
 
 将第 78 行：
+
 ```tsx
           {t('nav.analytics')} ↗
 ```
+
 替换为：
+
 ```tsx
-          {t('nav.analytics')} <IconExternalLink size={12} stroke={1.5} style={{verticalAlign: 'middle'}} />
+{
+  t('nav.analytics');
+}
+<IconExternalLink size={12} stroke={1.5} style={{verticalAlign: 'middle'}} />;
 ```
 
 - [ ] **Step 3: 验证 TypeScript 编译无错误**
@@ -246,6 +270,7 @@ git commit -m "feat(token-reporter): replace analytics button arrow with IconExt
 ### Task 5: 替换 CompactEvent.tsx 的闪电符号
 
 **Files:**
+
 - Modify: `plugins/token-reporter/frontend/src/components/ConversationList/CompactEvent.tsx`
 
 当前：第 50 行 `<span style={styles.bolt}>&#9889;</span>`
@@ -261,12 +286,15 @@ import {IconBolt} from '@tabler/icons-react';
 - [ ] **Step 2: 替换闪电符号**
 
 将第 50 行：
+
 ```tsx
-      <span style={styles.bolt}>&#9889;</span>
+<span style={styles.bolt}>&#9889;</span>
 ```
+
 替换为：
+
 ```tsx
-      <IconBolt size={14} stroke={1.5} style={styles.bolt} />
+<IconBolt size={14} stroke={1.5} style={styles.bolt} />
 ```
 
 - [ ] **Step 3: 验证 TypeScript 编译无错误**
@@ -288,9 +316,11 @@ git commit -m "feat(token-reporter): replace CompactEvent bolt symbol with IconB
 ### Task 6: 替换 CommandEvent.tsx 的符号
 
 **Files:**
+
 - Modify: `plugins/token-reporter/frontend/src/components/ConversationList/CommandEvent.tsx`
 
 当前：
+
 - 第 28 行 `&#8984;` ⌘ — Command 键图标
 - 第 35 行 `&#9654;` ▶ — 展开箭头（CSS transition，展开时可能旋转）
 
@@ -305,23 +335,33 @@ import {IconCommand, IconChevronRight} from '@tabler/icons-react';
 - [ ] **Step 2: 替换 Command 键图标（第 28 行）**
 
 将：
+
 ```tsx
-        <span className={s.evCmdIcon}>&#8984;</span>
+<span className={s.evCmdIcon}>&#8984;</span>
 ```
+
 替换为：
+
 ```tsx
-        <span className={s.evCmdIcon}><IconCommand size={14} stroke={1.5} /></span>
+<span className={s.evCmdIcon}>
+  <IconCommand size={14} stroke={1.5} />
+</span>
 ```
 
 - [ ] **Step 3: 替换展开箭头（第 35 行）**
 
 将：
+
 ```tsx
-          <span className={s.arrow}>&#9654;</span>
+<span className={s.arrow}>&#9654;</span>
 ```
+
 替换为：
+
 ```tsx
-          <span className={s.arrow}><IconChevronRight size={14} stroke={1.5} /></span>
+<span className={s.arrow}>
+  <IconChevronRight size={14} stroke={1.5} />
+</span>
 ```
 
 - [ ] **Step 4: 确认现有 CSS 中 `.arrow` 的旋转动画仍然适用**
@@ -347,9 +387,11 @@ git commit -m "feat(token-reporter): replace CommandEvent symbols with Tabler ic
 ### Task 7: 替换 ThinkingBlock.tsx 的符号
 
 **Files:**
+
 - Modify: `plugins/token-reporter/frontend/src/components/ConversationList/ThinkingBlock.tsx`
 
 当前：
+
 - 第 25 行 `🧠` — 大脑图标
 - 第 28 行 模板字符串中 `▼`/`▶` — 展开/收起箭头
 
@@ -364,28 +406,41 @@ import {IconBrain, IconChevronDown, IconChevronRight} from '@tabler/icons-react'
 - [ ] **Step 2: 替换大脑图标（第 25 行）**
 
 将：
+
 ```tsx
-        <span className={s.thinkingIcon}>🧠</span>
+<span className={s.thinkingIcon}>🧠</span>
 ```
+
 替换为：
+
 ```tsx
-        <span className={s.thinkingIcon}><IconBrain size={14} stroke={1.5} /></span>
+<span className={s.thinkingIcon}>
+  <IconBrain size={14} stroke={1.5} />
+</span>
 ```
 
 - [ ] **Step 3: 替换展开/收起箭头（第 28 行）**
 
 将：
+
 ```tsx
-        <span className={s.thinkingToggle}>{expanded ? `▼ ${t('common.collapse')}` : `▶ ${t('common.expand')}`}</span>
+<span className={s.thinkingToggle}>{expanded ? `▼ ${t('common.collapse')}` : `▶ ${t('common.expand')}`}</span>
 ```
+
 替换为：
+
 ```tsx
-        <span className={s.thinkingToggle}>
-          {expanded
-            ? <><IconChevronDown size={12} stroke={1.5} style={{verticalAlign: 'middle'}} /> {t('common.collapse')}</>
-            : <><IconChevronRight size={12} stroke={1.5} style={{verticalAlign: 'middle'}} /> {t('common.expand')}</>
-          }
-        </span>
+<span className={s.thinkingToggle}>
+  {expanded ? (
+    <>
+      <IconChevronDown size={12} stroke={1.5} style={{verticalAlign: 'middle'}} /> {t('common.collapse')}
+    </>
+  ) : (
+    <>
+      <IconChevronRight size={12} stroke={1.5} style={{verticalAlign: 'middle'}} /> {t('common.expand')}
+    </>
+  )}
+</span>
 ```
 
 - [ ] **Step 4: 验证 TypeScript 编译无错误**
@@ -407,6 +462,7 @@ git commit -m "feat(token-reporter): replace ThinkingBlock symbols with Tabler i
 ### Task 8: 替换 UserMessage.tsx 和 AssistantMessage.tsx 的展开/收起箭头
 
 **Files:**
+
 - Modify: `plugins/token-reporter/frontend/src/components/ConversationList/UserMessage.tsx`
 - Modify: `plugins/token-reporter/frontend/src/components/ConversationList/AssistantMessage.tsx`
 
@@ -415,39 +471,65 @@ git commit -m "feat(token-reporter): replace ThinkingBlock symbols with Tabler i
 - [ ] **Step 1: 修改 UserMessage.tsx**
 
 添加 import：
+
 ```ts
 import {IconChevronUp, IconChevronDown} from '@tabler/icons-react';
 ```
 
 将第 50 行：
+
 ```tsx
-            {expanded ? `▲ ${t('common.collapse')}` : `▼ ${t('common.expandAll')}`}
+{
+  expanded ? `▲ ${t('common.collapse')}` : `▼ ${t('common.expandAll')}`;
+}
 ```
+
 替换为：
+
 ```tsx
-            {expanded
-              ? <><IconChevronUp size={12} stroke={1.5} style={{verticalAlign: 'middle'}} /> {t('common.collapse')}</>
-              : <><IconChevronDown size={12} stroke={1.5} style={{verticalAlign: 'middle'}} /> {t('common.expandAll')}</>
-            }
+{
+  expanded ? (
+    <>
+      <IconChevronUp size={12} stroke={1.5} style={{verticalAlign: 'middle'}} /> {t('common.collapse')}
+    </>
+  ) : (
+    <>
+      <IconChevronDown size={12} stroke={1.5} style={{verticalAlign: 'middle'}} /> {t('common.expandAll')}
+    </>
+  );
+}
 ```
 
 - [ ] **Step 2: 修改 AssistantMessage.tsx**
 
 添加 import：
+
 ```ts
 import {IconChevronUp, IconChevronDown} from '@tabler/icons-react';
 ```
 
 将第 53 行：
+
 ```tsx
-              {expanded ? `▲ ${t('common.collapse')}` : `▼ ${t('common.expandAll')}`}
+{
+  expanded ? `▲ ${t('common.collapse')}` : `▼ ${t('common.expandAll')}`;
+}
 ```
+
 替换为：
+
 ```tsx
-              {expanded
-                ? <><IconChevronUp size={12} stroke={1.5} style={{verticalAlign: 'middle'}} /> {t('common.collapse')}</>
-                : <><IconChevronDown size={12} stroke={1.5} style={{verticalAlign: 'middle'}} /> {t('common.expandAll')}</>
-              }
+{
+  expanded ? (
+    <>
+      <IconChevronUp size={12} stroke={1.5} style={{verticalAlign: 'middle'}} /> {t('common.collapse')}
+    </>
+  ) : (
+    <>
+      <IconChevronDown size={12} stroke={1.5} style={{verticalAlign: 'middle'}} /> {t('common.expandAll')}
+    </>
+  );
+}
 ```
 
 - [ ] **Step 3: 验证 TypeScript 编译无错误**
@@ -470,9 +552,11 @@ git commit -m "feat(token-reporter): replace expand/collapse arrows with Tabler 
 ### Task 9: 替换 ToolCard.tsx 的符号
 
 **Files:**
+
 - Modify: `plugins/token-reporter/frontend/src/components/ConversationList/ToolCard.tsx`
 
 当前：
+
 - 第 75 行 `&rarr;` → — MCP 方法箭头
 - 第 93 行 `▶` — 展开参数箭头
 
@@ -487,23 +571,33 @@ import {IconArrowRight, IconChevronRight} from '@tabler/icons-react';
 - [ ] **Step 2: 替换 MCP 箭头（第 75 行）**
 
 将：
+
 ```tsx
-              <span className={s.tcMcpSep}>&rarr;</span>
+<span className={s.tcMcpSep}>&rarr;</span>
 ```
+
 替换为：
+
 ```tsx
-              <span className={s.tcMcpSep}><IconArrowRight size={12} stroke={1.5} style={{verticalAlign: 'middle'}} /></span>
+<span className={s.tcMcpSep}>
+  <IconArrowRight size={12} stroke={1.5} style={{verticalAlign: 'middle'}} />
+</span>
 ```
 
 - [ ] **Step 3: 替换展开参数箭头（第 93 行）**
 
 将：
+
 ```tsx
-        <span className={s.arrow}>▶</span>
+<span className={s.arrow}>▶</span>
 ```
+
 替换为：
+
 ```tsx
-        <span className={s.arrow}><IconChevronRight size={14} stroke={1.5} /></span>
+<span className={s.arrow}>
+  <IconChevronRight size={14} stroke={1.5} />
+</span>
 ```
 
 - [ ] **Step 4: 验证 TypeScript 编译无错误**
@@ -525,6 +619,7 @@ git commit -m "feat(token-reporter): replace ToolCard symbols with Tabler icons"
 ### Task 10: 替换 ToolGroup.tsx 的展开箭头
 
 **Files:**
+
 - Modify: `plugins/token-reporter/frontend/src/components/ConversationList/ToolGroup.tsx`
 
 当前：第 55 行 `▶`，通过 `clsx(s.arrow, expanded && s.open)` 的 CSS 旋转实现展开状态。
@@ -540,12 +635,17 @@ import {IconChevronRight} from '@tabler/icons-react';
 - [ ] **Step 2: 替换展开箭头（第 55 行）**
 
 将：
+
 ```tsx
-        <span className={clsx(s.arrow, expanded && s.open)}>▶</span>
+<span className={clsx(s.arrow, expanded && s.open)}>▶</span>
 ```
+
 替换为：
+
 ```tsx
-        <span className={clsx(s.arrow, expanded && s.open)}><IconChevronRight size={14} stroke={1.5} /></span>
+<span className={clsx(s.arrow, expanded && s.open)}>
+  <IconChevronRight size={14} stroke={1.5} />
+</span>
 ```
 
 - [ ] **Step 3: 验证 TypeScript 编译无错误**
@@ -567,43 +667,57 @@ git commit -m "feat(token-reporter): replace ToolGroup arrow with IconChevronRig
 ### Task 11: 替换 SubagentSummary.tsx 和 SubagentCard.tsx 的展开箭头
 
 **Files:**
+
 - Modify: `plugins/token-reporter/frontend/src/components/Subagent/SubagentSummary.tsx`
 - Modify: `plugins/token-reporter/frontend/src/components/Subagent/SubagentCard.tsx`
 
 当前：
+
 - `SubagentSummary.tsx` 第 70 行：`&#x25B6;`，通过 `clsx(s.arrow, expanded && s.open)` 旋转
 - `SubagentCard.tsx` 第 51 行：`&#x25B6;`，通过 `${s.arrow} ${expanded ? s.open : ''}` 旋转
 
 - [ ] **Step 1: 修改 SubagentSummary.tsx**
 
 添加 import（在文件第 1 行现有 imports 末尾）：
+
 ```ts
 import {IconChevronRight} from '@tabler/icons-react';
 ```
 
 将第 70 行：
+
 ```tsx
-          <span className={clsx(s.arrow, expanded && s.open)}>&#x25B6;</span>
+<span className={clsx(s.arrow, expanded && s.open)}>&#x25B6;</span>
 ```
+
 替换为：
+
 ```tsx
-          <span className={clsx(s.arrow, expanded && s.open)}><IconChevronRight size={14} stroke={1.5} /></span>
+<span className={clsx(s.arrow, expanded && s.open)}>
+  <IconChevronRight size={14} stroke={1.5} />
+</span>
 ```
 
 - [ ] **Step 2: 修改 SubagentCard.tsx**
 
 添加 import（在文件第 1 行现有 imports 末尾）：
+
 ```ts
 import {IconChevronRight} from '@tabler/icons-react';
 ```
 
 将第 51 行：
+
 ```tsx
-          <span className={`${s.arrow} ${expanded ? s.open : ''}`}>&#x25B6;</span>
+<span className={`${s.arrow} ${expanded ? s.open : ''}`}>&#x25B6;</span>
 ```
+
 替换为：
+
 ```tsx
-          <span className={`${s.arrow} ${expanded ? s.open : ''}`}><IconChevronRight size={14} stroke={1.5} /></span>
+<span className={`${s.arrow} ${expanded ? s.open : ''}`}>
+  <IconChevronRight size={14} stroke={1.5} />
+</span>
 ```
 
 - [ ] **Step 3: 验证 TypeScript 编译无错误**
@@ -626,6 +740,7 @@ git commit -m "feat(token-reporter): replace Subagent expand arrows with IconChe
 ### Task 12: 构建验证并提交产物
 
 **Files:**
+
 - Modify: `plugins/token-reporter/dist/` (构建产物)
 
 - [ ] **Step 1: 构建前端**
@@ -634,6 +749,7 @@ git commit -m "feat(token-reporter): replace Subagent expand arrows with IconChe
 cd plugins/token-reporter/frontend
 npm run build
 ```
+
 预期：无错误，`dist/` 目录更新。
 
 - [ ] **Step 2: 验证 bundle 中只包含用到的图标**
@@ -642,6 +758,7 @@ npm run build
 # 检查 bundle 中有 IconChevronDown 等，但没有随机未使用的图标如 IconAnchor
 grep -l "IconAnchor\|iconAnchor\|anchor" plugins/token-reporter/dist/assets/*.js | wc -l
 ```
+
 预期：输出 `0`（未使用的图标不在 bundle 中）。
 
 - [ ] **Step 3: 运行现有测试**
@@ -652,16 +769,19 @@ node test/test-hooks.js
 node test/test-migration.js
 node test/test-single-instance.js
 ```
+
 预期：所有测试通过。
 
 - [ ] **Step 4: 版本检查**
 
 ```bash
-node plugins/token-reporter/scripts/check-version.js
+node plugins/token-reporter/scripts/check-version.cjs
 ```
+
 如提示需要 bump，运行：
+
 ```bash
-node plugins/token-reporter/scripts/bump-version.js minor
+node plugins/token-reporter/scripts/bump-version.cjs minor
 ```
 
 - [ ] **Step 5: 提交构建产物**

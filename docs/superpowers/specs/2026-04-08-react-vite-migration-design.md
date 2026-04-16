@@ -3,6 +3,7 @@
 ## Context
 
 当前 token-reporter 前端是 ~3,937 行 vanilla JS 应用，包含 7 个 JS 模块、6 个 CSS 文件和 1 个 HTML 入口。虽然架构清晰（state/session/chart/interactions/renderer/utils 模块分离），但存在以下问题：
+
 - 无类型安全，API 数据结构不明确
 - 大量 DOM 手动操作（renderer.js 896 行），SSE 更新时需手动保存/恢复 expand 状态
 - CSS 全局命名空间，类名冲突风险
@@ -14,16 +15,16 @@
 
 ## 技术选型总结
 
-| 项目 | 选择 |
-|------|------|
-| 框架 | React 19 + Vite 6 |
-| 语言 | TypeScript 5.7 |
-| 状态管理 | Zustand 5 |
-| 样式方案 | CSS Modules + SCSS（`sass`） |
-| 图表 | 保留原生 Canvas 2D，useRef + useEffect 封装 |
-| 构建产物 | 提交 `dist/` 到 git |
-| 自动编译 | pre-push hook |
-| 开发体验 | Vite HMR + proxy 代理后端 API |
+| 项目     | 选择                                        |
+| -------- | ------------------------------------------- |
+| 框架     | React 19 + Vite 6                           |
+| 语言     | TypeScript 5.7                              |
+| 状态管理 | Zustand 5                                   |
+| 样式方案 | CSS Modules + SCSS（`sass`）                |
+| 图表     | 保留原生 Canvas 2D，useRef + useEffect 封装 |
+| 构建产物 | 提交 `dist/` 到 git                         |
+| 自动编译 | pre-push hook                               |
+| 开发体验 | Vite HMR + proxy 代理后端 API               |
 
 ---
 
@@ -169,33 +170,36 @@ plugins/token-reporter/
 ## 3. Zustand Store 设计
 
 ### sessionStore
+
 ```typescript
 interface SessionStore {
   sessions: SessionListItem[];
   sessionsLoading: boolean;
   sessionsError: string | null;
   activeSessionId: string | null;
-  data: DataItem[];             // 所有 items 按时间排序
-  turns: TurnItem[];            // 仅 turn 类型，用于图表索引
+  data: DataItem[]; // 所有 items 按时间排序
+  turns: TurnItem[]; // 仅 turn 类型，用于图表索引
   subagents: Record<string, SubagentStats>;
   sessionLoading: boolean;
   sessionError: string | null;
   fetchSessions: () => Promise<void>;
-  loadSession: (id: string, opts?: { preserveScroll?: boolean }) => Promise<void>;
+  loadSession: (id: string, opts?: {preserveScroll?: boolean}) => Promise<void>;
   refreshCurrentSession: () => Promise<void>;
 }
 ```
+
 - `fetchSessions()` 从 `/api/sessions` 加载列表，恢复 localStorage 上次选择
 - `loadSession()` 并行请求 `/api/sessions/:id` + `/api/limits`，调用 adapter 转换
 - `refreshCurrentSession()` 由 SSE 触发，`preserveScroll=true`
 
 ### chartStore
+
 ```typescript
 interface ChartStore {
-  brushL: number;               // 0..1
-  brushR: number;               // 0..1
+  brushL: number; // 0..1
+  brushR: number; // 0..1
   hoveredId: number | null;
-  dims: { input: boolean; output: boolean; cacheR: boolean; cacheC: boolean };
+  dims: {input: boolean; output: boolean; cacheR: boolean; cacheC: boolean};
   barRects: BarRect[];
   setBrush: (l: number, r: number) => void;
   setHovered: (id: number | null) => void;
@@ -206,6 +210,7 @@ interface ChartStore {
 ```
 
 ### limitsStore
+
 ```typescript
 interface LimitsStore {
   limits: Record<string, LimitsData>;
@@ -214,6 +219,7 @@ interface LimitsStore {
 ```
 
 ### uiStore
+
 ```typescript
 interface UIStore {
   expandedToolGroups: Set<string>;
@@ -229,6 +235,7 @@ interface UIStore {
 ```
 
 ### 数据流
+
 ```
 SSE "update" -> sessionStore.refreshCurrentSession()
   -> fetch API -> adapter -> 更新 data/turns
@@ -289,16 +296,16 @@ interface ApiTurn {
 
 interface ApiTool {
   name: string;
-  cls: string;    // 'bash'|'read'|'edit'|'write'|'grep'|'glob'|'web'|'agent'|'mcp'|'other'
+  cls: string; // 'bash'|'read'|'edit'|'write'|'grep'|'glob'|'web'|'agent'|'mcp'|'other'
   params: string;
-  inputArgs: { k: string; v: string; vc: string }[];
+  inputArgs: {k: string; v: string; vc: string}[];
   status: 'ok' | 'err';
   isErr: boolean;
   dur: string;
   retContent: string;
   retSize: string;
   retLines: string;
-  mcp: { server: string; method: string } | null;
+  mcp: {server: string; method: string} | null;
 }
 
 interface ApiSystemEvent {
@@ -317,7 +324,7 @@ interface ApiSubagentStats {
   agentType: string;
   description: string;
   totalTurns: number;
-  totalTokens: { input: number; output: number; cacheR: number; cacheC: number };
+  totalTokens: {input: number; output: number; cacheR: number; cacheC: number};
   toolCounts: Record<string, number>;
   turns: ApiTurn[];
 }
@@ -351,7 +358,7 @@ interface RateLimitsData {
 
 interface RateLimitEntry {
   used_percentage: number;
-  resets_at?: number;         // unix timestamp in seconds
+  resets_at?: number; // unix timestamp in seconds
 }
 ```
 
@@ -385,10 +392,10 @@ interface ToolItem {
   dur: string;
   retSize: string;
   retLines: string;
-  input: { k: string; v: string; vc: string }[];
+  input: {k: string; v: string; vc: string}[];
   output: string;
   isErr: boolean;
-  mcp: { server: string; method: string } | null;
+  mcp: {server: string; method: string} | null;
 }
 
 interface CompactItem {
@@ -422,38 +429,51 @@ interface BarRect {
 ## 5. SCSS 架构
 
 ### `_variables.scss`
+
 - 将现有 `variables.css` 中的 CSS 变量提升为 SCSS 变量（`$bg`, `$surface`, `$blue` 等）
 - 同时在 `:root` 中输出 CSS 自定义属性，供运行时访问
 - COLORS 常量也在此定义（供 canvas 绘图使用，通过 TypeScript 常量同步）
 
 ### `_mixins.scss`
+
 ```scss
-@mixin skeleton-shimmer { /* 骨架屏动画 */ }
-@mixin text-clamp($lines: 6) { /* 文本截断 */ }
-@mixin scrollable($max-height) { /* 可滚动区域 */ }
-@mixin tool-color-band($color) { /* 工具颜色条 */ }
+@mixin skeleton-shimmer {
+  /* 骨架屏动画 */
+}
+@mixin text-clamp($lines: 6) {
+  /* 文本截断 */
+}
+@mixin scrollable($max-height) {
+  /* 可滚动区域 */
+}
+@mixin tool-color-band($color) {
+  /* 工具颜色条 */
+}
 ```
 
 ### CSS Modules 策略
+
 - 每个组件配套 `.module.scss`，类名自动局部化
 - 文件头部 `@use '../../styles/variables' as *;` 引入变量
 - `localsConvention: 'camelCaseOnly'`，JS 中用 `styles.toolCard` 而非 `styles['tool-card']`
 
 ### 样式迁移映射
-| 原始 CSS 文件 | 目标组件 SCSS |
-|---|---|
-| `variables.css` | `styles/_variables.scss` |
-| `layout.css` | `StickyChart.module.scss` + `ConversationList.module.scss` + `LimitsDisplay.module.scss` |
-| `chart.css` | `DimBar.module.scss` + `SessionBar.module.scss` + `MainChart.module.scss` + `BrushChart.module.scss` + `BrushOverlay.module.scss` |
-| `messages.css` | `TurnItem.module.scss` + `ThinkingBlock.module.scss` + `ConversationList.module.scss` |
-| `tools.css` | `ToolGroup.module.scss` + `ToolCard.module.scss` + `SubagentSummary.module.scss` |
-| `ui.css` | `LoadingState.module.scss` + `CopyButton.module.scss` + `global.scss` |
+
+| 原始 CSS 文件   | 目标组件 SCSS                                                                                                                     |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `variables.css` | `styles/_variables.scss`                                                                                                          |
+| `layout.css`    | `StickyChart.module.scss` + `ConversationList.module.scss` + `LimitsDisplay.module.scss`                                          |
+| `chart.css`     | `DimBar.module.scss` + `SessionBar.module.scss` + `MainChart.module.scss` + `BrushChart.module.scss` + `BrushOverlay.module.scss` |
+| `messages.css`  | `TurnItem.module.scss` + `ThinkingBlock.module.scss` + `ConversationList.module.scss`                                             |
+| `tools.css`     | `ToolGroup.module.scss` + `ToolCard.module.scss` + `SubagentSummary.module.scss`                                                  |
+| `ui.css`        | `LoadingState.module.scss` + `CopyButton.module.scss` + `global.scss`                                                             |
 
 ---
 
 ## 6. 构建管线
 
 ### `vite.config.ts`
+
 ```typescript
 export default defineConfig({
   plugins: [react()],
@@ -462,13 +482,13 @@ export default defineConfig({
     emptyOutDir: true,
   },
   css: {
-    modules: { localsConvention: 'camelCaseOnly' },
+    modules: {localsConvention: 'camelCaseOnly'},
   },
   server: {
     port: 5173,
     proxy: {
       '/api': 'http://localhost:3737',
-      '/events': { target: 'http://localhost:3737' },
+      '/events': {target: 'http://localhost:3737'},
       '/notify': 'http://localhost:3737',
     },
   },
@@ -476,11 +496,13 @@ export default defineConfig({
 ```
 
 ### `server.js` 修改（最小改动）
+
 - `SRC_DIR` 改为指向 `dist/`
 - 静态文件服务改为遍历 `dist/` 目录（支持 Vite 哈希文件名 `assets/*.js`, `assets/*.css`）
 - 扩展 MIME 类型：`.svg`, `.woff2`, `.png`
 
 ### pre-push hook
+
 ```bash
 #!/bin/bash
 # 1. 构建前端
@@ -495,7 +517,7 @@ if [ -n "$(git status --porcelain plugins/token-reporter/dist)" ]; then
 fi
 
 # 3. 版本检查（现有逻辑）
-node plugins/token-reporter/scripts/check-version.js
+node plugins/token-reporter/scripts/check-version.cjs
 ```
 
 ---
@@ -503,6 +525,7 @@ node plugins/token-reporter/scripts/check-version.js
 ## 7. 实施步骤
 
 ### Phase 1: 脚手架搭建
+
 1. 创建 `frontend/` 目录，初始化 `package.json`、`vite.config.ts`、`tsconfig.json`、`index.html`
 2. 安装依赖：`react`, `react-dom`, `zustand`, `sass`, `typescript`, `vite`, `@vitejs/plugin-react`
 3. 创建 `src/main.tsx` + `App.tsx` 最小渲染
@@ -510,6 +533,7 @@ node plugins/token-reporter/scripts/check-version.js
 5. 验证 `npm run dev` 可启动
 
 ### Phase 2: 类型 + 工具 + Store（基础层）
+
 6. 编写 `types/api.ts` 和 `types/state.ts`（核对 parser.js 实际输出）
 7. 迁移 `utils/format.ts`（从 utils.js，纯函数 1:1 转换 + 类型标注）
 8. 迁移 `utils/canvas.ts`（setupCanvas, getSegs）
@@ -518,6 +542,7 @@ node plugins/token-reporter/scripts/check-version.js
 11. 编写 `services/adapter.ts`（从 session.js adaptSession 迁移）
 
 ### Phase 3: 图表组件（视觉基础）
+
 12. `StickyChart` 容器组件 + SCSS
 13. `DimBar` 维度切换
 14. `MainChart` Canvas 组件 -- 迁移 chart.js `drawMainChart()`
@@ -528,6 +553,7 @@ node plugins/token-reporter/scripts/check-version.js
 19. `LimitsDisplay` -- 迁移 renderer.js `renderLimits()`
 
 ### Phase 4: 对话列表（最大工作量）
+
 20. `TokenBadges` 和 `CopyButton` 公共组件
 21. `TurnItem` 容器
 22. `UserMessage` + `AssistantMessage`（含展开/折叠）
@@ -538,12 +564,14 @@ node plugins/token-reporter/scripts/check-version.js
 27. `SubagentSummary` + `SubagentCard` + `SubagentTurn` + `SubagentToolGroup`
 
 ### Phase 5: 数据加载 + SSE
+
 28. 在 `App.tsx` 中接入 `sessionStore.fetchSessions()` + `loadSession()`
 29. `useSSE` hook -- 迁移 SSE 逻辑（含指数退避重连）
 30. `useScrollSync` hook -- 迁移滚动 <-> brush 同步
 31. `LoadingState` + `ErrorDisplay` 组件
 
 ### Phase 6: 集成 + 调优
+
 32. `ConversationList` 渲染 items
 33. hover 高亮联动（图表 <-> 对话列表）
 34. SSE 实时更新验证（expand 状态保持）
@@ -552,6 +580,7 @@ node plugins/token-reporter/scripts/check-version.js
 37. 视觉对比验证
 
 ### Phase 7: 构建 + 部署
+
 38. `npm run build`，验证 dist/ 输出
 39. 修改 `server.js` 从 dist/ 提供服务
 40. 设置 pre-push hook
@@ -563,6 +592,7 @@ node plugins/token-reporter/scripts/check-version.js
 ## 8. 验证方案
 
 ### 功能验证清单
+
 - [ ] 会话列表加载和切换
 - [ ] 会话 ID 复制
 - [ ] localStorage 记住上次选择的会话
@@ -585,12 +615,14 @@ node plugins/token-reporter/scripts/check-version.js
 - [ ] 错误提示
 
 ### 构建验证
+
 - [ ] `npm run build` 成功
 - [ ] `dist/index.html` + `dist/assets/` 生成
 - [ ] server.js 从 dist/ 正确提供服务
 - [ ] pre-push hook 自动构建 + 提交 dist/
 
 ### 关键文件
+
 - `plugins/token-reporter/src/js/renderer.js` -- 需要拆分为 ~15 个 React 组件
 - `plugins/token-reporter/src/js/session.js` -- SSE + 数据加载逻辑迁移为 store + hook
 - `plugins/token-reporter/src/js/chart.js` -- Canvas 绘制逻辑迁移到 useEffect
