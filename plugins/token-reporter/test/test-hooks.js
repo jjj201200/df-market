@@ -1,11 +1,11 @@
 "use strict";
-const assert = require("assert");
-const { execFile } = require("child_process");
-const path = require("path");
-const os = require("os");
-const fs = require("fs");
+import assert from "assert";
+import { execFile, execSync } from "child_process";
+import path from "path";
+import os from "os";
+import fs from "fs";
 
-const HOOKS_DIR = path.join(__dirname, "..", "hooks");
+const HOOKS_DIR = path.join(process.cwd(), "hooks");
 
 let passed = 0;
 let failed = 0;
@@ -18,7 +18,7 @@ function run(script, opts) {
     const env = {
       ...process.env,
       TOKEN_REPORTER_DATA_DIR: dataDir,
-      TOKEN_REPORTER_PLUGIN_ROOT: path.join(__dirname, ".."),
+      TOKEN_REPORTER_PLUGIN_ROOT: process.cwd(),
     };
     const child = execFile(
       process.execPath,
@@ -162,21 +162,21 @@ async function main() {
 
   function getProcessOnPort(port) {
     try {
-      const output = require("child_process").execSync(`lsof -i :${port} -sTCP:LISTEN -t 2>/dev/null`, { encoding: "utf8" });
+      const output = execSync(`lsof -i :${port} -sTCP:LISTEN -t 2>/dev/null`, { encoding: "utf8" });
       return parseInt(output.trim().split("\n")[0]) || null;
     } catch { return null; }
   }
 
   function isTokenReporterProcess(pid) {
     try {
-      const cmdline = require("child_process").execSync(`ps -p ${pid} -o comm= 2>/dev/null`, { encoding: "utf8" });
+      const cmdline = execSync(`ps -p ${pid} -o comm= 2>/dev/null`, { encoding: "utf8" });
       return cmdline.includes("node") || cmdline.includes("token");
     } catch { return false; }
   }
 
   function findDevServerProcess() {
     try {
-      const output = require("child_process").execSync(
+      const output = execSync(
         `ps aux 2>/dev/null | grep -E 'node.*server\\.js' | grep -v grep | grep -E 'tmp|temp|test' || true`,
         { encoding: "utf8" }
       );

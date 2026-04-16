@@ -1,10 +1,10 @@
 "use strict";
-const assert = require("assert");
-const path = require("path");
-const fs = require("fs");
-const os = require("os");
+import assert from "assert";
+import path from "path";
+import fs from "fs";
+import os from "os";
 
-const { parseSession } = require(path.join(__dirname, "..", "backend", "parser.js"));
+const { parseSession } = await import(path.join(process.cwd(), "backend", "dist", "parser", "index.js"));
 
 let passed = 0;
 let failed = 0;

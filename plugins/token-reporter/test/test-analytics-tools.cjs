@@ -1,6 +1,6 @@
 "use strict";
 const assert = require("assert");
-const { computeToolEfficiency } = require("../frontend/src/utils/analytics.ts");
+const { computeToolEfficiency } = require("../frontend/src/utils/analytics/index.ts");
 
 function makeTurn(overrides) {
   return {

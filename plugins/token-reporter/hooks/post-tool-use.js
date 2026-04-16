@@ -1,8 +1,8 @@
 "use strict";
-const http = require("http");
-const fs = require("fs");
-const path = require("path");
-const os = require("os");
+import http from "http";
+import fs from "fs";
+import path from "path";
+import os from "os";
 
 const DATA_DIR =
   process.env.TOKEN_REPORTER_DATA_DIR ||

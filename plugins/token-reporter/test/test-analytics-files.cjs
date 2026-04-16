@@ -1,6 +1,6 @@
 "use strict";
 const assert = require("assert");
-const { computeFileMetrics } = require("../frontend/src/utils/analytics.ts");
+const { computeFileMetrics } = require("../frontend/src/utils/analytics/index.ts");
 
 function makeTurn(overrides) {
   return {

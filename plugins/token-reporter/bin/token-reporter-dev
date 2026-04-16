@@ -6,10 +6,10 @@
  * Usage: token-reporter-dev [start|stop|status]
  */
 
-const { spawn, execSync } = require("child_process");
-const fs = require("fs");
-const path = require("path");
-const os = require("os");
+import { spawn, execSync } from "child_process";
+import fs from "fs";
+import path from "path";
+import os from "os";
 
 const DEFAULT_DEV_PORT = 13737;
 const MAX_PORT_ATTEMPTS = 10;
@@ -23,8 +23,8 @@ const CONFIG_PATH = path.join(DEV_DATA_DIR, "config.json");
 // Priority: env var > CWD match > git repo root > saved devRoot > script dir.
 // Once found, devRoot is persisted so future runs from any location work.
 function resolvePluginRoot() {
-  const scriptDir = path.resolve(__dirname, "..");
-  const marker = path.join("backend", "server.js");
+  const scriptDir = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
+  const marker = path.join("backend", "dist", "server.js");
   const devConfig = readJSON(CONFIG_PATH, {});
 
   function tryPlugin(dir) {
@@ -141,7 +141,7 @@ function findTokenReporterProcess() {
   try {
     // Search for node processes running token-reporter's server.js
     const output = execSync(
-      `ps aux 2>/dev/null | grep -E 'node.*token-reporter.*server\.js' | grep -v grep || true`,
+      `ps aux 2>/dev/null | grep -E 'node.*token-reporter.*server\\.js' | grep -v grep || true`,
       { encoding: 'utf8' }
     );
     const lines = output.trim().split('\n').filter(line => line.trim());
@@ -404,7 +404,7 @@ function ensureApiServer(port) {
     return existingPid;
   }
 
-  const child = spawn(process.execPath, [path.join(PLUGIN_ROOT, "backend", "server.js")], {
+  const child = spawn(process.execPath, [path.join(PLUGIN_ROOT, "backend", "dist", "server.js")], {
     detached: true,
     stdio: "ignore",
     env: {

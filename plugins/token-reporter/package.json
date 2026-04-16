@@ -1,9 +1,19 @@
 {
   "name": "token-reporter",
   "version": "1.0.0",
-  "type": "commonjs",
+  "type": "module",
   "description": "Real-time Claude Code token usage reporter",
   "engines": {
     "node": ">=18"
+  },
+  "scripts": {
+    "build:backend": "tsc -p backend/tsconfig.json",
+    "build:backend:watch": "tsc -p backend/tsconfig.json --watch",
+    "test": "npm run build:backend && node test/test-parser.js && node test/test-migration.js && node test/test-server.js && node test/test-hooks.js && node test/test-statusline-integration.js && node test/test-single-instance.js && npx tsx test/test-analytics.cjs && npx tsx test/test-analytics-cache.cjs && npx tsx test/test-analytics-files.cjs && npx tsx test/test-analytics-recommendations.cjs && npx tsx test/test-analytics-tools.cjs && npx tsx test/test-file-metrics.cjs && npx tsx test/test-mcp-metrics.cjs && npx tsx test/test-pressure-metrics.cjs && npx tsx test/test-prompt-metrics.cjs"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "tsx": "^4.19.0",
+    "typescript": "~5.9.3"
   }
 }

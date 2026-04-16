@@ -1,19 +1,19 @@
 "use strict";
-const http = require("http");
-const fs = require("fs");
-const path = require("path");
-const os = require("os");
-const { execFile } = require("child_process");
-const { migrate } = require("../backend/migrate.js");
+import http from "http";
+import fs from "fs";
+import path from "path";
+import os from "os";
+import { execFile } from "child_process";
+import { migrate } from "../backend/dist/migrate.js";
 
-const PLUGIN_ROOT = path.resolve(__dirname, "..");
+const PLUGIN_ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
 const DATA_DIR =
   process.env.TOKEN_REPORTER_DATA_DIR ||
   path.join(os.homedir(), ".claude", "token-reporter");
 const CONFIG_PATH = path.join(DATA_DIR, "config.json");
 const PID_PATH = path.join(DATA_DIR, "server.pid");
 const LOCK_PATH = path.join(DATA_DIR, "server.lock");
-const SERVER_PATH = path.join(PLUGIN_ROOT, "backend", "server.js");
+const SERVER_PATH = path.join(PLUGIN_ROOT, "backend", "dist", "server.js");
 const PLUGIN_JSON_PATH = path.join(
   PLUGIN_ROOT,
   ".claude-plugin",

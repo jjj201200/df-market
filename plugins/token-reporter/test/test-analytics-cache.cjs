@@ -1,6 +1,6 @@
 "use strict";
 const assert = require("assert");
-const { computeCacheMetrics } = require("../frontend/src/utils/analytics.ts");
+const { computeCacheMetrics } = require("../frontend/src/utils/analytics/index.ts");
 
 function makeTurn(overrides) {
   return {

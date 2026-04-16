@@ -5,7 +5,7 @@
  * Usage: token-reporter-statusline-status
  */
 
-const { getStatus } = require("../backend/statusline-integration.js");
+import { getStatus } from "../backend/dist/statusline-integration.js";
 
 const status = getStatus();
 

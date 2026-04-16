@@ -1,7 +1,7 @@
 "use strict";
-const fs = require("fs");
-const path = require("path");
-const os = require("os");
+import fs from "fs";
+import path from "path";
+import os from "os";
 
 const DATA_DIR =
   process.env.TOKEN_REPORTER_DATA_DIR ||

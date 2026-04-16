@@ -1,6 +1,6 @@
 "use strict";
 const assert = require("assert");
-const { generateRecommendations } = require("../frontend/src/utils/analytics.ts");
+const { generateRecommendations } = require("../frontend/src/utils/analytics/index.ts");
 const { createT } = require("../frontend/src/i18n/useI18n.ts");
 
 const t = createT("en");

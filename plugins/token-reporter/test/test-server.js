@@ -1,12 +1,12 @@
 "use strict";
-const assert = require("assert");
-const { execFile } = require("child_process");
-const path = require("path");
-const fs = require("fs");
-const os = require("os");
-const http = require("http");
+import assert from "assert";
+import { execFile, execSync } from "child_process";
+import path from "path";
+import fs from "fs";
+import os from "os";
+import http from "http";
 
-const PLUGIN_ROOT = path.join(__dirname, "..");
+const PLUGIN_ROOT = path.join(process.cwd());
 // Use a non-standard port to avoid conflicts with a running instance
 const TEST_PORT = 13737;
 
@@ -42,7 +42,6 @@ async function test(name, fn) {
 
 function findDevServerProcess() {
   try {
-    const { execSync } = require("child_process");
     // Look for node processes with server.js in a temp/test dir (dev/test instance)
     const output = execSync(
       `ps aux 2>/dev/null | grep -E 'node.*server\.js' | grep -v grep | grep -E 'tmp|temp|test' || true`,
@@ -59,7 +58,6 @@ function findDevServerProcess() {
 
 function findProdServerProcess() {
   try {
-    const { execSync } = require("child_process");
     // Look for node processes with server.js in the production plugin cache path
     const output = execSync(
       `ps aux 2>/dev/null | grep -E 'node.*server\.js' | grep -v grep | grep -E 'claude/plugins|\\.claude/plugins' | grep -v 'tmp\\|temp\\|test' || true`,
@@ -76,7 +74,6 @@ function findProdServerProcess() {
 
 function getProcessOnPort(port) {
   try {
-    const { execSync } = require("child_process");
     const output = execSync(`lsof -i :${port} -sTCP:LISTEN -t 2>/dev/null`, { encoding: "utf8" });
     return parseInt(output.trim().split("\n")[0]) || null;
   } catch {
@@ -86,7 +83,6 @@ function getProcessOnPort(port) {
 
 function isTokenReporterProcess(pid) {
   try {
-    const { execSync } = require("child_process");
     const cmdline = execSync(`ps -p ${pid} -o comm= 2>/dev/null`, { encoding: "utf8" });
     return cmdline.includes("node") || cmdline.includes("token");
   } catch {
@@ -117,7 +113,7 @@ function startServer() {
       TOKEN_REPORTER_PLUGIN_ROOT: PLUGIN_ROOT,
       TOKEN_REPORTER_DATA_DIR: dataDir,
     };
-    serverProcess = execFile(process.execPath, [path.join(PLUGIN_ROOT, "backend", "server.js")], {
+    serverProcess = execFile(process.execPath, [path.join(PLUGIN_ROOT, "backend", "dist", "server.js")], {
       env,
       timeout: 30000,
     });
@@ -183,7 +179,7 @@ function stopServer() {
         stopped = true;
         break;
       }
-      require("child_process").execSync("sleep 1");
+      execSync("sleep 1");
     }
 
     if (!stopped) {
@@ -214,75 +210,32 @@ async function main() {
       res.headers["content-type"].includes("text/html"),
       `Expected text/html, got: ${res.headers["content-type"]}`
     );
-    assert.ok(res.body.includes("<!doctype html>"), "Should contain doctype");
+    assert.ok(res.body.toLowerCase().includes("<!doctype html>"), "Should contain doctype");
     assert.ok(res.body.includes('<script type="module"'), "Should contain ES module script tag");
-    assert.ok(res.body.includes('href="/css/'), "Should contain CSS link tags");
+    assert.ok(res.body.includes('href="/assets/'), "Should contain CSS asset link tags");
   });
 
-  // ── CSS files ──
-  await test("GET /css/variables.css returns CSS with correct MIME", async () => {
-    const res = await fetch("/css/variables.css");
-    assert.strictEqual(res.status, 200);
+  // ── Vite hashed assets ──
+  await test("GET /assets/ returns hashed JS/CSS assets", async () => {
+    // Find at least one asset referenced in index.html
+    const index = await fetch("/");
+    const assetMatch = index.body.match(/(?:src|href)="(\/assets\/[^"]+)"/);
+    assert.ok(assetMatch, "index.html should reference hashed assets in /assets/");
+    const assetPath = assetMatch[1];
+    const res = await fetch(assetPath);
+    assert.strictEqual(res.status, 200, `Expected 200 for ${assetPath}, got ${res.status}`);
+    const ct = res.headers["content-type"] || "";
     assert.ok(
-      res.headers["content-type"].includes("text/css"),
-      `Expected text/css, got: ${res.headers["content-type"]}`
+      ct.includes("javascript") || ct.includes("css"),
+      `Expected JS or CSS MIME for ${assetPath}, got: ${ct}`
     );
-    assert.ok(res.body.includes(":root"), "Should contain CSS :root");
-  });
-
-  await test("GET /css/tools.css returns 200", async () => {
-    const res = await fetch("/css/tools.css");
-    assert.strictEqual(res.status, 200);
-    assert.ok(res.body.includes(".tc-group"), "Should contain .tc-group");
-  });
-
-  // ── JS modules ──
-  await test("GET /js/main.js returns JS with correct MIME", async () => {
-    const res = await fetch("/js/main.js");
-    assert.strictEqual(res.status, 200);
-    assert.ok(
-      res.headers["content-type"].includes("application/javascript"),
-      `Expected application/javascript, got: ${res.headers["content-type"]}`
-    );
-    assert.ok(res.body.includes("import"), "Should contain ES module import");
-  });
-
-  await test("GET /js/state.js returns 200", async () => {
-    const res = await fetch("/js/state.js");
-    assert.strictEqual(res.status, 200);
-    assert.ok(res.body.includes("export"), "Should contain exports");
-  });
-
-  await test("GET /js/chart.js returns 200", async () => {
-    const res = await fetch("/js/chart.js");
-    assert.strictEqual(res.status, 200);
-  });
-
-  await test("GET /js/renderer.js returns 200", async () => {
-    const res = await fetch("/js/renderer.js");
-    assert.strictEqual(res.status, 200);
-  });
-
-  await test("GET /js/session.js returns 200", async () => {
-    const res = await fetch("/js/session.js");
-    assert.strictEqual(res.status, 200);
-  });
-
-  await test("GET /js/interactions.js returns 200", async () => {
-    const res = await fetch("/js/interactions.js");
-    assert.strictEqual(res.status, 200);
-  });
-
-  await test("GET /js/utils.js returns 200", async () => {
-    const res = await fetch("/js/utils.js");
-    assert.strictEqual(res.status, 200);
   });
 
   // ── Security: path traversal ──
   // Note: Node's URL parser normalizes /../ to /, so the traversal is
   // already blocked by the URL layer. We test that requesting files
   // outside the expected directories (css/, js/) returns 404.
-  await test("requesting files outside css/js dirs returns 404", async () => {
+  await test("requesting files outside dist dirs returns 404", async () => {
     const res = await fetch("/parser.js");
     assert.strictEqual(res.status, 404, `Expected 404 for /parser.js, got ${res.status}`);
   });
@@ -299,8 +252,8 @@ async function main() {
     assert.strictEqual(res.status, 404);
   });
 
-  await test("GET /css/nonexistent.css returns 404", async () => {
-    const res = await fetch("/css/nonexistent.css");
+  await test("GET /assets/nonexistent.css returns 404", async () => {
+    const res = await fetch("/assets/nonexistent.css");
     assert.strictEqual(res.status, 404);
   });
 

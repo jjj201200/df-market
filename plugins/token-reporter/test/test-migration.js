@@ -1,9 +1,9 @@
 "use strict";
-const assert = require("assert");
-const fs = require("fs");
-const os = require("os");
-const path = require("path");
-const { migrate, semverCompare, MIGRATIONS } = require("../backend/migrate.js");
+import assert from "assert";
+import fs from "fs";
+import os from "os";
+import path from "path";
+import { migrate, semverCompare, MIGRATIONS } from "../backend/dist/migrate.js";
 
 let passed = 0;
 let failed = 0;
