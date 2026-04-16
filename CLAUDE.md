@@ -168,7 +168,7 @@ export function generateRecommendations(input: Input, t: TFunction): Result[] {
 - 目录名与 frontmatter `name` 必须一致。
 - 新增/修改本插件内的 skill 时，**5 份通用 skill 原则上整份搬运、不就地编辑**；如需改动请直接修改用户个人 `~/.claude/skills/<name>/SKILL.md` 后重新搬运，以便上游（个人 skills）与插件内保持一致。
 
-### welcome skill 流程（v0.1.2 起 8 环节）
+### welcome skill 流程（v0.2.0 起 10 环节）
 
 `/skill-keeper-welcome` 命令 → 触发 `skill-keeper-welcome` skill → 渐进式 AskUserQuestion：
 
@@ -179,9 +179,11 @@ export function generateRecommendations(input: Input, t: TFunction): Result[] {
 5. 派生范围 + 通用参数（项目代号 / 生成位置）
 6. 命名方案
 7. 逐份追问项目特有字段（先预扫项目档案提供默认值）
-8. 落盘清单确认 + 委派 `skill-creator` + 收尾提示
+8. 落盘清单确认 + 委派 `skill-creator`（串行，每份独立）
+9. **文档登记子环节**（主动提醒：登记到 CLAUDE.md / AGENTS.md / MEMORY.md，多选；文件不存在时单独询问新建/打印/跳过；见 `doc-registration-flow.md`）
+10. 收尾提示（重启 Claude Code 警告 + docIndexResult 展示）
 
-welcome skill 本身不写任何 SKILL.md 文件——落盘交给 `skill-creator`。未填字段以 `TODO:` 占位符保留。
+welcome skill 本身不写任何 SKILL.md 文件——落盘交给 `skill-creator`。未填字段以 `TODO:` 占位符保留。**例外**：环节 9 允许 Write 目标文件（仅限 CLAUDE.md / AGENTS.md 的新建分支），经用户在 AUQ 里显式授权；MEMORY.md 永远不自动新建。
 
 ### references / scripts 拓扑
 
@@ -194,7 +196,7 @@ welcome skill 本身不写任何 SKILL.md 文件——落盘交给 `skill-creato
 | `skill-doc-sync-check` | `references/check-catalog.md`               | 四项核查清单、索引完整性五步闭环、工具选择              |
 | `skill-audit`          | `references/dimensions.md`                  | 7 核查维度                                              |
 | `skill-doc-audit`      | `references/dimensions.md`                  | 5 核查维度、索引强制步骤、并行切分策略                  |
-| `skill-keeper-welcome` | `references/language-options.md` / `references/scope-split-plan.md` / `references/derivation-fields-catalog.md` / `references/skill-creator-prompt-template.md` | 语言 AUQ（一次两问）、派生范围拆分方案、追问字段清单+预扫规则、委派 prompt 模板 |
+| `skill-keeper-welcome` | `references/language-options.md` / `references/scope-split-plan.md` / `references/derivation-fields-catalog.md` / `references/skill-creator-prompt-template.md` / `references/doc-registration-flow.md` | 语言 AUQ（一次两问）、派生范围拆分方案、追问字段清单+预扫规则、委派 prompt 模板、文档登记 flow |
 
 **脚本**：`skill-audit/scripts/validate-frontmatter.sh` 对一份或多份 SKILL.md 做机械校验（YAML 合法 / name↔目录一致 / description 非空）。退出码 0=通过、1=违规、2=参数错。支持 `--dir <skills-root>` 扫描全目录。`skill-audit` 主流程的"frontmatter 合规"维度优先跑该脚本做初筛。
 
@@ -219,7 +221,7 @@ welcome skill 本身不写任何 SKILL.md 文件——落盘交给 `skill-creato
 - 派生流程从 4 个维度分支（`ecosystem` / `philosophy` / `packaging` / `exhaustive`），每个维度对应一份 flow reference + 主模板 + 若干子模板
 - 派生出的 release skill 的 frontmatter `name` / `description` 的 YAML key 保持英文；只有 description 值与正文受用户选择的 `docLanguage` 影响
 
-### welcome skill 流程（v0.2.0 起 11 环节）
+### welcome skill 流程（v0.3.0 起 12 环节）
 
 `/release-creator-welcome` 命令 → 触发 `release-creator-welcome` skill → 渐进式 AskUserQuestion：
 
@@ -233,13 +235,16 @@ welcome skill 本身不写任何 SKILL.md 文件——落盘交给 `skill-creato
 8. 通用参数（项目代号 / 命名 / 落盘位置 / 脚本落盘目录 / 脚本语言）
 9. Override（展示默认骨架 + 各维度替代 + 自定义字段；新增「改 bump 策略」「改 check 范围」）
 10. 落盘清单确认 + 委派 `skill-creator`（同时落派生 SKILL.md + 配套脚本/hook/CI）
-11. 收尾提示（含重启 Claude Code 才能生效的警告 + hook 启用步骤提示）
+11. **文档登记子环节**（主动提醒：登记到 CLAUDE.md / AGENTS.md / MEMORY.md，多选；登记条目含实际落盘的附属资产清单；见 `doc-registration-flow.md`）
+12. 收尾提示（重启 Claude Code 警告 + docIndexResult 展示 + hook 启用步骤提示）
 
 > 环节 6.5 的 bump/check 决策统一采集，不再分散在生态/哲学/packaging 维度；claude-plugin 多镜像场景默认推荐 `generate-script`（skill-creator 动态组装 bump 脚本本体落盘），其他场景按生态推导。**release-creator 插件本身不预置任何脚本**——所有配套脚本/hook/CI 文件都由 skill-creator 在派生时从 catalog 骨架动态拼装。
+>
+> 环节 11 文档登记是**主动提醒、不强制**——welcome 自身仅在该环节被允许用 Write（仅限 CLAUDE.md / AGENTS.md 的新建分支），MEMORY.md 永远不自动新建。
 
 ### references 拓扑
 
-为避免 SKILL.md 过长，`release-creator-welcome` 把所有可抽离内容移到 `references/` 下（24 份）：
+为避免 SKILL.md 过长，`release-creator-welcome` 把所有可抽离内容移到 `references/` 下（25 份）：
 
 | 类别          | 数量 | 文件                                                                 |
 | ------------- | ---- | -------------------------------------------------------------------- |
@@ -251,6 +256,7 @@ welcome skill 本身不写任何 SKILL.md 文件——落盘交给 `skill-creato
 | 哲学子模板    | 3    | `template-philosophy-{commit,changeset,manual}.md`                   |
 | tag 子模板    | 3    | `template-tag-{simple,prefixed,scoped}.md`                           |
 | 工具          | 2    | `override-catalog.md` / `skill-creator-prompt-template.md`           |
+| 文档登记      | 1    | `doc-registration-flow.md`                                           |
 
 Bump+Check 4 份 reference 的职责：
 

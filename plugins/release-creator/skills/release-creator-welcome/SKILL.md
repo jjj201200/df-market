@@ -1,6 +1,6 @@
 ---
 name: release-creator-welcome
-description: "release-creator 插件首次安装后的渐进式派生引导。当用户首次安装 release-creator、运行 /release-creator-welcome、或表达「为本项目派生一份 release skill」「把 release 流程固化成 skill」等意图时使用。职责：用 AskUserQuestion 同时收集沟通语言 + 骨架正文语言 → 价值阐述 → 意向分流 → skill-creator 依赖检测 → 选分支维度（生态 / 哲学 / 打包+tag / 穷举）→ 按维度追问 → Bump+Check 子环节（版本结构 / bump 方式 / check 范围与时机）→ 通用参数 / 命名 / 脚本落盘位置 → Override（展示骨架 + 各维度替代 + 自定义）→ 委派 skill-creator 同时落盘 SKILL.md + 配套脚本/hook/CI。允许用户随时放弃。触发词：release-creator 欢迎、派生 release skill、welcome、release-creator-welcome、为本项目定制发布流程。"
+description: "release-creator 插件首次安装后的渐进式派生引导。当用户首次安装 release-creator、运行 /release-creator-welcome、或表达「为本项目派生一份 release skill」「把 release 流程固化成 skill」等意图时使用。职责：用 AskUserQuestion 同时收集沟通语言 + 骨架正文语言 → 价值阐述 → 意向分流 → skill-creator 依赖检测 → 选分支维度（生态 / 哲学 / 打包+tag / 穷举）→ 按维度追问 → Bump+Check 子环节（版本结构 / bump 方式 / check 范围与时机）→ 通用参数 / 命名 / 脚本落盘位置 → Override（展示骨架 + 各维度替代 + 自定义）→ 委派 skill-creator 同时落盘 SKILL.md + 配套脚本/hook/CI → 主动提醒是否登记到 CLAUDE.md / AGENTS.md / MEMORY.md。允许用户随时放弃。触发词：release-creator 欢迎、派生 release skill、welcome、release-creator-welcome、为本项目定制发布流程。"
 ---
 
 # release-creator 首次安装引导（派生专属 release skill）
@@ -42,12 +42,13 @@ description: "release-creator 插件首次安装后的渐进式派生引导。�
 - `references/hook-templates.md` —— 6.5 Q5 pre-push/pre-commit/CI yaml 的宿主文件骨架
 - `references/override-catalog.md` —— 环节 8 Override 的替代选项清单 + 自定义字段提示
 - `references/skill-creator-prompt-template.md` —— 委派 skill-creator 的 prompt 模板（含附属资产落盘段）
+- `references/doc-registration-flow.md` —— 环节 9.5 文档登记子环节 flow（落盘后主动提醒是否登记到 CLAUDE.md / AGENTS.md / MEMORY.md）
 
 执行到对应环节时 Read 对应 reference；不要在本 SKILL.md 中重复那里的内容。
 
 ## 执行流程
 
-流程分为下述 11 个有序环节（其中 6.5 是 6 之后、7 之前的子环节）。**对用户不要展示环节编号或"Step X"标题**——直接用自然段和 AUQ 与用户沟通；编号只供本 SKILL.md 内部交叉引用。
+流程分为下述 12 个有序环节（其中 6.5 是 6 之后、7 之前的子环节；9.5 是 9 之后、10 之前的子环节）。**对用户不要展示环节编号或"Step X"标题**——直接用自然段和 AUQ 与用户沟通；编号只供本 SKILL.md 内部交叉引用。
 
 ### 环节 1. 语言（一次 AUQ 同时发起两问）
 
@@ -242,16 +243,35 @@ skill-creator 需要同时完成：
 
 skill-creator 返回错误 → AUQ 单选让用户选择「重试 / 终止」，不要静默失败。
 
+派生 SKILL.md 成功落盘 → 进入环节 9.5。若整份失败（SKILL.md 都没成功）→ 跳过 9.5，直接到环节 10 收尾。附属资产失败但 SKILL.md 成功 → 仍进入 9.5，但登记条目里要标注"部分附属资产失败"。
+
+### 环节 9.5. 文档登记子环节（主动提醒，不强制）
+
+**Read `references/doc-registration-flow.md`**，按其中流程：
+
+1. AUQ 多选询问要登记到哪些文档：`CLAUDE.md` / `AGENTS.md` / `MEMORY.md` / `都不登记`
+2. 对每个勾选的目标文件，Glob 检测存在性；不存在则单独 AUQ 询问"新建 / 输出到终端 / 跳过"
+3. 存在则 Grep 查重后用 Edit 工具追加固定短文本；文本由「派生 SKILL.md 的 frontmatter description 首句」+ 固定模板 + 实际落盘的附属资产清单条件展开，**不重新调用 skill-creator**
+4. 产出 `docIndexResult`（updated / created / printed / skipped）给环节 10 收尾展示
+
+关键约束：
+
+- welcome 只在本环节被允许用 Write 工具（仅限 `doc-registration-flow.md` 3.3 新建分支）；其他地方仍遵守"welcome 不写 SKILL.md 文件"的边界
+- Edit 必须幂等（先 Grep 查重）
+- 所有目标文件串行处理，不并行
+- 附属资产列表按 `{{projectAnswers}}.bumpTrigger / .checkTiming` 条件填充，不列不存在的文件
+
 ### 环节 10. 收尾提示（纯文本）
 
 用 `{{uiLanguage}}` 书写：
 
 1. 列出 skill-creator 本次落盘的**所有文件路径**（SKILL.md + 附属脚本 / hook / CI yaml）
-2. **⚠️ 修改了 skill 文件，需要重启 Claude Code 才能使改动生效**（加粗 + emoji 强调）
-3. 若 `checkTiming ∈ {pre-push-hook, pre-commit-hook}` 且落盘位置是 `.githooks/` → 提醒用户执行 `git config core.hooksPath .githooks` 启用
-4. 若 `checkTiming = ci` 且仓库非 GitHub → 提醒用户按顶部 TODO 翻译 workflow 到目标 CI 平台
-5. 告知用户：未填字段以 `TODO:` 形式留在正文，可稍后手动补全；补全后无需再跑 welcome
-6. 提示：首次 release 时直接对 Claude 说「release 一下」或「发布 `<plugin>` 到 X.Y.Z」即可触发派生出的 skill
+2. 展示环节 9.5 的 `docIndexResult`——已更新 / 已新建 / 已输出到终端（需手贴）/ 已跳过
+3. **⚠️ 修改了 skill 文件，需要重启 Claude Code 才能使改动生效**（加粗 + emoji 强调）
+4. 若 `checkTiming ∈ {pre-push-hook, pre-commit-hook}` 且落盘位置是 `.githooks/` → 提醒用户执行 `git config core.hooksPath .githooks` 启用
+5. 若 `checkTiming = ci` 且仓库非 GitHub → 提醒用户按顶部 TODO 翻译 workflow 到目标 CI 平台
+6. 告知用户：未填字段以 `TODO:` 形式留在正文，可稍后手动补全；补全后无需再跑 welcome
+7. 提示：首次 release 时直接对 Claude 说「release 一下」或「发布 `<plugin>` 到 X.Y.Z」即可触发派生出的 skill
 
 ## 交互纪律
 
