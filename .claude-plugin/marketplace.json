@@ -5,8 +5,7 @@
     "email": "jjj201200@gmail.com"
   },
   "metadata": {
-    "description": "df's Claude Code plugins marketplace",
-    "version": "1.1.0"
+    "description": "df's Claude Code plugins marketplace"
   },
   "plugins": [
     {

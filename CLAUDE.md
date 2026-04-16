@@ -168,9 +168,18 @@ Charts that aggregate across turns (e.g. Pie charts, vertical bar charts by cate
 - 目录名与 frontmatter `name` 必须一致。
 - 新增/修改本插件内的 skill 时，**5 份通用 skill 原则上整份搬运、不就地编辑**；如需改动请直接修改用户个人 `~/.claude/skills/<name>/SKILL.md` 后重新搬运，以便上游（个人 skills）与插件内保持一致。
 
-### welcome skill 流程
+### welcome skill 流程（v0.1.2 起 8 环节）
 
-`/skill-keeper-welcome` 命令 → 触发 `skill-keeper-welcome` skill → 渐进式 AskUserQuestion：价值阐述 → 意向分流 → 检测官方 `skill-creator` → 派生范围 → 通用参数（项目代号 / 生成位置 / 正文语言 / 命名方案）→ 逐份追问项目特有字段 → 委派 `skill-creator` 落盘。
+`/skill-keeper-welcome` 命令 → 触发 `skill-keeper-welcome` skill → 渐进式 AskUserQuestion：
+
+1. 语言（一次 AUQ 同时采集沟通语言 + 骨架正文语言）
+2. 价值阐述
+3. 意向分流（直接派生 / 暂时跳过 · 2 选项）
+4. 检测官方 `skill-creator`
+5. 派生范围 + 通用参数（项目代号 / 生成位置）
+6. 命名方案
+7. 逐份追问项目特有字段（先预扫项目档案提供默认值）
+8. 落盘清单确认 + 委派 `skill-creator` + 收尾提示
 
 welcome skill 本身不写任何 SKILL.md 文件——落盘交给 `skill-creator`。未填字段以 `TODO:` 占位符保留。
 
@@ -185,7 +194,7 @@ welcome skill 本身不写任何 SKILL.md 文件——落盘交给 `skill-creato
 | `skill-doc-sync-check` | `references/check-catalog.md`               | 四项核查清单、索引完整性五步闭环、工具选择              |
 | `skill-audit`          | `references/dimensions.md`                  | 7 核查维度                                              |
 | `skill-doc-audit`      | `references/dimensions.md`                  | 5 核查维度、索引强制步骤、并行切分策略                  |
-| `skill-keeper-welcome` | `references/language-options.md` / `references/df-market-sample.md` / `references/scope-split-plan.md` / `references/derivation-fields-catalog.md` / `references/skill-creator-prompt-template.md` | 语言选项（自描述）、双示范、派生范围拆分方案、追问字段清单+预扫规则、委派 prompt 模板 |
+| `skill-keeper-welcome` | `references/language-options.md` / `references/scope-split-plan.md` / `references/derivation-fields-catalog.md` / `references/skill-creator-prompt-template.md` | 语言 AUQ（一次两问）、派生范围拆分方案、追问字段清单+预扫规则、委派 prompt 模板 |
 
 **脚本**：`skill-audit/scripts/validate-frontmatter.sh` 对一份或多份 SKILL.md 做机械校验（YAML 合法 / name↔目录一致 / description 非空）。退出码 0=通过、1=违规、2=参数错。支持 `--dir <skills-root>` 扫描全目录。`skill-audit` 主流程的"frontmatter 合规"维度优先跑该脚本做初筛。
 
