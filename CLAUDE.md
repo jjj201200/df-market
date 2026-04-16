@@ -1,162 +1,162 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+本文件为 Claude Code（claude.ai/code）在本仓库工作时提供指引。
 
-## What This Repo Is
+## 本仓库是什么
 
-**df-market** is a Claude Code plugin marketplace hosted on GitHub (`jjj201200/df-market`). It contains:
-- `.claude-plugin/marketplace.json` — the registry of available plugins
-- `plugins/` — the actual plugin source code (currently: `token-reporter`)
+**df-market** 是托管在 GitHub (`jjj201200/df-market`) 上的 Claude Code 插件市场。包含：
+- `.claude-plugin/marketplace.json` —— 可用插件注册表
+- `plugins/` —— 实际的插件源码
 
-Users register this marketplace in their Claude Code settings and install plugins via `/plugin install <name>@df-market`.
+用户在 Claude Code 设置里注册本 marketplace，通过 `/plugin install <name>@df-market` 安装插件。
 
-## Running Tests
+## 运行测试
 
-Tests use Node's built-in `assert` module — no test framework to install.
+测试使用 Node 内置 `assert` 模块——无需安装任何测试框架。
 
 ```bash
-# Run all tests for token-reporter
+# 跑 token-reporter 的全部测试
 cd plugins/token-reporter
 node test/test-hooks.js
 node test/test-migration.js
 node test/test-single-instance.js
 ```
 
-Tests use the `TOKEN_REPORTER_DATA_DIR` env var to redirect data to a temp directory, avoiding interference with a live install.
+测试通过 `TOKEN_REPORTER_DATA_DIR` 环境变量把数据重定向到临时目录，避免干扰用户日常运行的实例。
 
-### Development server (manual testing)
+### 开发服务器（手动测试）
 
-When running the plugin for hands-on testing, **always use port `13737`**. Port `3737` is reserved for the production instance that the user runs day-to-day — never point tests or the dev server at it.
+手动测试运行插件时**始终使用端口 `13737`**。`3737` 端口是用户日常运行的生产实例专用——切勿让测试或开发服务器指向它。
 
-The dev server is launched via `token-reporter-dev` (in `plugins/token-reporter/bin/`). **Always export `TOKEN_REPORTER_DEV_ROOT` to the current project root before invoking it**, so the script resolves to this checkout rather than a cached/previous path:
+开发服务器通过 `token-reporter-dev`（位于 `plugins/token-reporter/bin/`）启动。**调用前必须先将 `TOKEN_REPORTER_DEV_ROOT` 导出为当前项目根目录**，确保脚本解析到当前 checkout 而不是缓存/之前的路径：
 
 ```bash
-export TOKEN_REPORTER_DEV_ROOT="$(pwd)"   # from the repo root
-token-reporter-dev start                  # listens on 13737
+export TOKEN_REPORTER_DEV_ROOT="$(pwd)"   # 在仓库根目录下执行
+token-reporter-dev start                  # 监听 13737
 token-reporter-dev stop
 ```
 
-## Plugin Architecture (token-reporter)
+## 插件架构（token-reporter）
 
-The plugin follows the Claude Code plugin lifecycle model:
+本插件遵循 Claude Code 插件生命周期模型：
 
-### Hooks (`hooks/`)
-Three lifecycle scripts registered in `hooks/hooks.json`:
-- **`session-start.js`** — ensures data dirs exist, loads config, runs migrations, acquires a file lock, spawns the HTTP server as a detached process
-- **`post-tool-use.js`** — POSTs a notification to the server after every tool call, triggering SSE broadcasts to web clients
-- **`session-end.js`** — cleans up on exit
+### Hooks（`hooks/`）
+三个生命周期脚本，注册在 `hooks/hooks.json`：
+- **`session-start.js`** —— 确保数据目录存在、加载配置、跑迁移、获取文件锁、以 detached 方式派生 HTTP 服务器进程
+- **`post-tool-use.js`** —— 每次工具调用后向服务器 POST 通知，触发对 web 客户端的 SSE 广播
+- **`session-end.js`** —— 退出时清理
 
-### Server (`src/server.js`)
-Lightweight HTTP server (production port `3737`; dev/test port `13737` — see "Development server" above) with:
-- `GET /` → serves `src/report.html` (the web dashboard)
-- `GET /events` → SSE stream for real-time dashboard updates
-- `POST /notify` → receives tool-use notifications from the hook
-- `GET /api/sessions` → lists all Claude Code session files
-- `GET /api/sessions/:id` → returns parsed session data
+### 服务器（`src/server.js`）
+轻量 HTTP 服务器（生产端口 `3737`；开发/测试端口 `13737`——见上文"开发服务器"章节），提供：
+- `GET /` → 返回 `src/report.html`（web 仪表盘）
+- `GET /events` → 仪表盘实时更新的 SSE 流
+- `POST /notify` → 接收来自 hook 的工具调用通知
+- `GET /api/sessions` → 列出所有 Claude Code session 文件
+- `GET /api/sessions/:id` → 返回解析后的 session 数据
 
-### Parser (`src/parser.js`)
-Reads JSONL session files from `~/.claude/projects/*/` (including subagents). Extracts turn-by-turn token usage (input, output, cache_read, cache_creation) and tool call details. Tools are classified into categories: bash, read, edit, write, grep, glob, web, agent, other.
+### 解析器（`src/parser.js`）
+读取 `~/.claude/projects/*/` 下的 JSONL session 文件（含 subagent）。按轮次提取 token 使用量（input、output、cache_read、cache_creation）和工具调用详情。工具分类：bash、read、edit、write、grep、glob、web、agent、other。
 
-### CLI Commands (`bin/`)
-Executable scripts in `bin/` are added to PATH when the plugin is enabled. Available commands:
-- `token-reporter-start` — start the server
-- `token-reporter-stop` — stop the server
-- `token-reporter-status` — show server status
-- `token-reporter-auto-launch-on` — enable auto-start
-- `token-reporter-auto-launch-off` — disable auto-start
+### CLI 命令（`bin/`）
+`bin/` 下的可执行脚本在插件启用时加入 PATH。可用命令：
+- `token-reporter-start` —— 启动服务器
+- `token-reporter-stop` —— 停止服务器
+- `token-reporter-status` —— 显示服务器状态
+- `token-reporter-auto-launch-on` —— 开启自动启动
+- `token-reporter-auto-launch-off` —— 关闭自动启动
 
-### Persistence
-All runtime data lives in `~/.claude/token-reporter/`:
-- `config.json` — port and `autoStart` flag
-- `server.pid` — PID of the running server process
-- `server.lock` — file lock to prevent duplicate instances
+### 持久化
+所有运行时数据存放在 `~/.claude/token-reporter/`：
+- `config.json` —— 端口和 `autoStart` 开关
+- `server.pid` —— 运行中服务器的进程 PID
+- `server.lock` —— 防止重复实例的文件锁
 
-### Version Migrations (`src/migrate.js`)
-A migration framework that runs on session start. When adding breaking config changes, add a migration entry here.
+### 版本迁移（`src/migrate.js`）
+一个会在 session 启动时运行的迁移框架。添加破坏性配置变更时，在这里追加一条迁移。
 
-## Internationalization (i18n)
+## 国际化（i18n）
 
-The frontend dashboard supports multiple languages (English and Chinese). The i18n system is a custom lightweight implementation (~2KB) using Zustand + React hooks.
+前端仪表盘支持多语言（英文和中文）。i18n 系统是基于 Zustand + React hooks 的自制轻量实现（约 2KB）。
 
-### File Structure
+### 文件结构
 
 ```
 frontend/src/
   i18n/
-    index.ts              # Barrel export: useI18n, TFunction, Locale, TranslationKey
-    types.ts              # Locale type, FlattenKeys utility, TranslationKey union
-    useI18n.ts            # useI18n() hook and createT() for non-component code
+    index.ts              # 统一出口：useI18n, TFunction, Locale, TranslationKey
+    types.ts              # Locale 类型、FlattenKeys 工具、TranslationKey 联合类型
+    useI18n.ts            # useI18n() hook 和非组件代码用的 createT()
     locales/
-      en.ts               # English translations (source of truth for types)
-      zh-CN.ts            # Chinese translations
+      en.ts               # 英文翻译（类型的唯一事实来源）
+      zh-CN.ts            # 中文翻译
   stores/
-    i18nStore.ts          # Zustand store for locale state + browser detection
+    i18nStore.ts          # 负责 locale 状态 + 浏览器语言检测的 Zustand store
 ```
 
-### Adding a New Translatable String
+### 添加一个新的可翻译字符串
 
-1. Add the key and English text to `frontend/src/i18n/locales/en.ts` under the appropriate namespace
-2. Add the same key with Chinese translation to `frontend/src/i18n/locales/zh-CN.ts`
-3. In the component, use `const {t} = useI18n()` then `t('namespace.key')`
+1. 在 `frontend/src/i18n/locales/en.ts` 对应 namespace 下添加 key 和英文文案
+2. 在 `frontend/src/i18n/locales/zh-CN.ts` 添加同一个 key 的中文翻译
+3. 组件里 `const {t} = useI18n()`，然后 `t('namespace.key')`
 
-For strings with variables, use `{varName}` placeholders:
+含变量的字符串用 `{varName}` 占位：
 ```ts
 // en.ts
 nTurns: '{count} turns'
-// Component
+// 组件里
 t('overview.nTurns', {count: 42})  // → "42 turns"
 ```
 
-### Key Naming Convention
+### key 命名约定
 
-Keys are dot-separated and organized by feature area:
-- `common.*` — shared labels (Input, Output, Copy, etc.)
-- `error.*` — error and empty state messages
-- `nav.*` — navigation labels
-- `overview.*`, `cache.*`, `tools.*`, `context.*`, `subagents.*`, `timing.*` — analytics panel strings
-- `session.*` — session bar labels
-- `chart.*` — chart titles
-- `compact.*`, `conversation.*` — conversation list strings
-- `toolStats.*` — tool statistics labels
-- `rec.*` — recommendation templates (nested: `rec.lowCache.title`, `rec.lowCache.detail`, etc.)
+key 用点号分隔，按功能域组织：
+- `common.*` —— 共享标签（Input、Output、Copy 等）
+- `error.*` —— 错误和空状态消息
+- `nav.*` —— 导航标签
+- `overview.*`、`cache.*`、`tools.*`、`context.*`、`subagents.*`、`timing.*` —— 分析面板字符串
+- `session.*` —— session 栏标签
+- `chart.*` —— 图表标题
+- `compact.*`、`conversation.*` —— 会话列表字符串
+- `toolStats.*` —— 工具统计标签
+- `rec.*` —— 推荐模板（嵌套：`rec.lowCache.title`、`rec.lowCache.detail` 等）
 
-### Using i18n in Utility Functions
+### 在工具函数中使用 i18n
 
-For non-component code (like `generateRecommendations` in `utils/analytics.ts`), pass the `t` function as a parameter:
+非组件代码（如 `utils/analytics.ts` 里的 `generateRecommendations`），把 `t` 函数作为参数传入：
 ```ts
 import type {TFunction} from '../i18n';
 
 export function generateRecommendations(input: Input, t: TFunction): Result[] {
-  // use t('rec.lowCache.title', {rate: '30%'})
+  // 使用 t('rec.lowCache.title', {rate: '30%'})
 }
 ```
 
-### Adding a New Language
+### 添加一门新语言
 
-1. Create `frontend/src/i18n/locales/<code>.ts` (e.g., `ja.ts`)
-2. Import `Translation` type from `en.ts` and implement all keys
-3. Add the locale code to the `Locale` union in `types.ts`
-4. Add the locale code to `SUPPORTED` array in `stores/i18nStore.ts`
-5. Import and register the new locale in `i18n/useI18n.ts` translations map
-6. Update `detectLocale()` in `i18nStore.ts` for browser language matching
+1. 创建 `frontend/src/i18n/locales/<code>.ts`（例如 `ja.ts`）
+2. 从 `en.ts` 导入 `Translation` 类型并实现所有 key
+3. 在 `types.ts` 的 `Locale` 联合类型里加上新语言码
+4. 在 `stores/i18nStore.ts` 的 `SUPPORTED` 数组里加上新语言码
+5. 在 `i18n/useI18n.ts` 的 translations map 里导入并注册
+6. 更新 `i18nStore.ts` 的 `detectLocale()` 以匹配浏览器语言
 
-### Language Detection
+### 语言检测
 
-Priority order: localStorage (`token-reporter:locale`) → `navigator.languages` → default `en`.
-The language toggle button is in the StickyChart header bar.
+优先级：localStorage（`token-reporter:locale`）→ `navigator.languages` → 默认 `en`。
+语言切换按钮位于 StickyChart 的 header 栏。
 
-### Chart Turn Jump Interaction
+### 图表轮次跳转交互
 
-All analytics charts whose x-axis represents individual turns (e.g. `#1`, `#2`) must support clicking the chart to jump to the corresponding turn in the conversation list. This applies to:
-- `LineChart` / `AreaChart` / `BarChart` where `dataKey="turn"` is used on the x-axis
-- Charts where each data point maps to a specific `turnId`
+所有 x 轴表示单轮对话（如 `#1`、`#2`）的分析图表必须支持点击跳转到对应轮次。这适用于：
+- `LineChart` / `AreaChart` / `BarChart` 里 x 轴用 `dataKey="turn"` 的图表
+- 每个数据点映射到具体 `turnId` 的图表
 
-Implementation pattern:
-1. Attach an `onClick` handler to the Recharts chart component
-2. Extract the turn number from the click event (`activeLabel` or coordinate mapping)
-3. Call `scrollToTurnIndex(turns, idx)` and `setSelected(turnId)` to navigate and highlight the turn
+实现模式：
+1. 在 Recharts 图表组件上挂 `onClick` handler
+2. 从点击事件里提取轮次序号（`activeLabel` 或坐标映射）
+3. 调用 `scrollToTurnIndex(turns, idx)` 和 `setSelected(turnId)` 完成跳转和高亮
 
-Charts that aggregate across turns (e.g. Pie charts, vertical bar charts by category) do not need this behavior.
+跨轮次聚合的图表（如饼图、按类目的纵向柱状图）不需要此行为。
 
 ## Plugin: skill-keeper
 
@@ -204,33 +204,83 @@ welcome skill 本身不写任何 SKILL.md 文件——落盘交给 `skill-creato
 - 新增 reference → 必须在 SKILL.md 正文显式引用（避免孤儿），见 `skill-audit` 维度 7
 - `validate-frontmatter.sh` 属于机械校验工具，不替代 skill-audit 的语义维度
 
-## Adding a New Plugin
+## Plugin: release-creator
 
-1. Create `plugins/<name>/` with the plugin source
-2. Add a `.claude-plugin/plugin.json` inside it with metadata
-3. Register it in `.claude-plugin/marketplace.json` at the repo root
+`plugins/release-creator/` 是一个**元 skill 派生器插件**。本插件本身**不执行任何 release 动作**，它通过渐进式 AskUserQuestion + 动态模板库，引导用户为当前项目派生一份 `release-<project>` skill（落盘由官方 `skill-creator` 完成）。
 
-## Version Management
+### 设计动机
 
-### Before Every Push
+业界主流 release 工具（Changesets / release-please / semantic-release）已经证明「通用发布器 + 零配置」不可兼得。本插件跳出这个悖论：**release-creator 本身通用，派生出的 release skill 特化**。每个项目决定一次、落盘为明确可读的 SKILL.md，后续 release 直接按这份 skill 执行。
 
-**Always check if version needs to be bumped before pushing.** Run:
+### 关键约束
+
+- release-creator 插件本身**不包含任何可执行 release 的 skill**——它只提供 `release-creator-welcome` 派生器
+- 派生出的 `release-<project>` skill **不得反向调用 release-creator**——派生完成即独立
+- 派生流程从 4 个维度分支（`ecosystem` / `philosophy` / `packaging` / `exhaustive`），每个维度对应一份 flow reference + 主模板 + 若干子模板
+- 派生出的 release skill 的 frontmatter `name` / `description` 的 YAML key 保持英文；只有 description 值与正文受用户选择的 `docLanguage` 影响
+
+### welcome skill 流程（v0.1.0 起 10 环节）
+
+`/release-creator-welcome` 命令 → 触发 `release-creator-welcome` skill → 渐进式 AskUserQuestion：
+
+1. 语言（一次 AUQ 同时采集沟通语言 + 骨架正文语言）
+2. 价值阐述
+3. 意向分流（直接派生 / 暂时跳过 · 2 选项）
+4. 检测官方 `skill-creator`
+5. **第一道核心 AUQ：选分支维度**（生态 / 哲学 / 打包+tag / 穷举 · 单选 4）
+6. 分维度追问（读对应 flow reference，含预扫项目档案）
+7. 通用参数（项目代号 / 命名 / 落盘位置）
+8. Override（展示默认骨架 + 各维度替代 + 自定义字段）
+9. 落盘清单确认 + 委派 `skill-creator`
+10. 收尾提示（含重启 Claude Code 才能生效的警告）
+
+### references 拓扑
+
+为避免 SKILL.md 过长，`release-creator-welcome` 把所有可抽离内容移到 `references/` 下（20 份）：
+
+| 类别          | 数量 | 文件                                                                 |
+| ------------- | ---- | -------------------------------------------------------------------- |
+| 语言          | 1    | `language-options.md`                                                |
+| 维度 flow     | 4    | `dimension-{1-ecosystem,2-philosophy,3-packaging,4-exhaustive}-flow.md` |
+| 主模板        | 3    | `template-master-{ecosystem,philosophy,packaging}.md`                |
+| 生态子模板    | 4    | `template-ecosystem-{npm,python,claude-plugin,docs}.md`              |
+| 哲学子模板    | 3    | `template-philosophy-{commit,changeset,manual}.md`                   |
+| tag 子模板    | 3    | `template-tag-{simple,prefixed,scoped}.md`                           |
+| 工具          | 2    | `override-catalog.md` / `skill-creator-prompt-template.md`           |
+
+`validate-frontmatter.sh`（来自 `skill-keeper`）同样适用于本插件的 SKILL.md 合规校验。
+
+### 与 skill-keeper 的关系
+
+架构同构、彼此独立。两者都是渐进式派生器 + 委派 `skill-creator` 落盘 + 不自己写 SKILL.md 文件。可以只装其中一个。
+
+## 添加一个新插件
+
+1. 在 `plugins/<name>/` 放插件源码
+2. 在其中放一份 `.claude-plugin/plugin.json` 描述 metadata
+3. 到仓库根目录的 `.claude-plugin/marketplace.json` 注册
+
+## 版本管理
+
+### 每次 push 之前
+
+**push 前始终检查是否需要 bump 版本号。** 执行：
 
 ```bash
 node plugins/token-reporter/scripts/check-version.cjs
 ```
 
-This will prompt you to bump the version if it hasn't been updated.
+如果版本还没更新，脚本会提示你去 bump。
 
-### Version Bump Script
+### 版本 bump 脚本
 
-Interactive version bumping (recommended):
+交互式 bump（推荐）：
 
 ```bash
 node plugins/token-reporter/scripts/bump-version.cjs
 ```
 
-Or specify the bump type directly:
+或直接指定 bump 类型：
 
 ```bash
 node plugins/token-reporter/scripts/bump-version.cjs patch   # 1.0.0 → 1.0.1
@@ -238,35 +288,35 @@ node plugins/token-reporter/scripts/bump-version.cjs minor   # 1.0.0 → 1.1.0
 node plugins/token-reporter/scripts/bump-version.cjs major   # 1.0.0 → 2.0.0
 ```
 
-The script updates both files automatically:
+脚本会自动更新这两个文件：
 - `plugins/token-reporter/.claude-plugin/plugin.json`
 - `.claude-plugin/marketplace.json`
 
-### Version Locations
+### 版本号出现位置
 
-Version appears in these places for `token-reporter`:
-- `plugins/token-reporter/.claude-plugin/plugin.json` — plugin manifest
-- `.claude-plugin/marketplace.json` — marketplace registry
-- Git commit message (convention: `chore: bump version to X.Y.Z`)
+`token-reporter` 的版本号出现在：
+- `plugins/token-reporter/.claude-plugin/plugin.json` —— 插件 manifest
+- `.claude-plugin/marketplace.json` —— marketplace 注册表
+- Git commit message（约定：`chore: bump version to X.Y.Z`）
 
-### Commit Guidelines
+### Commit 规范
 
-**Keep commit messages clean and simple.**
+**commit message 保持简洁。**
 
-- Use concise, descriptive messages without attribution lines
-- Do not add `Co-Authored-By:`, `Signed-off-by:`, or similar trailer lines
-- Follow conventional commit format: `type(scope): description`
+- 使用简明扼要的描述性消息，不加 attribution 行
+- 不添加 `Co-Authored-By:`、`Signed-off-by:` 等 trailer 行
+- 遵循 conventional commit 格式：`type(scope): description`
 
-### Git Hook (Optional)
+### Git Hook（可选）
 
-To automatically check version before every push, add to `.git/hooks/pre-push`:
+如果想在每次 push 前自动检查版本号，可在 `.git/hooks/pre-push` 添加：
 
 ```bash
 #!/bin/bash
 node plugins/token-reporter/scripts/check-version.cjs || exit 1
 ```
 
-Then make it executable:
+然后赋予可执行权限：
 
 ```bash
 chmod +x .git/hooks/pre-push
