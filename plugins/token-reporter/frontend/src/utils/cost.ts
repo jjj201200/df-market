@@ -26,6 +26,7 @@ const DEFAULT_PRICING: ModelPricing = PRICING['claude-sonnet-4-6']!;
 
 /** Extract a short display name from a model ID */
 export function getModelDisplayName(model: string): string {
+  if (model === '<synthetic>') return 'Synthetic';
   if (model.includes('opus')) return 'Opus';
   if (model.includes('haiku')) return 'Haiku';
   if (model.includes('sonnet')) return 'Sonnet';
@@ -33,6 +34,8 @@ export function getModelDisplayName(model: string): string {
 }
 
 export function getModelPricing(model: string): ModelPricing {
+  // Synthetic turns are system-generated and have zero tokens; skip pricing/warning
+  if (model === '<synthetic>') return DEFAULT_PRICING;
   // Try exact match first
   if (PRICING[model]) return PRICING[model];
   // Try prefix match
