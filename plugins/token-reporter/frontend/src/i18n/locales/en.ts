@@ -67,6 +67,7 @@ export const en = {
     stopReasons: 'Stop reasons',
     collapseTotals: 'Collapse totals',
     expandTotals: 'Expand totals',
+    globalLabel: 'Session Totals',
   },
 
   limits: {

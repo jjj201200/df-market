@@ -1,81 +1,22 @@
-import {useCallback, useMemo, useState} from 'react';
+import {useMemo} from 'react';
 import clsx from 'clsx';
-import {IconChevronLeft, IconChevronRight} from '@tabler/icons-react';
 import {useSessionStore} from '../../stores/sessionStore';
 import {useChartStore} from '../../stores/chartStore';
 import {fmt, fmtTokens} from '../../utils/format';
 import {brushToFirstIdx, brushToLastIdx} from '../../utils/brushCoords';
 import {useI18n} from '../../i18n';
-import Dropdown from '../common/Dropdown';
-import type {DropdownOption} from '../common/Dropdown';
 import Tooltip from '../common/Tooltip';
 import styles from './SessionBar.module.scss';
 
-const TOTALS_EXPANDED_KEY = 'token-reporter:session-totals-expanded';
-
 export default function SessionBar() {
   const {t} = useI18n();
-  const sessions = useSessionStore((s) => s.sessions);
-  const activeSessionId = useSessionStore((s) => s.activeSessionId);
-  const loadSession = useSessionStore((s) => s.loadSession);
   const turns = useSessionStore((s) => s.turns);
   const sessionLoading = useSessionStore((s) => s.sessionLoading);
   const brushL = useChartStore((s) => s.brushL);
   const brushR = useChartStore((s) => s.brushR);
-  const newSessionIds = useSessionStore((s) => s.newSessionIds);
   const hooks = useSessionStore((s) => s.hooks);
   const subagents = useSessionStore((s) => s.subagents);
   const stopReasons = useSessionStore((s) => s.stopReasons);
-
-  const [copied, setCopied] = useState(false);
-  const [totalsExpanded, setTotalsExpanded] = useState(() => {
-    try {
-      return localStorage.getItem(TOTALS_EXPANDED_KEY) !== 'false';
-    } catch {
-      return true;
-    }
-  });
-
-  const sessionOptions: DropdownOption[] = useMemo(
-    () =>
-      sessions.map((s) => {
-        const time = `${s.mtime.slice(0, 10)} ${s.mtime.slice(11, 16)}`;
-        const title = s.customTitle || s.slug || s.sessionId;
-        const shortId = s.sessionId.slice(0, 8);
-        return {
-          value: s.sessionId,
-          label: `${time} \u00b7 ${title}`,
-          sub: shortId,
-          isNew: newSessionIds.has(s.sessionId),
-        };
-      }),
-    [sessions, newSessionIds],
-  );
-
-  const handleSessionChange = useCallback(
-    (val: string) => {
-      loadSession(val);
-    },
-    [loadSession],
-  );
-
-  const handleCopy = useCallback(() => {
-    if (!activeSessionId) return;
-    navigator.clipboard.writeText(activeSessionId).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    });
-  }, [activeSessionId]);
-
-  const toggleTotals = useCallback(() => {
-    setTotalsExpanded((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem(TOTALS_EXPANDED_KEY, String(next));
-      } catch {}
-      return next;
-    });
-  }, []);
 
   const totals = useMemo(() => {
     const N = turns.length;
@@ -181,32 +122,11 @@ export default function SessionBar() {
 
   return (
     <div className={styles.sessionBar}>
-      <div className={styles.sessionSelectContainer}>
-        <div className={styles.sessionDropdownWrap}>
-          <Dropdown
-            options={sessionOptions}
-            value={activeSessionId ?? ''}
-            onChange={handleSessionChange}
-            size="md"
-            maxHeight={320}
-            matchWidth
-            className={styles.sessionDropdown}
-          />
-          {newSessionIds.size > 0 && (
-            <span className={styles.newBadge}>{newSessionIds.size > 9 ? '9+' : newSessionIds.size}</span>
-          )}
-        </div>
-        <Tooltip content={t('session.copySessionId')}>
-          <button className={clsx(styles.sessionCopyBtn, copied && styles.copied)} onClick={handleCopy}>
-            {copied ? t('session.copiedId') : t('session.copyId')}
-          </button>
-        </Tooltip>
-      </div>
-
       {!sessionLoading && (
         <Tooltip content={tooltipContent} placement="bottom" delay={200}>
           <div className={styles.sessionTotalsWrap}>
-            <div className={clsx(styles.sessionTotals, !totalsExpanded && styles.sessionTotalsCollapsed)}>
+            <span className={styles.sessionTotalsLabel}>{t('session.globalLabel')}</span>
+            <div className={styles.sessionTotals}>
               <span className={styles.smeta}>
                 <span className={styles.smetaL}>IN </span>
                 <span className={clsx(styles.smetaV, styles.in)}>{fmt(sessionTotals.tIn)}</span>
@@ -228,17 +148,6 @@ export default function SessionBar() {
                 <span className={styles.smetaV}>{sessionTotals.assistantCount}</span>
               </span>
             </div>
-            <button
-              className={styles.sessionTotalsToggle}
-              onClick={toggleTotals}
-              aria-label={totalsExpanded ? t('session.collapseTotals') : t('session.expandTotals')}
-            >
-              {totalsExpanded ? (
-                <IconChevronLeft size={14} stroke={1.5} />
-              ) : (
-                <IconChevronRight size={14} stroke={1.5} />
-              )}
-            </button>
           </div>
         </Tooltip>
       )}

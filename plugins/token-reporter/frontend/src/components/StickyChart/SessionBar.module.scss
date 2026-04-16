@@ -7,46 +7,6 @@
   gap: 6px;
 }
 
-.sessionSelectContainer {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-}
-
-.sessionDropdown {
-  min-width: 0;
-  width: 100%;
-  button {
-    min-width: 380px;
-  }
-}
-
-.sessionCopyBtn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2px 12px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-default);
-  border-radius: 5px;
-  color: var(--fg-muted);
-  font-size: 11px;
-  cursor: pointer;
-  transition: all 0.2s;
-  flex-shrink: 0;
-
-  &:hover {
-    color: var(--accent);
-    border-color: var(--accent);
-  }
-
-  &.copied {
-    color: var(--success);
-    border-color: var(--success);
-  }
-}
-
 .sessionMeta {
   display: flex;
   gap: 12px;
@@ -56,61 +16,28 @@
 .sessionTotalsWrap {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   margin-right: auto;
-  margin-left: 8px;
+}
+
+.sessionTotalsLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fg-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
 }
 
 .sessionTotals {
   display: flex;
   gap: 12px;
   flex-wrap: nowrap;
-  // background: var(--bg-surface);
-  // border: 1px solid var(--border-default);
   padding: 2px 10px;
   opacity: 1;
   max-width: 600px;
   max-height: 18px;
-  transform: translateX(0);
-  transform-origin: left center;
-  transition:
-    opacity 0.25s ease,
-    max-width 0.25s ease,
-    gap 0.25s ease,
-    padding 0.25s ease,
-    transform 0.25s ease;
   overflow: hidden;
-
-  &.sessionTotalsCollapsed {
-    opacity: 0;
-    max-width: 0;
-    gap: 0;
-    padding: 0 !important;
-    transform: translateX(-8px);
-    pointer-events: none;
-  }
-}
-
-.sessionTotalsToggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  padding: 0;
-  background: none;
-  border: none;
-  border-radius: 4px;
-  color: var(--fg-muted);
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-  flex-shrink: 0;
-
-  &:hover {
-    color: var(--accent);
-    border-color: var(--accent);
-  }
 }
 
 .totalsTooltip {
@@ -199,10 +126,6 @@
     gap: 4px;
   }
 
-  .sessionCopyBtn {
-    display: none;
-  }
-
   .sessionMeta {
     gap: 8px;
   }
@@ -210,6 +133,10 @@
   .sessionTotals {
     gap: 8px;
     padding: 3px 8px;
+  }
+
+  .sessionTotalsLabel {
+    font-size: 12px;
   }
 
   .smeta {
@@ -229,30 +156,4 @@
   .sessionMeta {
     gap: 4px 8px;
   }
-}
-
-.sessionDropdownWrap {
-  position: relative;
-  min-width: 0;
-  flex: 1;
-}
-
-.newBadge {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  background: var(--color-danger, #e53e3e);
-  color: #fff;
-  border-radius: 9999px;
-  font-size: 10px;
-  font-weight: 700;
-  min-width: 16px;
-  height: 16px;
-  padding: 0 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-  z-index: 10;
-  line-height: 1;
 }

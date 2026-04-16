@@ -9,6 +9,7 @@ import type {DropdownOption} from '../common/Dropdown';
 import Tooltip from '../common/Tooltip';
 import DimBar from './DimBar';
 import SessionBar from './SessionBar';
+import SessionSelector from './SessionSelector';
 import MainChart from './MainChart';
 import BrushChart from './BrushChart';
 import BrushOverlay from './BrushOverlay';
@@ -63,22 +64,26 @@ export default function StickyChart() {
 
   return (
     <div id="stickyChart" className={styles.stickyChart}>
-      <div className={styles.title}>
-        TOKEN REPORTER ❤️ <span>DF</span>
-        <span className={styles.version}>v{__PLUGIN_VERSION__}</span>
-        <Dropdown
-          options={langOptions}
-          value={locale}
-          onChange={handleLocaleChange}
-          size="sm"
-          className={styles.langDropdown}
-        />
+      <div className={styles.titleBar}>
+        <div className={styles.title}>
+          TOKEN REPORTER ❤️ <span>DF</span>
+          <span className={styles.version}>v{__PLUGIN_VERSION__}</span>
+          <Dropdown
+            options={langOptions}
+            value={locale}
+            onChange={handleLocaleChange}
+            size="sm"
+            className={styles.langDropdown}
+          />
+        </div>
+        <SessionSelector />
+        <Tooltip content={t('nav.sessionAnalytics')} placement="bottom">
+          <button className={styles.analyticsBtn} onClick={toggleDrawer}>
+            {t('nav.analytics')} <IconExternalLink size={12} stroke={1.5} style={{verticalAlign: 'middle'}} />
+          </button>
+        </Tooltip>
       </div>
-      <Tooltip content={t('nav.sessionAnalytics')} placement="bottom">
-        <button className={styles.analyticsBtn} onClick={toggleDrawer}>
-          {t('nav.analytics')} <IconExternalLink size={12} stroke={1.5} style={{verticalAlign: 'middle'}} />
-        </button>
-      </Tooltip>
+
       <SessionBar />
 
       {sessionLoading ? (

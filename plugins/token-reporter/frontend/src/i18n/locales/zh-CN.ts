@@ -69,6 +69,7 @@ export const zhCN: Translation = {
     stopReasons: '停止原因',
     collapseTotals: '收起总计',
     expandTotals: '展开总计',
+    globalLabel: '会话 总用量',
   },
 
   limits: {
