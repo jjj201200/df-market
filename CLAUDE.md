@@ -159,7 +159,7 @@ Charts that aggregate across turns (e.g. Pie charts, vertical bar charts by cate
 **Always check if version needs to be bumped before pushing.** Run:
 
 ```bash
-node plugins/token-reporter/scripts/check-version.js
+node plugins/token-reporter/scripts/check-version.cjs
 ```
 
 This will prompt you to bump the version if it hasn't been updated.
@@ -169,15 +169,15 @@ This will prompt you to bump the version if it hasn't been updated.
 Interactive version bumping (recommended):
 
 ```bash
-node plugins/token-reporter/scripts/bump-version.js
+node plugins/token-reporter/scripts/bump-version.cjs
 ```
 
 Or specify the bump type directly:
 
 ```bash
-node plugins/token-reporter/scripts/bump-version.js patch   # 1.0.0 → 1.0.1
-node plugins/token-reporter/scripts/bump-version.js minor   # 1.0.0 → 1.1.0
-node plugins/token-reporter/scripts/bump-version.js major   # 1.0.0 → 2.0.0
+node plugins/token-reporter/scripts/bump-version.cjs patch   # 1.0.0 → 1.0.1
+node plugins/token-reporter/scripts/bump-version.cjs minor   # 1.0.0 → 1.1.0
+node plugins/token-reporter/scripts/bump-version.cjs major   # 1.0.0 → 2.0.0
 ```
 
 The script updates both files automatically:
@@ -205,7 +205,7 @@ To automatically check version before every push, add to `.git/hooks/pre-push`:
 
 ```bash
 #!/bin/bash
-node plugins/token-reporter/scripts/check-version.js || exit 1
+node plugins/token-reporter/scripts/check-version.cjs || exit 1
 ```
 
 Then make it executable:

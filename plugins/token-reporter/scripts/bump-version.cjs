@@ -4,10 +4,10 @@
  * Updates version in plugin.json and marketplace.json
  *
  * Usage:
- *   node scripts/bump-version.js                    # Auto-detect plugin from current directory
- *   node scripts/bump-version.js [major|minor|patch] # Auto-detect with specified bump type
- *   node scripts/bump-version.js <plugin-name>       # Specify plugin name
- *   node scripts/bump-version.js <plugin-name> [major|minor|patch]
+ *   node scripts/bump-version.cjs                    # Auto-detect plugin from current directory
+ *   node scripts/bump-version.cjs [major|minor|patch] # Auto-detect with specified bump type
+ *   node scripts/bump-version.cjs <plugin-name>       # Specify plugin name
+ *   node scripts/bump-version.cjs <plugin-name> [major|minor|patch]
  */
 
 const fs = require('fs');

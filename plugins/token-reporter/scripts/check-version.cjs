@@ -2,7 +2,7 @@
 /**
  * Pre-push version check script
  * Checks if version has been bumped since last tag or commit
- * Usage: node scripts/check-version.js
+ * Usage: node scripts/check-version.cjs
  */
 
 const { execSync } = require('child_process');
@@ -107,7 +107,7 @@ async function main() {
     case '1':
       console.log('\n🚀 Running version bump script...\n');
       const { spawn } = require('child_process');
-      const bumpScript = spawn('node', [path.join(__dirname, 'bump-version.js')], {
+      const bumpScript = spawn('node', [path.join(__dirname, 'bump-version.cjs')], {
         stdio: 'inherit'
       });
       bumpScript.on('close', (code) => {
@@ -122,7 +122,7 @@ async function main() {
     case '3':
     default:
       console.log('\n❌ Push cancelled. Run the version bump script manually:\n');
-      console.log('  node plugins/token-reporter/scripts/bump-version.js\n');
+      console.log('  node plugins/token-reporter/scripts/bump-version.cjs\n');
       process.exit(1);
   }
 }
