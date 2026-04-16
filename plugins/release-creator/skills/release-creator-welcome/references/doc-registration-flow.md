@@ -85,7 +85,7 @@
 
 - `{{scriptsDir}}/bump-version.{{scriptExt}}` —— bump 脚本（仅当 bumpTrigger=generate-script）
 - `{{scriptsDir}}/check-version.{{scriptExt}}` —— check 脚本（仅当 checkTiming=pre-push-hook / pre-commit-hook）
-- `.githooks/pre-push` / `.githooks/pre-commit` —— git hook（按 checkTiming）
+- `{{hookLocation}}pre-push` / `{{hookLocation}}pre-commit` —— git hook（按 checkTiming；hookLocation 可能是 `.git/hooks/` / `.githooks/` / `.husky/`）
 - `.github/workflows/release-check.yml` —— CI workflow（仅当 checkTiming=ci）
 ```
 

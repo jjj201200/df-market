@@ -149,11 +149,11 @@ Q3 若命中去重跳过条件，本次 AUQ 只发 Q1 + Q2 两问。
         },
         {
           "label": "生成 pre-push hook",
-          "description": "skill-creator 落 .githooks/pre-push + scripts/check-version.*"
+          "description": "skill-creator 落 <hookLocation>/pre-push + scripts/check-version.*；随后会追问 hook 落盘位置"
         },
         {
           "label": "生成 pre-commit hook",
-          "description": "bump-in-diff 会被过滤（不适合 pre-commit）"
+          "description": "同上，但 bump-in-diff 会被过滤（不适合 pre-commit）"
         },
         {
           "label": "生成 CI workflow",
@@ -189,6 +189,50 @@ Q6 若命中去重跳过条件，本次 AUQ 只发 Q4 + Q5 两问。
 
 ---
 
+## 4.1 Q5 子问：hook 落盘位置（仅当 Q5 ∈ {pre-push-hook, pre-commit-hook} 时发起）
+
+用户 Q5 选了 hook 类时，追加一次单独 AUQ 采集 `{{hookLocation}}`：
+
+```json
+{
+  "question": "Hook 文件落盘到哪里？",
+  "header": "Hook path",
+  "multiSelect": false,
+  "options": [
+    {
+      "label": ".git/hooks/",
+      "description": "git 原生路径。无需额外配置，但 hook 不会随 clone 传播（单人仓库 / 不想让协作者自动受 hook 约束时推荐）"
+    },
+    {
+      "label": ".githooks/",
+      "description": "版本化 hook（会 commit 到仓库）。需要每位 clone 者各自执行 git config core.hooksPath .githooks 启用"
+    },
+    {
+      "label": ".husky/",
+      "description": "已使用 Husky 框架的 npm 项目。npm install 后自动 setup，无需 git config"
+    }
+  ]
+}
+```
+
+### 默认值推导
+
+welcome 在发起本问之前按下表预高亮默认选项：
+
+| 仓库现状预扫                                        | 默认 `{{hookLocation}}` |
+| --------------------------------------------------- | ----------------------- |
+| `{{ecosystem}} ∈ {npm, pnpm, yarn}` 且存在 `.husky/` | `.husky/`               |
+| 仓库已存在 `.githooks/` 目录                        | `.githooks/`            |
+| 其他（无现成 hook 目录）                            | `.git/hooks/`           |
+
+### 与既有 hook 的冲突提示
+
+若默认位置已存在同名 hook 文件（常见于 `.git/hooks/pre-push`），AUQ 的选项 description 里追加一行提示：「⚠️ `.git/hooks/pre-push` 已存在，落盘时会触发冲突 AUQ（覆盖 / 跳过 / 改名）」。
+
+Q5 选 `inline` / `ci` / `none` → 本子问整段跳过，`{{hookLocation}}` 不设值。
+
+---
+
 ## 5. 默认值推导表
 
 skill-creator 在组装阶段按下表填充默认/继承值：
@@ -201,6 +245,7 @@ skill-creator 在组装阶段按下表填充默认/继承值：
 | `bumpScope`               | Q3 label；非 monorepo 时为 `single`                  |
 | `checkScope[]`            | Q4 多选 + `regex-compliance` 自动追加 + 条件追加 `tests-pass`|
 | `checkTiming`             | Q5 label                                             |
+| `hookLocation`            | Q5 子问（仅 hook 时机）；按预扫默认；`inline`/`ci`/`none` 时为空 |
 | `extraMirrorFiles[]`      | Q6 走 free-text 追加；复用则为空                     |
 
 ---
@@ -222,6 +267,7 @@ skill-creator 在组装阶段按下表填充默认/继承值：
 versionStructure: semver | calver-ymd | calver-ym-serial | serial | <custom>
 versionRegex: <regex string>
 bumpTrigger: ecosystem-cli | manual | generate-script | manual-prompt | ci-derived
+hookLocation: .git/hooks/ | .githooks/ | .husky/ | <empty when timing=inline/ci/none>
 bumpScope: single | monorepo-isolated | monorepo-sync | monorepo-changeset
 checkScope: [mirror-consistency, tag-conflict, workdir-clean, bump-in-diff, regex-compliance, tests-pass]
 checkTiming: inline | pre-push-hook | pre-commit-hook | ci | none

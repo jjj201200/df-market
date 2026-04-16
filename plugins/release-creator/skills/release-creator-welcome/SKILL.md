@@ -143,7 +143,7 @@ description: "release-creator 插件首次安装后的渐进式派生引导。�
 
 1. 派生 SKILL.md 里的 `{{bumpBlock}}` / `{{checkBlock}}` 章节文字
 2. 配套脚本 `{{scriptsDir}}/bump-version.<ext>` / `{{scriptsDir}}/check-version.<ext>`（按 `bumpTrigger` / `checkTiming` 决定是否生成）
-3. Hook / CI 文件 `.githooks/pre-push` / `.github/workflows/release-check.yml`（按 `checkTiming` 决定）
+3. Hook / CI 文件 `{{hookLocation}}pre-push` / `.github/workflows/release-check.yml`（按 `checkTiming` + `hookLocation` 决定；hookLocation 可能为 `.git/hooks/` / `.githooks/` / `.husky/`）
 
 **去重规则**：进入 6.5 前按 `bump-check-flow.md` 第 1 节"去重快速通道"表判断跳过哪些题；穷举派即使命中跳过条件也强制展示，继承值作为 option 第一位。
 
@@ -209,7 +209,7 @@ description: "release-creator 插件首次安装后的渐进式派生引导。�
 - 版本结构 / Bump 触发方式 / Check 时机（来自环节 6.5）
 - **附属资产清单**（根据 6.5 + 7.4 + 7.5 派生）：
   - 若 `bumpTrigger = generate-script` → `{{scriptsDir}}/bump-version.{{scriptExt}}`
-  - 若 `checkTiming ∈ {pre-push-hook, pre-commit-hook}` → `{{scriptsDir}}/check-version.{{scriptExt}}` + `.githooks/<timing>`
+  - 若 `checkTiming ∈ {pre-push-hook, pre-commit-hook}` → `{{scriptsDir}}/check-version.{{scriptExt}}` + `{{hookLocation}}<timing>`
   - 若 `checkTiming = ci` → `.github/workflows/release-check.yml`
 - 必填字段是否全部有实值（有/留 `TODO:`）
 
@@ -268,7 +268,7 @@ skill-creator 返回错误 → AUQ 单选让用户选择「重试 / 终止」，
 1. 列出 skill-creator 本次落盘的**所有文件路径**（SKILL.md + 附属脚本 / hook / CI yaml）
 2. 展示环节 9.5 的 `docIndexResult`——已更新 / 已新建 / 已输出到终端（需手贴）/ 已跳过
 3. **⚠️ 修改了 skill 文件，需要重启 Claude Code 才能使改动生效**（加粗 + emoji 强调）
-4. 若 `checkTiming ∈ {pre-push-hook, pre-commit-hook}` 且落盘位置是 `.githooks/` → 提醒用户执行 `git config core.hooksPath .githooks` 启用
+4. 按 `{{hookLocation}}` 条件给出启用提示：`.git/hooks/` → 无需启用但 hook 不随 clone 传播；`.githooks/` → 提醒执行 `git config core.hooksPath .githooks`；`.husky/` → 提醒 `npm install` 自动 setup
 5. 若 `checkTiming = ci` 且仓库非 GitHub → 提醒用户按顶部 TODO 翻译 workflow 到目标 CI 平台
 6. 告知用户：未填字段以 `TODO:` 形式留在正文，可稍后手动补全；补全后无需再跑 welcome
 7. 提示：首次 release 时直接对 Claude 说「release 一下」或「发布 `<plugin>` 到 X.Y.Z」即可触发派生出的 skill

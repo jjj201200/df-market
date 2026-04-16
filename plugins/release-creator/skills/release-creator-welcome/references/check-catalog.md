@@ -225,10 +225,10 @@ echo "TODO: 请在本脚本中填入测试命令" >&2; exit 1
 
 ## 组装规则（skill-creator 调用）
 
-1. 读 `{{projectAnswers}}.checkScope`（Q4 多选结果）和 `.checkTiming`（Q5 单选）
+1. 读 `{{projectAnswers}}.checkScope`（Q4 多选）、`.checkTiming`（Q5 单选）、`.hookLocation`（Q5 hook 子问）
 2. 按 `checkTiming` 选宿主：
    - `inline` → 把所选项的 **bash** 展开直接嵌入派生 SKILL.md 的 `{{checkBlock}}` markdown 代码块
-   - `pre-push-hook` / `pre-commit-hook` → 生成 `{{scriptsDir}}/check-version.<ext>` 脚本，再落一份 `.githooks/<timing>` 调用该脚本（hook 骨架见 `hook-templates.md`）
+   - `pre-push-hook` / `pre-commit-hook` → 生成 `{{scriptsDir}}/check-version.<ext>` 脚本，再落一份 `{{hookLocation}}<timing>`（例如 `.git/hooks/pre-push` / `.githooks/pre-push` / `.husky/pre-push`）调用该脚本（hook 骨架见 `hook-templates.md`）
    - `ci` → 把所选项的 **ci** 展开填入 `.github/workflows/release-check.yml`（骨架见 `hook-templates.md`）
 3. 每个检查项失败 exit 非零；skill-creator 在组装时保持各步骤串行 `|| exit 1`，**不要并行**
 4. 若 `{{testCommand}}` 为 TODO 且 `tests-pass` 被选，提示用户补命令；不要悄悄跳过

@@ -231,7 +231,7 @@ welcome skill 本身不写任何 SKILL.md 文件——落盘交给 `skill-creato
 4. 检测官方 `skill-creator`
 5. **第一道核心 AUQ：选分支维度**（生态 / 哲学 / 打包+tag / 穷举 · 单选 4）
 6. 分维度追问（读对应 flow reference，含预扫项目档案）
-7. **Bump + Check 子环节**（所有维度共同后置，6 题分 2 轮：版本号结构 / Bump 触发方式 / Bump 范围 / Check 范围 / Check 时机 / 镜像字段复用——见 `bump-check-flow.md`）
+7. **Bump + Check 子环节**（所有维度共同后置，6 题分 2 轮 + 1 个条件子问：版本号结构 / Bump 触发方式 / Bump 范围 / Check 范围 / Check 时机 / 镜像字段复用 / **Q5 选 hook 时追问 hook 落盘位置** `.git/hooks/` vs `.githooks/` vs `.husky/` ——见 `bump-check-flow.md`）
 8. 通用参数（项目代号 / 命名 / 落盘位置 / 脚本落盘目录 / 脚本语言）
 9. Override（展示默认骨架 + 各维度替代 + 自定义字段；新增「改 bump 策略」「改 check 范围」）
 10. 落盘清单确认 + 委派 `skill-creator`（同时落派生 SKILL.md + 配套脚本/hook/CI）
@@ -279,42 +279,37 @@ Bump+Check 4 份 reference 的职责：
 
 ## 版本管理
 
-### 每次 push 之前
+本仓库的 release 流程由 **`release-market` skill**（`.claude/skills/release-market/`）接管——它是由 `release-creator` 插件派生而来的项目特化 release skill，覆盖 plugins/ 下所有插件的 bump / check / tag / push 全流程。
 
-**push 前始终检查是否需要 bump 版本号。** 执行：
+### 触发 release
 
-```bash
-node plugins/token-reporter/scripts/check-version.cjs
-```
+直接对 Claude 说「release 一下 `<plugin>`」「发布 `<plugin>` 到 X.Y.Z」「ship `<plugin>`」—— `release-market` skill 会自动触发。
 
-如果版本还没更新，脚本会提示你去 bump。
+### 脚本入口（由 release-market 调用；也可直接手跑）
 
-### 版本 bump 脚本
+`scripts/` 下的两个 Node 脚本是由 skill-creator 按 `release-creator` 的 catalog 骨架动态生成的（非手写），多插件参数化：
 
-交互式 bump（推荐）：
+- **`scripts/bump-version.cjs <plugin-name> [major|minor|patch|X.Y.Z]`** —— bump 指定插件版本，同步更新 `plugin.json` 和 `marketplace.json` 两个镜像字段
+- **`scripts/check-version.cjs <plugin-name>`** —— 校验：镜像一致性 / tag 冲突 / 工作区干净 / 正则合规
 
-```bash
-node plugins/token-reporter/scripts/bump-version.cjs
-```
+脚本本身（以及 `.git/hooks/pre-push`）不应手工编辑——若需要改行为，改 `release-creator` 的 catalog 骨架后重新派生 `release-market` skill。
 
-或直接指定 bump 类型：
+### 版本号出现位置（所有插件通用）
 
-```bash
-node plugins/token-reporter/scripts/bump-version.cjs patch   # 1.0.0 → 1.0.1
-node plugins/token-reporter/scripts/bump-version.cjs minor   # 1.0.0 → 1.1.0
-node plugins/token-reporter/scripts/bump-version.cjs major   # 1.0.0 → 2.0.0
-```
+每个插件的版本号出现在：
+- `plugins/<name>/.claude-plugin/plugin.json` > `version` —— 插件 manifest
+- `.claude-plugin/marketplace.json` > `plugins[name=<name>].version` —— marketplace 注册表
+- Git tag：`<plugin-name>-v<version>`（多插件仓库强制前缀）
+- Git commit message（约定：`chore(<plugin-name>): bump version to X.Y.Z`）
 
-脚本会自动更新这两个文件：
-- `plugins/token-reporter/.claude-plugin/plugin.json`
-- `.claude-plugin/marketplace.json`
+### pre-push hook
 
-### 版本号出现位置
+`.git/hooks/pre-push` 做两件事：
 
-`token-reporter` 的版本号出现在：
-- `plugins/token-reporter/.claude-plugin/plugin.json` —— 插件 manifest
-- `.claude-plugin/marketplace.json` —— marketplace 注册表
-- Git commit message（约定：`chore: bump version to X.Y.Z`）
+1. **推 branch 时** —— 调 `scripts/build-frontend.sh` 构建 token-reporter frontend（dist/ 有变动时自动追加一次 commit）
+2. **推 tag 时** —— 解析 `<plugin>-v<version>` tag，调 `scripts/check-version.cjs <plugin>` 校验
+
+hook 保留在 `.git/hooks/`（而非 `.githooks/`）—— 单人仓库无需 `git config core.hooksPath`；副作用是 hook 不随 clone 传播，新协作者需手动 setup。
 
 ### Commit 规范
 
@@ -323,18 +318,3 @@ node plugins/token-reporter/scripts/bump-version.cjs major   # 1.0.0 → 2.0.0
 - 使用简明扼要的描述性消息，不加 attribution 行
 - 不添加 `Co-Authored-By:`、`Signed-off-by:` 等 trailer 行
 - 遵循 conventional commit 格式：`type(scope): description`
-
-### Git Hook（可选）
-
-如果想在每次 push 前自动检查版本号，可在 `.git/hooks/pre-push` 添加：
-
-```bash
-#!/bin/bash
-node plugins/token-reporter/scripts/check-version.cjs || exit 1
-```
-
-然后赋予可执行权限：
-
-```bash
-chmod +x .git/hooks/pre-push
-```

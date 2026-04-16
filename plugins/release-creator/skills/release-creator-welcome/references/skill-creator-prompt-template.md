@@ -57,9 +57,11 @@ welcome 环节 9.3 调用 skill-creator 时使用本模板。按变量填空后�
 | ------------------------------------------ | ----------------------------------------------------------------- | ----------------------------------------------- |
 | `bumpTrigger = generate-script`            | `{{projectRoot}}/{{scriptsDir}}/bump-version.{{scriptExt}}`       | `bump-catalog.md` §3.{{scriptLanguage}} 骨架    |
 | `checkTiming ∈ {pre-push-hook, pre-commit-hook}` | `{{projectRoot}}/{{scriptsDir}}/check-version.{{scriptExt}}`| `check-catalog.md` 中所选项的 [bash] 宿主展开   |
-| `checkTiming = pre-push-hook`              | `{{projectRoot}}/.githooks/pre-push`                              | `hook-templates.md` §1 骨架                     |
-| `checkTiming = pre-commit-hook`            | `{{projectRoot}}/.githooks/pre-commit`                            | `hook-templates.md` §2 骨架                     |
+| `checkTiming = pre-push-hook`              | `{{projectRoot}}/{{hookLocation}}pre-push`                        | `hook-templates.md` §1 骨架                     |
+| `checkTiming = pre-commit-hook`            | `{{projectRoot}}/{{hookLocation}}pre-commit`                      | `hook-templates.md` §2 骨架                     |
 | `checkTiming = ci`                         | `{{projectRoot}}/.github/workflows/release-check.yml`             | `hook-templates.md` §3 骨架 + setup-steps       |
+
+> `{{hookLocation}}` 取值：`.git/hooks/` / `.githooks/` / `.husky/`（由 welcome 环节 6.5 Q5 子问采集；不同值影响派生 SKILL.md 的「启用方式」说明——见 `hook-templates.md` §1）。
 
 ### 落盘前检查
 
@@ -99,6 +101,7 @@ welcome 环节 9.3 调用 skill-creator 时使用本模板。按变量填空后�
 | `{{versionStructure}}`      | 环节 6.5 Q1                                    | `semver` / `calver-ym-serial`     |
 | `{{versionRegex}}`          | 环节 6.5 Q1                                    | `^\d+\.\d+\.\d+$`                  |
 | `{{versionFiles}}`          | 生态维度 + 环节 6.5 Q6                         | 数组（含 path + JSON/TOML 路径）   |
+| `{{hookLocation}}`          | 环节 6.5 Q5 子问                               | `.git/hooks/` / `.githooks/` / `.husky/` |
 | `{{projectFieldsBlock}}`    | 环节 6 + 6.5 追问 + 环节 8 override 的答案汇总 | 逐项列表，未填留 `TODO:`          |
 
 ---
@@ -148,7 +151,7 @@ welcome 环节 9.3 调用 skill-creator 时使用本模板。按变量填空后�
 - tag 示例：token-reporter-v2.9.9 / skill-keeper-v0.1.2
 - marketplace 镜像字段：.claude-plugin/marketplace.json > plugins[].version
 - Check 范围：镜像一致性 / tag 冲突 / 工作区干净 / 正则合规
-- Check 时机：pre-push hook（.githooks/pre-push 调用 scripts/check-version.cjs）
+- Check 时机：pre-push hook（.git/hooks/pre-push 调用 scripts/check-version.cjs；单人仓库不启用 core.hooksPath）
 - push 动作：git push origin main + git push origin <tag-name>（不用 --tags）
 ```
 
