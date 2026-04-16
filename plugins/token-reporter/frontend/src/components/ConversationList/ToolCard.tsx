@@ -111,7 +111,9 @@ export const ToolCard: React.FC<ToolCardProps> = React.memo(({tool, detailId, tu
                 {tool.input.map((p, pi) => (
                   <div className={s.tcParamRow} key={pi}>
                     <span className={s.tcPk}>{p.k}</span>
-                    <span className={clsx(s.tcPv, getVcClass(p.vc))}>{p.v}</span>
+                    <div className={clsx(s.tcPv, getVcClass(p.vc))}>
+                      <MarkdownContent>{p.v}</MarkdownContent>
+                    </div>
                   </div>
                 ))}
               </>

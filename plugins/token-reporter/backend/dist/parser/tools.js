@@ -54,7 +54,7 @@ export function buildInputArgs(toolName, input) {
         const display = typeof v === 'string' ? v : JSON.stringify(v);
         entries.push({
             k,
-            v: display.length > 300 ? display.slice(0, 300) + '...' : display,
+            v: display,
             vc,
         });
     }

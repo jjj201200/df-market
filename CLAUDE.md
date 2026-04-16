@@ -24,6 +24,18 @@ node test/test-single-instance.js
 
 Tests use the `TOKEN_REPORTER_DATA_DIR` env var to redirect data to a temp directory, avoiding interference with a live install.
 
+### Development server (manual testing)
+
+When running the plugin for hands-on testing, **always use port `13737`**. Port `3737` is reserved for the production instance that the user runs day-to-day — never point tests or the dev server at it.
+
+The dev server is launched via `token-reporter-dev` (in `plugins/token-reporter/bin/`). **Always export `TOKEN_REPORTER_DEV_ROOT` to the current project root before invoking it**, so the script resolves to this checkout rather than a cached/previous path:
+
+```bash
+export TOKEN_REPORTER_DEV_ROOT="$(pwd)"   # from the repo root
+token-reporter-dev start                  # listens on 13737
+token-reporter-dev stop
+```
+
 ## Plugin Architecture (token-reporter)
 
 The plugin follows the Claude Code plugin lifecycle model:
@@ -35,7 +47,7 @@ Three lifecycle scripts registered in `hooks/hooks.json`:
 - **`session-end.js`** — cleans up on exit
 
 ### Server (`src/server.js`)
-Lightweight HTTP server (default port 3737) with:
+Lightweight HTTP server (production port `3737`; dev/test port `13737` — see "Development server" above) with:
 - `GET /` → serves `src/report.html` (the web dashboard)
 - `GET /events` → SSE stream for real-time dashboard updates
 - `POST /notify` → receives tool-use notifications from the hook

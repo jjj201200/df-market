@@ -1,0 +1,1 @@
+import{a as r,h as a,j as u,s as d}from"./index-DhSZbk4_.js";const k="_link_16oca_1",x={link:k};function S({turnId:n,prefix:e="#",children:o}){const t=r(s=>s.turns),i=a(s=>s.setSelected),c=()=>{const s=t.findIndex(l=>l.id===n);s>=0&&(d(t,s,"top"),i(n))};return u.jsx("button",{className:x.link,onClick:c,type:"button",children:o??`${e}${n}`})}export{S as T};

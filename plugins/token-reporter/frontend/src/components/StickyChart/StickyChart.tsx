@@ -36,6 +36,8 @@ export default function StickyChart() {
   const brushL = useChartStore((s) => s.brushL);
   const brushR = useChartStore((s) => s.brushR);
   const toggleDrawer = useAnalyticsStore((s) => s.toggleDrawer);
+  const drawerOpen = useAnalyticsStore((s) => s.drawerOpen);
+  const splitView = useAnalyticsStore((s) => s.splitView);
 
   const rangeLabel = useMemo(() => {
     const N = turns.length;
@@ -77,11 +79,13 @@ export default function StickyChart() {
           />
         </div>
         <SessionSelector />
-        <Tooltip content={t('nav.sessionAnalytics')} placement="bottom">
-          <button className={styles.analyticsBtn} onClick={toggleDrawer}>
-            {t('nav.analytics')} <IconExternalLink size={12} stroke={1.5} style={{verticalAlign: 'middle'}} />
-          </button>
-        </Tooltip>
+        {!drawerOpen && !splitView && (
+          <Tooltip content={t('nav.sessionAnalytics')} placement="bottom">
+            <button className={styles.analyticsBtn} onClick={toggleDrawer}>
+              {t('nav.analytics')} <IconExternalLink size={12} stroke={1.5} style={{verticalAlign: 'middle'}} />
+            </button>
+          </Tooltip>
+        )}
       </div>
 
       <SessionBar />
