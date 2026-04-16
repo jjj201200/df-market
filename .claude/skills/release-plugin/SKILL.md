@@ -1,8 +1,8 @@
 ---
 name: release-plugin
 description: |
-  Automates the complete release workflow for df-market plugins.
-  
+  Automates the complete release workflow for df-market. Covers both plugin releases and marketplace self releases.
+
   Use this skill when the user says things like:
   - "release the plugin"
   - "publish the changes"
@@ -12,97 +12,158 @@ description: |
   - "deploy the plugin"
   - "ship it"
   - "finalize the release"
-  
-  This skill handles: version bumping, git commit, git tag creation, and git push.
-  It ensures the version is updated in both plugin.json and marketplace.json before releasing.
+  - "bump the marketplace"
+  - "release the marketplace"
+
+  The skill decides — based on what changed — whether this is a plugin release, a marketplace release, or both, and applies the correct version/tag scheme.
 ---
 
-# Release Plugin Skill
+# Release Skill（df-market plugins + marketplace）
 
-Automates the complete release workflow for df-market plugins.
+Automates the full release workflow for both plugins under `plugins/*/` and the marketplace container (`.claude-plugin/marketplace.json`).
 
-## Workflow
+## Release Targets
 
-1. **Check for uncommitted changes** - Ensure all changes are committed before release
-2. **Bump version** - Update version in plugin.json and marketplace.json
-3. **Create commit** - Commit version changes with conventional commit message (include version bump in same commit)
-4. **Create git tag** - Tag the release with version number
-5. **Push to remote** - Push both commits and tags
+The df-market repo has two kinds of release-able artifacts:
+
+| Target | Version source of truth | Tag format | Who it affects |
+|---|---|---|---|
+| **Plugin** | `plugins/<name>/.claude-plugin/plugin.json` **AND** the plugin's entry inside `.claude-plugin/marketplace.json` (must match) | `<plugin-name>-v<version>` | Users who installed that plugin |
+| **Marketplace self** | `.claude-plugin/marketplace.json` → `metadata.version` | `marketplace-v<version>` | Anyone consuming the marketplace (plugin listing clients) |
+
+**Never use the short `v<version>` tag format.** It was deprecated in April 2026 when all historical `token-reporter` tags were migrated to `token-reporter-v*`. A single `vX.Y.Z` is ambiguous in a multi-plugin repo.
+
+## Decision: Plugin Release, Marketplace Release, or Both?
+
+Before running any commands, classify the change:
+
+| Change | Plugin release? | Marketplace self release? |
+|---|---|---|
+| Plugin bug fix / feature / refactor | **Yes** (bump that plugin) | **No** |
+| Plugin docs / description edits (user-facing) | **Yes** (patch bump) | **No** |
+| Added a new plugin entry to `marketplace.json` | Yes (the new plugin starts at 0.1.0 and gets tagged) | **Yes** (marketplace gets a **minor** bump — new plugin = new structural item) |
+| Removed a plugin entry from `marketplace.json` | — (the plugin being removed doesn't get a tag) | **Yes** (marketplace gets a **major** bump — breaking for consumers pinned to that plugin) |
+| Changed marketplace root fields (`name` / `owner` / `metadata.description`) | **No** | **Yes** (**minor** bump) |
+| Changed marketplace schema / JSON structure | **No** | **Yes** (**major** bump) |
+| Fixed a typo in marketplace root `metadata.description` | **No** | **Yes** (**patch** bump) |
+| Pure plugin version bump inside marketplace.json (cascade from plugin release) | Yes | **No** — that's just mirroring the plugin's own version |
+
+**If both a plugin release and marketplace release apply to the same changeset**, do them as **two commits + two tags** in sequence: plugin first, then marketplace. Do NOT collapse them into one commit — the audit trail matters.
+
+## Plugin Release Workflow
+
+1. Identify the plugin name (matches `name` in `plugins/<name>/.claude-plugin/plugin.json`)
+2. Check `git status` — ensure all plugin changes are already committed, or plan to include them in this release commit
+3. **Bump version** — update version in BOTH:
+   - `plugins/<name>/.claude-plugin/plugin.json`
+   - The matching plugin entry inside `.claude-plugin/marketplace.json`
+
+   Two files must hold identical version strings. Prefer the plugin's bump-version script when available:
+
+   ```bash
+   # Interactive
+   node plugins/<name>/scripts/bump-version.cjs
+
+   # Or with a specific bump type
+   node plugins/<name>/scripts/bump-version.cjs patch
+   node plugins/<name>/scripts/bump-version.cjs minor
+   node plugins/<name>/scripts/bump-version.cjs major
+   ```
+
+   If the plugin has no bump-version script (e.g. new plugins), edit both JSON files by hand and verify they match.
+
+4. **Single commit** — all changes + version bump together:
+
+   ```bash
+   git add <specific paths>
+   git commit -m "chore(<plugin-name>): bump version to X.Y.Z"
+   # or for a mixed commit
+   git commit -m "feat(<plugin-name>): <description>
+
+   includes version bump to X.Y.Z"
+   ```
+
+5. **Tag** — `<plugin-name>-v<version>`:
+
+   ```bash
+   git tag <plugin-name>-v<version>
+   ```
+
+6. **Push** — commit, then the specific new tag:
+
+   ```bash
+   git push origin main
+   git push origin <plugin-name>-v<version>
+   ```
+
+## Marketplace Self Release Workflow
+
+When `.claude-plugin/marketplace.json`'s own metadata or plugin list changes **structurally** (see decision table), bump the marketplace's own version.
+
+1. Check `git status`
+2. Edit `.claude-plugin/marketplace.json` → `metadata.version` → apply semver:
+   - **patch**: marketplace-level typo / description fix
+   - **minor**: added plugin entry, or changed marketplace root fields (`name` / `owner`)
+   - **major**: removed plugin entry, or changed the JSON schema / field structure
+3. Commit — with scope `marketplace`:
+
+   ```bash
+   git add .claude-plugin/marketplace.json <other marketplace-level paths>
+   git commit -m "chore(marketplace): bump version to X.Y.Z
+
+   <one-line reason: added skill-keeper plugin / removed foo / reworked schema / ...>"
+   ```
+
+4. Tag — `marketplace-v<version>`:
+
+   ```bash
+   git tag marketplace-v<version>
+   ```
+
+5. Push:
+
+   ```bash
+   git push origin main
+   git push origin marketplace-v<version>
+   ```
 
 ## IMPORTANT: Version Bump Timing
 
-**Always bump version BEFORE creating the final commit.**
-
-The correct sequence is:
-1. Make your code changes
-2. Test thoroughly
-3. **Bump version** (updates plugin.json and marketplace.json)
-4. **Create commit** that includes both code changes AND version bump
-5. Create tag
-6. Push
+**Always bump version BEFORE creating the final commit.** One commit = code changes + version bump together.
 
 **WRONG**: Commit code changes → Bump version → Commit version bump (two commits)
 **CORRECT**: Code changes + Version bump → Single commit → Tag → Push
 
-## Usage
+## IMPORTANT: Don't Use `git push --tags`
 
-When user wants to release:
-
-1. Check git status to see current state
-2. If there are uncommitted changes, commit them first with appropriate message
-3. Run version bump script interactively or with specified bump type
-4. Create commit for version bump
-5. Create git tag (v{version})
-6. Push commits and tags to remote
-
-## Commands
-
-```bash
-# Check git status
-git status
-
-# Commit any pending changes - keep message simple
-git add -A
-git commit -m "fix: description of changes"
-
-# Bump version (interactive)
-node plugins/<name>/scripts/bump-version.js
-
-# Or bump with specific type
-node plugins/<name>/scripts/bump-version.js patch
-node plugins/<name>/scripts/bump-version.js minor
-node plugins/<name>/scripts/bump-version.js major
-
-# Create tag
-git tag v<version>
-
-# Push everything
-git push
-git push --tags
-```
+**Do not run `git push --tags`.** That pushes every local tag, including unrelated work-in-progress ones. Always push the specific new tag you just created with `git push origin <tag-name>`.
 
 ## IMPORTANT: Clean Commit Messages
 
-**Keep commit messages simple and clean.**
+- Concise, descriptive, conventional commit format: `type(scope): description`
+- `scope` is the plugin name for plugin releases, or the literal `marketplace` for marketplace releases
+- **Do not** add trailer lines like `Co-Authored-By:`, `Signed-off-by:`, attribution, authorship, or co-author mentions
 
-- Use concise, descriptive commit messages
-- Do not add trailer lines like `Co-Authored-By:`, `Signed-off-by:`, etc.
-- Do not mention attribution, authorship, or co-authors in commit messages
-- Follow conventional commit format: `type(scope): description`
+## Full Release Checklist
 
-## Release Checklist
+Before pushing, verify:
 
-Before releasing, verify:
-- [ ] All changes are committed
+- [ ] The correct target was identified (plugin? marketplace? both?)
+- [ ] All changes are committed or staged for the release commit
 - [ ] Tests pass (if applicable)
-- [ ] Version is bumped correctly
-- [ ] Commit message follows convention: `chore(<plugin>): bump version to X.Y.Z`
-- [ ] Tag is created with format `vX.Y.Z`
-- [ ] Both commits and tags are pushed
+- [ ] Version is bumped correctly:
+  - Plugin release → both `plugins/<name>/.claude-plugin/plugin.json` AND the matching entry in `marketplace.json` updated to the same version
+  - Marketplace self release → `.claude-plugin/marketplace.json` → `metadata.version` bumped per semver table above
+- [ ] Commit message follows convention:
+  - Plugin: `chore(<plugin-name>): bump version to X.Y.Z`
+  - Marketplace: `chore(marketplace): bump version to X.Y.Z`
+- [ ] Tag format is correct:
+  - Plugin: `<plugin-name>-vX.Y.Z`
+  - Marketplace: `marketplace-vX.Y.Z`
+  - **NOT** the deprecated short `vX.Y.Z`
+- [ ] Only the specific new tag(s) pushed — no `--tags`
+- [ ] If both plugin + marketplace changed, two separate commits + two separate tags were created
 
-## Notes
+## Historical Note
 
-- The bump-version script updates both plugin.json and marketplace.json
-- Always use conventional commit format for version bumps
-- Tags should follow semantic versioning format: v1.0.0, v1.2.3, etc.
-- Push commits first, then tags
+All `v<version>` tags created before April 2026 belonged to `token-reporter` and were migrated to `token-reporter-v<version>` in a one-time cleanup. No new tags should ever use the short `v<version>` form regardless of target.
