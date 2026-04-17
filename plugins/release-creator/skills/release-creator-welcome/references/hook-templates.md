@@ -64,6 +64,8 @@ echo "✅ All pre-push checks passed"
 
 若目标路径（`.git/hooks/pre-push` 等）**已存在**：skill-creator 不得默默覆盖。处理策略见 `skill-creator-prompt-template.md` 的「落盘前检查」段（冲突 AUQ：覆盖 / 跳过 / 改名）。常见场景是用户仓库里本地已经写了 frontend build / lint 之类的 pre-push 逻辑——覆盖意味着丢失这些。
 
+**合并场景的排序原则**：若用户选择 `覆盖` 并手动合并既有逻辑，应把 release check（本 skill 生成的段）放在**耗时步骤之前**——check 通常几百毫秒级，build/lint 通常秒级。早失败能省下耗时步骤的时间。skill-creator 在 AUQ 提示里附加这条建议，但不替用户做自动合并（手动合并由用户判断如何保留原有逻辑）。
+
 ---
 
 ## 2. `pre-commit-hook` 骨架
