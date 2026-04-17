@@ -166,7 +166,7 @@ export function generateRecommendations(input: Input, t: TFunction): Result[] {
 
 - 5 份通用 skill 的 frontmatter `name` 字段**必须保持原值**（不加 `-keeper` 前缀 / 后缀）。它们彼此通过 name 交叉引用——`skill-recap` 正文调用 `skill-sync-check` / `skill-doc-sync-check`，定制版"前置"声明也按原名引用通用版。改名会让整套引用链失效。
 - 目录名与 frontmatter `name` 必须一致。
-- 新增/修改本插件内的 skill 时，**5 份通用 skill 原则上整份搬运、不就地编辑**；如需改动请直接修改用户个人 `~/.claude/skills/<name>/SKILL.md` 后重新搬运，以便上游（个人 skills）与插件内保持一致。
+- 新增/修改本插件内的 skill 时，**权威源是插件版**（`plugins/skill-keeper/skills/<name>/`）——进 git、随插件分发、有版本历史。个人版 `~/.claude/skills/<name>/` 是按需同步的本地镜像，**不是权威源**。迭代流程：先改插件版，再 `cp -R` 同步到个人版（SKILL.md / references/ / scripts/）。
 
 ### welcome skill 流程（v0.2.0 起 10 环节）
 
@@ -293,6 +293,8 @@ Bump+Check 4 份 reference 的职责：
 - **`scripts/check-version.cjs <plugin-name>`** —— 校验：镜像一致性 / tag 冲突 / 工作区干净 / 正则合规
 
 脚本本身（以及 `.git/hooks/pre-push`）不应手工编辑——若需要改行为，改 `release-creator` 的 catalog 骨架后重新派生 `release-market` skill。
+
+**派生产物的存放原则**：release-creator / skill-keeper 派生出的 skill（`.claude/skills/release-market/` 等）和脚本（`scripts/bump-version.cjs` / `scripts/check-version.cjs` / `scripts/build-frontend.sh`）作为**项目资产进 git**——协作者 clone 仓库后直接获得完整 release 流程，不需要重跑派生。派生资产不是本地产物。
 
 ### 版本号出现位置（所有插件通用）
 
