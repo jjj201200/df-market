@@ -65,13 +65,23 @@ check_mirror || exit 1
 
 ## 2. `tag-conflict`（目标 tag 是否已存在）
 
-### bash
+**关键区别**：这个检查在三种宿主下语义不同。
+
+- **inline**（release skill 的手动 checklist，在 bump 之后、打 tag 之前执行）：此时本地**还没**创建 tag，若本地或远端已存在同名 tag = 真冲突 → 查**本地 + 远端**
+- **hook**（pre-push hook 在推 tag 时执行）：此时本地 tag **必然已创建**（这正是要 push 的对象），检查本地会误报 → 只查**远端**
+- **ci**（PR/push 事件）：CI 环境拉不到用户本地 tag，`git fetch --tags` 后检查 remote 即可
+
+### bash（inline 宿主；查本地 + 远端）
 
 ```bash
 check_tag_conflict() {
   local tag="{{tagFormat}}"  # skill-creator 展开为具体格式，如 '{{packageName}}-v${VER}'
   if git rev-parse "$tag" >/dev/null 2>&1; then
-    echo "❌ tag $tag 已存在" >&2
+    echo "❌ tag $tag 已在本地存在" >&2
+    return 1
+  fi
+  if git ls-remote --tags origin "refs/tags/$tag" | grep -q .; then
+    echo "❌ tag $tag 已在远端存在" >&2
     return 1
   fi
   echo "✅ tag $tag 可用"
@@ -79,11 +89,23 @@ check_tag_conflict() {
 check_tag_conflict || exit 1
 ```
 
-### hook
+### hook（pre-push 宿主；只查远端）
 
-相同。
+```bash
+check_tag_conflict_for_push() {
+  local tag="{{tagFormat}}"
+  # 在 pre-push 阶段本地 tag 必然已创建——是 push 的前提，不算冲突
+  # 只检查远端：若远端已有同名 tag，说明版本号重复了
+  if git ls-remote --tags origin "refs/tags/$tag" | grep -q .; then
+    echo "❌ tag $tag 已在远端存在（版本号重复）" >&2
+    return 1
+  fi
+  echo "✅ tag $tag 远端可用"
+}
+check_tag_conflict_for_push || exit 1
+```
 
-### ci
+### ci（先 fetch 再查）
 
 ```yaml
 - name: Check tag conflict
@@ -96,6 +118,8 @@ check_tag_conflict || exit 1
 ```
 
 **Exit code**: 1 = 冲突。
+
+**派生脚本的实现要求**：当 `checkTiming = pre-push-hook`，skill-creator 生成的 `check-version.<ext>` 必须接受一个宿主标识参数（例如第二个位置参数 `hook` / `inline`），按值切换 tag-conflict 的分支——hook 值走只查远端的逻辑，inline 走双查。hook 文件调用脚本时传 `hook`，inline checkist 和用户手动跑时不传（默认 `inline`）。这避免了两种宿主的混用。
 
 ---
 
