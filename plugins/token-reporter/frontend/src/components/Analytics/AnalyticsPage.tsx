@@ -2,7 +2,6 @@ import {lazy, Suspense} from 'react';
 import {useAnalyticsStore} from '../../stores/analyticsStore';
 import {useSessionStore} from '../../stores/sessionStore';
 import {useI18n} from '../../i18n';
-import AnalyticsNav from './AnalyticsNav';
 import s from './AnalyticsPage.module.scss';
 
 const OverviewPanel = lazy(() => import('./OverviewPanel/OverviewPanel'));
@@ -20,19 +19,27 @@ const PanelSkeleton = () => <div className={s.skeleton} />;
 export default function AnalyticsPage() {
   const activeTab = useAnalyticsStore((st) => st.activeTab);
   const turns = useSessionStore((st) => st.turns);
+  const sessionLoading = useSessionStore((st) => st.sessionLoading);
+  const sessionsLoading = useSessionStore((st) => st.sessionsLoading);
+  const isLoading = sessionsLoading || sessionLoading;
   const {t} = useI18n();
 
   if (turns.length === 0) {
     return (
       <div className={s.page}>
-        <div className={s.empty}>{t('error.noSessionData')}</div>
+        {isLoading ? (
+          <div className={s.content}>
+            <PanelSkeleton />
+          </div>
+        ) : (
+          <div className={s.empty}>{t('error.noSessionData')}</div>
+        )}
       </div>
     );
   }
 
   return (
     <div className={s.page}>
-      <AnalyticsNav />
       <div className={s.content}>
         <Suspense fallback={<PanelSkeleton />}>
           {activeTab === 'overview' && <OverviewPanel />}

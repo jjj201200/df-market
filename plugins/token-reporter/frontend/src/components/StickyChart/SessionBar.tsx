@@ -12,6 +12,8 @@ export default function SessionBar() {
   const {t} = useI18n();
   const turns = useSessionStore((s) => s.turns);
   const sessionLoading = useSessionStore((s) => s.sessionLoading);
+  const sessionsLoading = useSessionStore((s) => s.sessionsLoading);
+  const isLoading = sessionsLoading || sessionLoading;
   const brushL = useChartStore((s) => s.brushL);
   const brushR = useChartStore((s) => s.brushR);
   const hooks = useSessionStore((s) => s.hooks);
@@ -122,7 +124,7 @@ export default function SessionBar() {
 
   return (
     <div className={styles.sessionBar}>
-      {!sessionLoading && (
+      {!isLoading && (
         <Tooltip content={tooltipContent} placement="bottom" delay={200}>
           <div className={styles.sessionTotalsWrap}>
             <span className={styles.sessionTotalsLabel}>{t('session.globalLabel')}</span>
@@ -152,7 +154,7 @@ export default function SessionBar() {
         </Tooltip>
       )}
 
-      {sessionLoading ? (
+      {isLoading ? (
         <div className={styles.sessionMetaSkeleton} />
       ) : (
         <div className={styles.sessionMeta}>

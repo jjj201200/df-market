@@ -1,8 +1,9 @@
 .nav {
   display: flex;
+  flex-wrap: wrap;
   gap: 4px;
-  padding: 0 12px 8px;
-  overflow-x: auto;
+  row-gap: 6px;
+  padding: 0 0 8px;
 }
 
 .tab {

@@ -24,6 +24,8 @@ export default function StickyChart() {
   const setLocale = useI18nStore((s) => s.setLocale);
   const turns = useSessionStore((s) => s.turns);
   const sessionLoading = useSessionStore((s) => s.sessionLoading);
+  const sessionsLoading = useSessionStore((s) => s.sessionsLoading);
+  const isLoading = sessionsLoading || sessionLoading;
 
   const langOptions: DropdownOption[] = useMemo(
     () => [
@@ -90,7 +92,7 @@ export default function StickyChart() {
 
       <SessionBar />
 
-      {sessionLoading ? (
+      {isLoading ? (
         <>
           <div className={styles.chartHeader}>
             <span className={styles.chartTitleText}>{t('chart.tokenUsage')}</span>
