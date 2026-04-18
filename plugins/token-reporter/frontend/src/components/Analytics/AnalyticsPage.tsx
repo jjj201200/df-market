@@ -5,7 +5,6 @@ import {useI18n} from '../../i18n';
 import AnalyticsNav from './AnalyticsNav';
 import s from './AnalyticsPage.module.scss';
 
-const SummaryPanel = lazy(() => import('./SummaryPanel/SummaryPanel'));
 const OverviewPanel = lazy(() => import('./OverviewPanel/OverviewPanel'));
 const CachePanel = lazy(() => import('./CachePanel/CachePanel'));
 const ToolsPanel = lazy(() => import('./ToolsPanel/ToolsPanel'));
@@ -36,7 +35,6 @@ export default function AnalyticsPage() {
       <AnalyticsNav />
       <div className={s.content}>
         <Suspense fallback={<PanelSkeleton />}>
-          {activeTab === 'summary' && <SummaryPanel />}
           {activeTab === 'overview' && <OverviewPanel />}
           {activeTab === 'cache' && <CachePanel />}
           {activeTab === 'tools' && <ToolsPanel />}

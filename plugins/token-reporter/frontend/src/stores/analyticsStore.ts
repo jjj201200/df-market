@@ -1,7 +1,6 @@
 import {create} from 'zustand';
 
 export type AnalyticsTab =
-  | 'summary'
   | 'overview'
   | 'cache'
   | 'tools'
@@ -50,7 +49,7 @@ interface AnalyticsStore {
 export const useAnalyticsStore = create<AnalyticsStore>((set) => ({
   drawerOpen: false,
   splitView: getInitialSplitView(),
-  activeTab: 'summary',
+  activeTab: 'overview',
   toggleDrawer: () => set((s) => ({drawerOpen: !s.drawerOpen})),
   closeDrawer: () => set({drawerOpen: false, splitView: false}),
   toggleSplitView: () =>

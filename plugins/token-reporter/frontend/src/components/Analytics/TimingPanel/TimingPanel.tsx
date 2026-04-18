@@ -103,7 +103,7 @@ export default function TimingPanel() {
       {intervalData.length > 0 && (
         <ChartBox title={t('timing.turnIntervals')}>
           <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={intervalData} margin={{top: 8, right: 12, bottom: 4, left: 8}} onClick={onChartClick}>
+            <AreaChart data={intervalData} margin={{top: 8, right: 60, bottom: 4, left: 8}} onClick={onChartClick}>
               <defs>
                 <linearGradient id="intervalGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor={cssVar('--accent') || '#58a6ff'} stopOpacity={0.3} />

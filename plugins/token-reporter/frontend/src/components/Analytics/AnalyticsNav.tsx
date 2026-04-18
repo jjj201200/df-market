@@ -1,6 +1,5 @@
 import clsx from 'clsx';
 import {
-  IconClipboardList,
   IconChartPie,
   IconRefresh,
   IconTools,
@@ -18,7 +17,6 @@ import type {TranslationKey} from '../../i18n';
 import s from './AnalyticsNav.module.scss';
 
 const TABS: {key: AnalyticsTab; labelKey: TranslationKey; icon: React.ReactNode}[] = [
-  {key: 'summary', labelKey: 'nav.summary', icon: <IconClipboardList size={14} />},
   {key: 'overview', labelKey: 'nav.overview', icon: <IconChartPie size={14} />},
   {key: 'cache', labelKey: 'nav.cache', icon: <IconRefresh size={14} />},
   {key: 'tools', labelKey: 'nav.tools', icon: <IconTools size={14} />},

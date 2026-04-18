@@ -77,7 +77,7 @@ export default function ContextPanel() {
 
       <ChartBox title={t('context.contextWindowGrowth')}>
         <ResponsiveContainer width="100%" height={280}>
-          <AreaChart data={chartData} margin={{top: 8, right: 12, bottom: 4, left: 8}} onClick={onChartClick}>
+          <AreaChart data={chartData} margin={{top: 20, right: 12, bottom: 4, left: 8}} onClick={onChartClick}>
             <defs>
               <linearGradient id="contextGrad" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor={cssVar('--accent') || '#58a6ff'} stopOpacity={0.3} />

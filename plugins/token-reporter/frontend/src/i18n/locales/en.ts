@@ -32,7 +32,6 @@ export const en = {
   },
 
   nav: {
-    summary: 'Summary',
     overview: 'Overview',
     cache: 'Cache',
     tools: 'Tools',
@@ -106,6 +105,18 @@ export const en = {
     stopReasonsSub: 'assistant stop reason distribution',
     cacheTtl: 'Cache TTL',
     cacheTtlSub: 'ephemeral cache creation breakdown',
+    keyInsights: 'Key Insights',
+    dominantModel: 'Dominant Model',
+    subagentCost: 'Subagent Cost',
+    sidechainCost: 'Sidechain Cost',
+    thinkingCost: 'Thinking Cost',
+    mcpCalls: 'MCP Calls',
+    sessionDuration: 'Session Duration',
+    costPerMinute: 'Cost / Minute',
+    peakContext: 'Peak Context',
+    atTurn: 'at Turn',
+    fileActivity: 'File Activity',
+    readEdit: '{read} read / {edit} edited',
   },
 
   cache: {
@@ -272,22 +283,6 @@ export const en = {
     glob: 'Glob',
     retLines: 'Lines',
     turn: 'Turn',
-  },
-
-  summary: {
-    keyInsights: 'Key Insights',
-    topRecommendations: 'Top Recommendations',
-    dominantModel: 'Dominant Model',
-    subagentCost: 'Subagent Cost',
-    sidechainCost: 'Sidechain Cost',
-    thinkingCost: 'Thinking Cost',
-    mcpCalls: 'MCP Calls',
-    sessionDuration: 'Session Duration',
-    costPerMinute: 'Cost / Minute',
-    peakContext: 'Peak Context',
-    atTurn: 'at Turn',
-    fileActivity: 'File Activity',
-    readEdit: '{read} read / {edit} edited',
   },
 
   compact: {

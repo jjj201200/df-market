@@ -91,7 +91,7 @@ export default function CachePanel() {
       {/* Per-turn hit rate chart */}
       <ChartBox title={t('cache.hitRatePerTurn')}>
         <ResponsiveContainer width="100%" height={220}>
-          <LineChart data={chartData} margin={{top: 8, right: 12, bottom: 4, left: 0}} onClick={onChartClick}>
+          <LineChart data={chartData} margin={{top: 20, right: 12, bottom: 4, left: 0}} onClick={onChartClick}>
             <CartesianGrid stroke={gridStroke()} strokeDasharray="3 3" />
             <XAxis dataKey="turn" tick={axisTickStyle()} interval="preserveStartEnd" />
             <YAxis tick={axisTickStyle()} domain={[0, 100]} unit="%" width={45} />

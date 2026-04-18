@@ -3,7 +3,7 @@ import {PieChart, Pie, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer
 import {useSessionStore} from '../../../stores/sessionStore';
 import {useI18n} from '../../../i18n';
 import {computeSessionCost} from '../../../utils/cost';
-import {fmtUsd, fmtTokens, fmtPct} from '../../../utils/format';
+import {fmtUsd, fmtTokens, fmtPct, fmtDur} from '../../../utils/format';
 import {
   computeCacheMetrics,
   computeToolEfficiency,
@@ -135,6 +135,12 @@ export default function OverviewPanel() {
           sub={t('overview.nTurns', {count: turns.length})}
         />
         <StatCard label={t('overview.totalTokens')} value={fmtTokens(totalTokens)} />
+        <StatCard label={t('cache.hitRate')} value={fmtPct(cache.hitRate)} sub={t('cache.target')} />
+        <StatCard
+          label={t('tools.errorRate')}
+          value={fmtPct(tools.errorRate)}
+          sub={t('tools.nFailed', {count: tools.totalErrors})}
+        />
         <StatCard label={t('overview.avgPerTurn')} value={fmtUsd(cost.avgPerTurn)} />
         <StatCard
           label={t('overview.mostExpensiveTurn')}
@@ -171,9 +177,79 @@ export default function OverviewPanel() {
             label={t('overview.cacheTtl')}
             value={`1h: ${fmtTokens(cacheTtl.ephemeral1h)} / 5m: ${fmtTokens(cacheTtl.ephemeral5m)}`}
             sub={t('overview.cacheTtlSub')}
+            wide
           />
         )}
       </CardGrid>
+
+      {/* Key Insights */}
+      <ChartBox title={t('overview.keyInsights')}>
+        <div className={s.insights}>
+          <div className={s.insight}>
+            <span className={s.insightLabel}>{t('overview.dominantModel')}</span>
+            <span className={s.insightValue}>{modelBreakdown.dominantModel || '-'}</span>
+          </div>
+          {subagent.agents.length > 0 && (
+            <div className={s.insight}>
+              <span className={s.insightLabel}>{t('overview.subagentCost')}</span>
+              <span className={s.insightValue}>{fmtUsd(subagent.totalSubagentCost)}</span>
+              <span className={s.insightSub}>{fmtPct(subagent.subagentCostPct)}</span>
+            </div>
+          )}
+          {sidechain.sidechainTurns > 0 && (
+            <div className={s.insight}>
+              <span className={s.insightLabel}>{t('overview.sidechainCost')}</span>
+              <span className={s.insightValue}>{fmtUsd(sidechain.sidechainCost)}</span>
+              <span className={s.insightSub}>{fmtPct(sidechain.sidechainCostPct)}</span>
+            </div>
+          )}
+          {thinking.turnsWithThinking > 0 && (
+            <div className={s.insight}>
+              <span className={s.insightLabel}>{t('overview.thinkingCost')}</span>
+              <span className={s.insightValue}>{fmtUsd(thinking.estimatedThinkingCost)}</span>
+              <span className={s.insightSub}>
+                {t('overview.tokensEstimate', {tokens: fmtTokens(thinking.estimatedThinkingTokens)})}
+              </span>
+            </div>
+          )}
+          {mcp.totalMcpCalls > 0 && (
+            <div className={s.insight}>
+              <span className={s.insightLabel}>{t('overview.mcpCalls')}</span>
+              <span className={s.insightValue}>{String(mcp.totalMcpCalls)}</span>
+              <span className={s.insightSub}>{fmtPct(mcp.mcpPct)}</span>
+            </div>
+          )}
+          {timing.sessionDurationMs > 0 && (
+            <div className={s.insight}>
+              <span className={s.insightLabel}>{t('overview.sessionDuration')}</span>
+              <span className={s.insightValue}>{fmtDur(timing.sessionDurationMs)}</span>
+              <span className={s.insightSub}>
+                {t('overview.costPerMinute')}: {fmtUsd(timing.costPerMinute)}
+              </span>
+            </div>
+          )}
+          {pressure.peakTokens > 0 && (
+            <div className={s.insight}>
+              <span className={s.insightLabel}>{t('overview.peakContext')}</span>
+              <span className={s.insightValue}>{fmtTokens(pressure.peakTokens)}</span>
+              <span className={s.insightSub}>
+                {t('overview.atTurn')} <TurnLink turnId={pressure.peakTurnId} />
+              </span>
+            </div>
+          )}
+          {files.totalReadFiles > 0 && (
+            <div className={s.insight}>
+              <span className={s.insightLabel}>{t('overview.fileActivity')}</span>
+              <span className={s.insightValue}>
+                {t('overview.readEdit', {read: files.totalReadFiles, edit: files.totalEditFiles})}
+              </span>
+              <span className={s.insightSub}>
+                {t('files.bloatedGreps')}: {files.bloatedGreps.length}
+              </span>
+            </div>
+          )}
+        </div>
+      </ChartBox>
 
       {/* Charts Row */}
       <ChartGrid>

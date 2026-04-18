@@ -34,7 +34,6 @@ export const zhCN: Translation = {
   },
 
   nav: {
-    summary: '摘要',
     overview: '概览',
     cache: '缓存',
     tools: '工具',
@@ -108,6 +107,18 @@ export const zhCN: Translation = {
     stopReasonsSub: 'assistant 停止原因分布',
     cacheTtl: '缓存 TTL',
     cacheTtlSub: '临时缓存创建细分',
+    keyInsights: '核心洞察',
+    dominantModel: '主导模型',
+    subagentCost: '子代理费用',
+    sidechainCost: '侧链费用',
+    thinkingCost: '思考费用',
+    mcpCalls: 'MCP 调用',
+    sessionDuration: '会话时长',
+    costPerMinute: '费用/分钟',
+    peakContext: '峰值上下文',
+    atTurn: '于轮次',
+    fileActivity: '文件活动',
+    readEdit: '{read} 读 / {edit} 编',
   },
 
   cache: {
@@ -274,22 +285,6 @@ export const zhCN: Translation = {
     glob: 'Glob',
     retLines: '行数',
     turn: '轮次',
-  },
-
-  summary: {
-    keyInsights: '核心洞察',
-    topRecommendations: '优先建议',
-    dominantModel: '主导模型',
-    subagentCost: '子代理费用',
-    sidechainCost: '侧链费用',
-    thinkingCost: '思考费用',
-    mcpCalls: 'MCP 调用',
-    sessionDuration: '会话时长',
-    costPerMinute: '费用/分钟',
-    peakContext: '峰值上下文',
-    atTurn: '于轮次',
-    fileActivity: '文件活动',
-    readEdit: '{read} 读 / {edit} 编',
   },
 
   compact: {
