@@ -81,6 +81,11 @@ export default function App() {
   useEffect(() => {
     if (!isDragging) return;
 
+    const prevCursor = document.body.style.cursor;
+    const prevUserSelect = document.body.style.userSelect;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+
     const handleMouseMove = throttle((e: MouseEvent) => {
       const maxWidth = window.innerWidth - MIN_PANEL_WIDTH;
       const nextWidth = Math.max(MIN_PANEL_WIDTH, Math.min(maxWidth, e.clientX));
@@ -98,6 +103,8 @@ export default function App() {
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = prevCursor;
+      document.body.style.userSelect = prevUserSelect;
     };
   }, [isDragging, leftWidth, triggerResize]);
 
