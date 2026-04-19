@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // token-reporter-audit {on|off|status|purge}
-// Reads/writes ~/.claude/settings.local.json (3 managed env keys) and
-// ~/.claude/token-reporter/config.json (audit metadata).
+// Injects NODE_OPTIONS=--require=<hook> via a zsh/bash alias in the user's
+// shell rc. Writes two audit env keys into ~/.claude/settings.local.json for
+// the hook itself (captures dir + active flag).
 
 import fs from 'fs';
 import os from 'os';
@@ -27,15 +28,53 @@ const {
   readManagedSnapshot,
   loadAuditConfig,
   readHookHeartbeat, isHookStale,
+  detectShellRc,
+  detectExistingProxy,
 } = await import(auditSettingsPath);
-const { MANAGED_ENV_KEYS, hookPathForPlugin } = await import(auditKeysPath);
+const { MANAGED_ENV_KEYS, hookPathForPlugin, SHELL_RC_MARKER } = await import(auditKeysPath);
 
 function ensureDataDir() { fs.mkdirSync(DATA_DIR, { recursive: true }); }
 
-async function confirm(prompt) {
+// Buffer stdin lines so multiple confirm() calls don't race with each other.
+const _lineQueue = [];
+const _waiters = [];
+let _rl = null;
+let _stdinClosed = false;
+
+function rlInit() {
+  if (_rl) return;
+  _rl = readline.createInterface({ input: process.stdin, terminal: false });
+  _rl.on('line', (line) => {
+    if (_waiters.length) _waiters.shift()(line);
+    else _lineQueue.push(line);
+  });
+  _rl.on('close', () => {
+    _stdinClosed = true;
+    while (_waiters.length) _waiters.shift()(null);
+  });
+}
+function rlClose() { if (_rl) { try { _rl.close(); } catch {} _rl = null; } }
+
+function nextLine() {
+  rlInit();
+  if (_lineQueue.length) return Promise.resolve(_lineQueue.shift());
+  if (_stdinClosed) return Promise.resolve(null);
+  return new Promise((resolve) => _waiters.push(resolve));
+}
+
+const YES_FLAG = process.argv.includes('--yes') || process.argv.includes('-y');
+
+async function confirm(prompt, defaultYes = false) {
   process.stdout.write(prompt);
-  const rl = readline.createInterface({ input: process.stdin });
-  return new Promise((resolve) => rl.once('line', (line) => { rl.close(); resolve(line.trim().toLowerCase() === 'y'); }));
+  if (YES_FLAG) {
+    process.stdout.write('y (auto)\n');
+    return true;
+  }
+  const line = await nextLine();
+  if (line === null) return defaultYes;
+  const t = line.trim().toLowerCase();
+  if (t === '') return defaultYes;
+  return t === 'y' || t === 'yes';
 }
 
 function preflight() {
@@ -51,33 +90,101 @@ function preflight() {
   }
 }
 
+/** Pick up an HTTPS_PROXY to bake into the alias. Priority:
+ *    1. current shell env (user ran `export HTTPS_PROXY=...`)
+ *    2. an existing `alias claude='HTTPS_PROXY=URL claude'` line already in rc
+ *       (typical for users who set proxy via alias for a single command)
+ *  Returns null when nothing detected. */
+function detectProxyForAlias(rcText) {
+  if (process.env.HTTPS_PROXY) return process.env.HTTPS_PROXY;
+  if (rcText) {
+    const fromAlias = detectExistingProxy(rcText);
+    if (fromAlias) return fromAlias;
+  }
+  return null;
+}
+
 async function cmdOn() {
   preflight();
+
+  const shell = detectShellRc();
+  const proposedRc = shell.path;
+  if (!proposedRc) {
+    console.error(`Detected unsupported shell: ${shell.shellName}.`);
+    console.error('Manual step required: add `alias claude=\'NODE_OPTIONS=--require=<hook> claude\'` to your rc.');
+    process.exit(1);
+  }
+
+  const rcText = fs.existsSync(proposedRc) ? fs.readFileSync(proposedRc, 'utf8') : '';
+  const detectedProxy = detectProxyForAlias(rcText);
+
   console.log('\n[token-reporter audit] Enabling audit captures:');
-  console.log(`  - appends --require=<hook> to NODE_OPTIONS in ${SETTINGS_PATH}`);
+  console.log(`  - appends a \`${shell.shellName}\` alias to ${proposedRc}:`);
+  console.log('      alias claude=\'NODE_OPTIONS=--require=<hook> claude\'');
+  console.log('    (when you type `claude`, shell expands the alias once, then re-resolves');
+  console.log('     `claude` via PATH to the real binary — NODE_OPTIONS is set before Node starts)');
+  if (detectedProxy) {
+    console.log(`  - detected HTTPS_PROXY=${detectedProxy}, baking into the alias so proxy still works`);
+  }
   console.log(`  - captures every Anthropic API request/response body (PLAINTEXT) to ${OUT_DIR}`);
   console.log('  - includes: system prompt, tools schema, your prompts, assistant output, thinking');
   console.log('  - never uploaded; visible to anyone who can read your disk');
   console.log('  - reversible via `token-reporter-audit off`');
   console.log('  - clear captures via `token-reporter-audit purge`');
+
   const ok = await confirm('\nProceed? [y/N] ');
   if (!ok) { console.log('Cancelled.'); process.exit(2); }
+
+  let shellRcPath = null;
+  // If rc already has our marker, always re-run patchShellRc — it may rewrite
+  // the alias line if the content drifted (e.g. plugin path changed).
+  // Otherwise ask the user for consent.
+  if (rcText.includes(SHELL_RC_MARKER)) {
+    shellRcPath = proposedRc;
+  } else {
+    const agree = await confirm(
+      `\nAppend alias to ${proposedRc}? [Y/n] `,
+      /*defaultYes=*/ true,
+    );
+    if (agree) shellRcPath = proposedRc;
+  }
+
   ensureDataDir();
   fs.mkdirSync(OUT_DIR, { recursive: true, mode: 0o700 });
   try { fs.chmodSync(OUT_DIR, 0o700); } catch {}
+
+  let result;
   try {
-    const r = enableAudit({
+    result = enableAudit({
       settingsPath: SETTINGS_PATH,
       configPath: CONFIG_PATH,
       pluginRoot: PLUGIN_ROOT,
       outDir: OUT_DIR,
+      shellRcPath,
+      httpsProxy: detectedProxy,
     });
-    if (r.backupPath) console.log(`Backed up previous settings to ${r.backupPath}`);
   } catch (e) {
     console.error(e.message);
     process.exit(1);
   }
-  console.log('\nAudit enabled. Restart Claude Code for changes to take effect.');
+
+  if (result.settingsBackupPath) {
+    console.log(`Backed up previous settings to ${result.settingsBackupPath}`);
+  }
+  console.log(`Alias line: ${result.aliasLine}`);
+  if (result.shellRcPatched) {
+    console.log(result.shellRcRewrote
+      ? `Alias updated in: ${result.shellRcPatched}`
+      : `Alias appended to: ${result.shellRcPatched}`);
+    console.log('  → Open a new terminal (or `source` your rc) for it to take effect.');
+  } else if (result.shellRcAlreadyPatched) {
+    console.log('Shell rc already contains an up-to-date alias — no change.');
+  } else if (proposedRc) {
+    console.log(`\nManual step: append this to ${proposedRc}:`);
+    console.log(`  ${result.aliasLine}`);
+  }
+
+  console.log('\nAudit enabled. Start a new `claude` session from a fresh shell to activate the hook.');
 }
 
 function cmdOff() {
@@ -88,7 +195,8 @@ function cmdOff() {
     console.error(e.message);
     process.exit(1);
   }
-  console.log('Audit disabled. Restart Claude Code to stop capturing.');
+  console.log('Audit disabled. Alias removed from rc (if we added it); legacy shim cleaned up.');
+  console.log('Start a new `claude` session from a fresh shell to take effect.');
 }
 
 function cmdStatus() {
@@ -96,6 +204,7 @@ function cmdStatus() {
   console.log(`auditEnabled: ${cfg.auditEnabled === true}`);
   console.log(`auditPromptedAt: ${cfg.auditPromptedAt || 'never'}`);
   console.log(`hook path: ${hookPathForPlugin(PLUGIN_ROOT)}`);
+  console.log(`shell rc patched by us: ${cfg.shellRcPatched || 'no'}`);
   console.log(`captures dir: ${OUT_DIR}`);
   const hb = readHookHeartbeat(OUT_DIR);
   console.log(`last hook heartbeat: ${hb ? hb.at : 'none'}`);
@@ -119,12 +228,18 @@ async function cmdPurge() {
   console.log('Captures purged.');
 }
 
-const cmd = process.argv[2];
-if (cmd === 'on') await cmdOn();
-else if (cmd === 'off') cmdOff();
-else if (cmd === 'status') cmdStatus();
-else if (cmd === 'purge') await cmdPurge();
-else {
-  console.error('Usage: token-reporter-audit {on|off|status|purge}');
-  process.exit(64);
+const positionals = process.argv.slice(2).filter((a) => !a.startsWith('-'));
+const cmd = positionals[0];
+try {
+  if (cmd === 'on') await cmdOn();
+  else if (cmd === 'off') cmdOff();
+  else if (cmd === 'status') cmdStatus();
+  else if (cmd === 'purge') await cmdPurge();
+  else {
+    console.error('Usage: token-reporter-audit {on|off|status|purge} [-y|--yes]');
+    console.error('  -y, --yes    Auto-answer "yes" to all prompts (scripting).');
+    process.exit(64);
+  }
+} finally {
+  rlClose();
 }

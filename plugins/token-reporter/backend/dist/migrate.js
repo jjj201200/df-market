@@ -10,7 +10,23 @@ export function semverCompare(a, b) {
     }
     return 0;
 }
-export const MIGRATIONS = [];
+export const MIGRATIONS = [
+    ['2.11.0', (config) => {
+            if (!('auditEnabled' in config))
+                config.auditEnabled = false;
+            if (!('auditPromptedAt' in config))
+                config.auditPromptedAt = null;
+            // Pre-hotfix field (NODE_OPTIONS via settings.env path). Kept for legacy
+            // installs; the hotfix adds the two real fields below.
+            if (!('userNodeOptions' in config))
+                config.userNodeOptions = null;
+            // Hotfix (PATH shim path): real claude binary + shell rc we patched.
+            if (!('userClaudeBin' in config))
+                config.userClaudeBin = null;
+            if (!('shellRcPatched' in config))
+                config.shellRcPatched = null;
+        }],
+];
 export async function migrate({ lastVersion, pluginVersion, config, dataDir, configPath, }) {
     const from = lastVersion || '0.0.0';
     if (semverCompare(from, pluginVersion) >= 0)

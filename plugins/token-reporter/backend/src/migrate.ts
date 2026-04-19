@@ -14,7 +14,12 @@ export const MIGRATIONS: Array<[string, (config: Record<string, unknown>, dataDi
   ['2.11.0', (config) => {
     if (!('auditEnabled' in config)) config.auditEnabled = false;
     if (!('auditPromptedAt' in config)) config.auditPromptedAt = null;
+    // Pre-hotfix field (NODE_OPTIONS via settings.env path). Kept for legacy
+    // installs; the hotfix adds the two real fields below.
     if (!('userNodeOptions' in config)) config.userNodeOptions = null;
+    // Hotfix (PATH shim path): real claude binary + shell rc we patched.
+    if (!('userClaudeBin' in config)) config.userClaudeBin = null;
+    if (!('shellRcPatched' in config)) config.shellRcPatched = null;
   }],
 ];
 

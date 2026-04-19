@@ -4,16 +4,23 @@ import path from 'path';
 import {
   MANAGED_ENV_KEYS,
   HOOK_REQUIRE_TOKEN,
+  SHELL_RC_MARKER,
   hookPathForPlugin,
   hookRequireArg,
 } from '../backend/dist/audit-keys.js';
 
-test('MANAGED_ENV_KEYS lists exactly 3 keys in documented order', () => {
+test('MANAGED_ENV_KEYS lists only the 2 env keys the hook reads at runtime', () => {
+  // NODE_OPTIONS is intentionally absent — injected via alias, not env.
   assert.deepEqual(MANAGED_ENV_KEYS, [
-    'NODE_OPTIONS',
     'TOKEN_REPORTER_AUDIT_OUT',
     'TOKEN_REPORTER_AUDIT_ACTIVE',
   ]);
+});
+
+test('SHELL_RC_MARKER is non-empty and distinctive', () => {
+  assert.equal(typeof SHELL_RC_MARKER, 'string');
+  assert.ok(SHELL_RC_MARKER.startsWith('#'));
+  assert.ok(SHELL_RC_MARKER.includes('token-reporter-audit'));
 });
 
 test('HOOK_REQUIRE_TOKEN is a marker substring used to detect our --require', () => {

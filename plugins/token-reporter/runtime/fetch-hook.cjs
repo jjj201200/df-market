@@ -13,10 +13,27 @@
 'use strict';
 
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const Module = require('module');
 
-const OUT_DIR = process.env.TOKEN_REPORTER_AUDIT_OUT;
+// Resolution order:
+//   1. $TOKEN_REPORTER_AUDIT_OUT   — set by tests, or by Claude Code if it
+//      propagates settings.env before Node hits preload (rare / future)
+//   2. ~/.claude/token-reporter/captures  — production default; the CLI
+//      creates this directory during `audit on`. The hook self-checks the
+//      directory exists to stay inert on uninstalled systems.
+//   3. null → no-op (hook loaded but not armed; uninstall-safe)
+function resolveOutDir() {
+  const fromEnv = process.env.TOKEN_REPORTER_AUDIT_OUT;
+  if (fromEnv) return fromEnv;
+  const fallback = path.join(os.homedir(), '.claude', 'token-reporter', 'captures');
+  try {
+    if (fs.existsSync(fallback)) return fallback;
+  } catch { /* e.g. permission denied */ }
+  return null;
+}
+const OUT_DIR = resolveOutDir();
 if (!OUT_DIR) {
   // Hook not armed — do nothing. Important: do not throw.
   module.exports = {};

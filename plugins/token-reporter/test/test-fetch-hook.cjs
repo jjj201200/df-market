@@ -73,12 +73,17 @@ test('hook writes req/resp/heartbeat for matching urls; skips non-matching', asy
   assert.ok(req0.body.startsWith('{"model":"x"'));
 });
 
-test('hook no-ops when TOKEN_REPORTER_AUDIT_OUT unset', () => {
+test('hook stays inert when no AUDIT_OUT env and no fallback dir exists', () => {
+  // Point HOME at a scratch dir where ~/.claude/token-reporter/captures is
+  // absent, so the hook's fallback resolution returns null and it no-ops.
+  const scratchHome = fs.mkdtempSync(path.join(os.tmpdir(), 'hook-nohome-'));
   const script = `fetch('http://127.0.0.1:1/whatever').catch(()=>{}).then(()=>process.exit(0));`;
-  const env = { ...process.env };
+  const env = { ...process.env, HOME: scratchHome };
   delete env.TOKEN_REPORTER_AUDIT_OUT;
   const r = runChild(script, env);
   assert.equal(r.status, 0);
+  // No captures dir should have been created by the hook
+  assert.equal(fs.existsSync(path.join(scratchHome, '.claude', 'token-reporter', 'captures')), false);
 });
 
 test('hook swallows errors when audit-out is read-only', () => {

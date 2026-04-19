@@ -9,7 +9,7 @@
   "scripts": {
     "build:backend": "tsc -p backend/tsconfig.json",
     "build:backend:watch": "tsc -p backend/tsconfig.json --watch",
-    "test": "npm run build:backend && node test/test-parser.js && node test/test-migration.js && node test/test-server.js && node test/test-hooks.js && node test/test-statusline-integration.js && node test/test-single-instance.js && npx tsx test/test-analytics.cjs && npx tsx test/test-analytics-cache.cjs && npx tsx test/test-analytics-files.cjs && npx tsx test/test-analytics-recommendations.cjs && npx tsx test/test-analytics-tools.cjs && npx tsx test/test-file-metrics.cjs && npx tsx test/test-mcp-metrics.cjs && npx tsx test/test-pressure-metrics.cjs && npx tsx test/test-prompt-metrics.cjs"
+    "test": "npm run build:backend && node test/test-parser.js && node test/test-migration.js && node test/test-server.js && node test/test-hooks.js && node test/test-statusline-integration.js && node test/test-single-instance.js && node --test test/test-audit-keys.js test/test-audit-settings.js test/test-audit-cli.cjs test/test-fetch-hook.cjs test/test-captures-parser.js test/test-composition-service.js test/test-audit-status-api.js && npx tsx test/test-analytics.cjs && npx tsx test/test-analytics-cache.cjs && npx tsx test/test-analytics-files.cjs && npx tsx test/test-analytics-recommendations.cjs && npx tsx test/test-analytics-tools.cjs && npx tsx test/test-file-metrics.cjs && npx tsx test/test-mcp-metrics.cjs && npx tsx test/test-pressure-metrics.cjs && npx tsx test/test-prompt-metrics.cjs"
   },
   "devDependencies": {
     "@types/node": "^25.6.0",

@@ -105,7 +105,7 @@ async function main() {
     }
   });
 
-  await test("2.11.0 migration adds auditEnabled/auditPromptedAt/userNodeOptions", async () => {
+  await test("2.11.0 migration adds audit fields + shim fields", async () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "tr-test-"));
     const configPath = path.join(tmpDir, "config.json");
     const config = { port: 3737, autoStart: true, lastVersion: "2.10.1" };
@@ -123,6 +123,8 @@ async function main() {
     assert.strictEqual(written.auditEnabled, false);
     assert.strictEqual(written.auditPromptedAt, null);
     assert.strictEqual(written.userNodeOptions, null);
+    assert.strictEqual(written.userClaudeBin, null);
+    assert.strictEqual(written.shellRcPatched, null);
     assert.strictEqual(written.lastVersion, "2.11.0");
     fs.rmSync(tmpDir, { recursive: true });
   });
