@@ -7,8 +7,10 @@ import os from "os";
 import http from "http";
 
 const PLUGIN_ROOT = path.join(process.cwd());
-// Use a non-standard port to avoid conflicts with a running instance
-const TEST_PORT = 13737;
+// Pick a random high port at test start to dodge any running prod/dev instance
+// (3737 = prod default, 13737 = dev default per CLAUDE.md). Previously hardcoded
+// 13737 but that collides with an active `token-reporter-dev start` Vite server.
+const TEST_PORT = 20000 + Math.floor(Math.random() * 20000);
 
 let passed = 0;
 let failed = 0;
@@ -192,7 +194,7 @@ function stopServer() {
 
 async function main() {
   console.log("\n[server integration tests]");
-  console.log(`  (using port ${TEST_PORT} to avoid conflict with production)`);
+  console.log(`  (using port ${TEST_PORT} to avoid conflict with production)`); // randomized each run
 
   setupTestEnv();
   try {
