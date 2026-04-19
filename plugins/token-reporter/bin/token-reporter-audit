@@ -1,0 +1,130 @@
+#!/usr/bin/env node
+// token-reporter-audit {on|off|status|purge}
+// Reads/writes ~/.claude/settings.local.json (3 managed env keys) and
+// ~/.claude/token-reporter/config.json (audit metadata).
+
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+import readline from 'readline';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const PLUGIN_ROOT = process.env.TOKEN_REPORTER_PLUGIN_ROOT || path.resolve(__dirname, '..');
+
+const DATA_DIR =
+  process.env.TOKEN_REPORTER_DATA_DIR || path.join(os.homedir(), '.claude', 'token-reporter');
+const SETTINGS_PATH =
+  process.env.TOKEN_REPORTER_SETTINGS_PATH || path.join(os.homedir(), '.claude', 'settings.local.json');
+const CONFIG_PATH = path.join(DATA_DIR, 'config.json');
+const OUT_DIR =
+  process.env.TOKEN_REPORTER_AUDIT_OUT_OVERRIDE || path.join(DATA_DIR, 'captures');
+
+const auditSettingsPath = path.join(PLUGIN_ROOT, 'backend', 'dist', 'audit-settings.js');
+const auditKeysPath = path.join(PLUGIN_ROOT, 'backend', 'dist', 'audit-keys.js');
+const {
+  enableAudit, disableAudit,
+  readManagedSnapshot,
+  loadAuditConfig,
+  readHookHeartbeat, isHookStale,
+} = await import(auditSettingsPath);
+const { MANAGED_ENV_KEYS, hookPathForPlugin } = await import(auditKeysPath);
+
+function ensureDataDir() { fs.mkdirSync(DATA_DIR, { recursive: true }); }
+
+async function confirm(prompt) {
+  process.stdout.write(prompt);
+  const rl = readline.createInterface({ input: process.stdin });
+  return new Promise((resolve) => rl.once('line', (line) => { rl.close(); resolve(line.trim().toLowerCase() === 'y'); }));
+}
+
+function preflight() {
+  const nodeMajor = Number(process.versions.node.split('.')[0]);
+  if (nodeMajor < 18) {
+    console.error(`Node 18+ required (current: ${process.versions.node})`);
+    process.exit(1);
+  }
+  const hook = hookPathForPlugin(PLUGIN_ROOT);
+  if (!fs.existsSync(hook)) {
+    console.error(`fetch-hook.cjs missing at ${hook}`);
+    process.exit(1);
+  }
+}
+
+async function cmdOn() {
+  preflight();
+  console.log('\n[token-reporter audit] Enabling audit captures:');
+  console.log(`  - appends --require=<hook> to NODE_OPTIONS in ${SETTINGS_PATH}`);
+  console.log(`  - captures every Anthropic API request/response body (PLAINTEXT) to ${OUT_DIR}`);
+  console.log('  - includes: system prompt, tools schema, your prompts, assistant output, thinking');
+  console.log('  - never uploaded; visible to anyone who can read your disk');
+  console.log('  - reversible via `token-reporter-audit off`');
+  console.log('  - clear captures via `token-reporter-audit purge`');
+  const ok = await confirm('\nProceed? [y/N] ');
+  if (!ok) { console.log('Cancelled.'); process.exit(2); }
+  ensureDataDir();
+  fs.mkdirSync(OUT_DIR, { recursive: true, mode: 0o700 });
+  try { fs.chmodSync(OUT_DIR, 0o700); } catch {}
+  try {
+    const r = enableAudit({
+      settingsPath: SETTINGS_PATH,
+      configPath: CONFIG_PATH,
+      pluginRoot: PLUGIN_ROOT,
+      outDir: OUT_DIR,
+    });
+    if (r.backupPath) console.log(`Backed up previous settings to ${r.backupPath}`);
+  } catch (e) {
+    console.error(e.message);
+    process.exit(1);
+  }
+  console.log('\nAudit enabled. Restart Claude Code for changes to take effect.');
+}
+
+function cmdOff() {
+  ensureDataDir();
+  try {
+    disableAudit({ settingsPath: SETTINGS_PATH, configPath: CONFIG_PATH });
+  } catch (e) {
+    console.error(e.message);
+    process.exit(1);
+  }
+  console.log('Audit disabled. Restart Claude Code to stop capturing.');
+}
+
+function cmdStatus() {
+  const cfg = loadAuditConfig(CONFIG_PATH);
+  console.log(`auditEnabled: ${cfg.auditEnabled === true}`);
+  console.log(`auditPromptedAt: ${cfg.auditPromptedAt || 'never'}`);
+  console.log(`hook path: ${hookPathForPlugin(PLUGIN_ROOT)}`);
+  console.log(`captures dir: ${OUT_DIR}`);
+  const hb = readHookHeartbeat(OUT_DIR);
+  console.log(`last hook heartbeat: ${hb ? hb.at : 'none'}`);
+  console.log(`hook stale: ${cfg.auditEnabled === true ? isHookStale(OUT_DIR) : 'n/a'}`);
+  const snap = readManagedSnapshot(SETTINGS_PATH);
+  for (const k of MANAGED_ENV_KEYS) {
+    const r = snap[k];
+    console.log(`  ${k}: ${r.present ? r.value : 'absent'}`);
+  }
+}
+
+async function cmdPurge() {
+  console.log(`This will delete all files under ${OUT_DIR}.`);
+  const ok = await confirm('Continue? [y/N] ');
+  if (!ok) { console.log('Cancelled.'); process.exit(2); }
+  if (fs.existsSync(OUT_DIR)) {
+    for (const name of fs.readdirSync(OUT_DIR)) {
+      try { fs.rmSync(path.join(OUT_DIR, name), { recursive: true, force: true }); } catch {}
+    }
+  }
+  console.log('Captures purged.');
+}
+
+const cmd = process.argv[2];
+if (cmd === 'on') await cmdOn();
+else if (cmd === 'off') cmdOff();
+else if (cmd === 'status') cmdStatus();
+else if (cmd === 'purge') await cmdPurge();
+else {
+  console.error('Usage: token-reporter-audit {on|off|status|purge}');
+  process.exit(64);
+}
