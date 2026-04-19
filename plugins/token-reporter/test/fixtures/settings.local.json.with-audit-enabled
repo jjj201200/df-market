@@ -1,0 +1,8 @@
+{
+  "env": {
+    "NODE_OPTIONS": "--max-old-space-size=4096 --require=/p/runtime/fetch-hook.cjs",
+    "TOKEN_REPORTER_AUDIT_OUT": "/tmp/cap",
+    "TOKEN_REPORTER_AUDIT_ACTIVE": "1",
+    "MY_FLAG": "yes"
+  }
+}
