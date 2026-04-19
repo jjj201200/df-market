@@ -3,6 +3,14 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { fileURLToPath } from 'url';
+import { getComposition } from './composition-service.js';
+import {
+  loadAuditConfig,
+  writeAuditConfig,
+  readManagedSnapshot,
+  isHookStale,
+  readHookHeartbeat,
+} from './audit-settings.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,6 +29,11 @@ const CONFIG_PATH = path.join(DATA_DIR, 'config.json');
 const PID_PATH = path.join(DATA_DIR, 'server.pid');
 const LOCK_PATH = path.join(DATA_DIR, 'server.lock');
 const DIST_DIR = path.join(PLUGIN_ROOT, 'dist');
+const SETTINGS_PATH =
+  process.env.TOKEN_REPORTER_SETTINGS_PATH ||
+  path.join(os.homedir(), '.claude', 'settings.local.json');
+const AUDIT_OUT =
+  process.env.TOKEN_REPORTER_AUDIT_OUT_OVERRIDE || path.join(DATA_DIR, 'captures');
 
 const MIME: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -180,7 +193,80 @@ async function handleRequest(req: http.IncomingMessage, res: http.ServerResponse
     return;
   }
 
-  const sessionMatch = url.pathname.match(/^\/api\/sessions\/(.+)$/);
+  if (url.pathname === '/api/audit/status' && req.method === 'GET') {
+    const cfg = loadAuditConfig(CONFIG_PATH);
+    const settingsLocalKeys = readManagedSnapshot(SETTINGS_PATH);
+    const hb = readHookHeartbeat(AUDIT_OUT);
+    const stale = cfg.auditEnabled === true ? isHookStale(AUDIT_OUT) : false;
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      auditEnabled: cfg.auditEnabled === true,
+      auditPromptedAt: cfg.auditPromptedAt ?? null,
+      hookHeartbeatAt: hb?.at ?? null,
+      hookStale: stale,
+      settingsLocalKeys,
+    }));
+    return;
+  }
+
+  if (url.pathname === '/api/audit/ack-prompt' && req.method === 'POST') {
+    writeAuditConfig(CONFIG_PATH, { auditPromptedAt: new Date().toISOString() });
+    res.writeHead(200).end('ok');
+    return;
+  }
+
+  if (url.pathname === '/api/audit/purge' && req.method === 'POST') {
+    try {
+      if (fs.existsSync(AUDIT_OUT)) {
+        for (const name of fs.readdirSync(AUDIT_OUT)) {
+          try { fs.rmSync(path.join(AUDIT_OUT, name), { recursive: true, force: true }); } catch {}
+        }
+      }
+      res.writeHead(200).end('ok');
+    } catch (e: unknown) {
+      res.writeHead(500).end(e instanceof Error ? e.message : String(e));
+    }
+    return;
+  }
+
+  const compMatch = url.pathname.match(/^\/api\/sessions\/([^/]+)\/composition$/);
+  if (compMatch) {
+    try {
+      const sessionId = compMatch[1];
+      const cfg = loadAuditConfig(CONFIG_PATH);
+      const data = await getComposition(sessionId, {
+        outDir: AUDIT_OUT,
+        auditEnabled: cfg.auditEnabled === true,
+        turnsFallback: async (sid) => {
+          const meta = listSessions().find((s: { sessionId: string }) => s.sessionId === sid);
+          if (!meta) return [];
+          const parsed = await parseSession(meta.filePath);
+          const turns = (parsed.turns ?? []) as Array<{
+            id: number;
+            userText?: string;
+            assistantText?: string;
+            thinking?: string | null;
+            tools?: Array<{ params?: string; retContent?: string }>;
+          }>;
+          return turns.map((t) => ({
+            turnId: t.id,
+            userText: t.userText ?? '',
+            assistantText: t.assistantText ?? '',
+            toolUseJson: JSON.stringify(t.tools ?? []),
+            toolResultText: (t.tools ?? []).map((x) => x.retContent ?? '').join(''),
+            thinkingText: t.thinking ?? '',
+          }));
+        },
+      });
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(data));
+    } catch (e: unknown) {
+      res.writeHead(500).end(e instanceof Error ? e.message : String(e));
+    }
+    return;
+  }
+
+  const sessionMatch = url.pathname.match(/^\/api\/sessions\/([^/]+)$/);
   if (sessionMatch) {
     const meta = listSessions().find((s: { sessionId: string }) => s.sessionId === sessionMatch[1]);
     if (!meta) {
@@ -212,7 +298,7 @@ async function handleRequest(req: http.IncomingMessage, res: http.ServerResponse
 }
 
 const config = loadConfig();
-const DEFAULT_PORT = config.port || 3737;
+const DEFAULT_PORT = Number(process.env.TOKEN_REPORTER_PORT) || config.port || 3737;
 const MAX_PORT_ATTEMPTS = 10;
 
 function startServer(port: number) {
