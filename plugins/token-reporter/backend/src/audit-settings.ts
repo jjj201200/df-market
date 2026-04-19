@@ -297,12 +297,30 @@ export function writeAuditConfig(filePath: string, patch: AuditConfig): void {
 export interface HookHeartbeat {
   pid: number;
   at: string;
+  /** Absolute path of the fetch-hook.cjs that actually ran. Added in v2.12.
+   *  Older heartbeats written by pre-v2.12 hooks won't have this field. */
+  hookPath?: string;
 }
 
 export function readHookHeartbeat(outDir: string): HookHeartbeat | null {
   const p = path.join(outDir, '.heartbeat');
   if (!fs.existsSync(p)) return null;
   try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch { return null; }
+}
+
+/** Extract the `--require=<path>` value from our managed alias line in the
+ *  given shell rc file. Returns null when no alias or no NODE_OPTIONS flag is
+ *  found. Matches both single and double quoted alias bodies. */
+export function parseAliasHookPath(rcPath: string): string | null {
+  if (!fs.existsSync(rcPath)) return null;
+  const src = fs.readFileSync(rcPath, 'utf8');
+  if (!src.includes(SHELL_RC_MARKER)) return null;
+  const lines = src.split('\n');
+  const idx = lines.findIndex((l) => l === SHELL_RC_MARKER);
+  const aliasLine = idx >= 0 ? lines[idx + 1] : undefined;
+  if (!aliasLine) return null;
+  const m = aliasLine.match(/NODE_OPTIONS\s*=\s*["']--require=([^"']+)["']/);
+  return m ? m[1] : null;
 }
 
 export function isHookStale(outDir: string, maxAgeMs: number = 5 * 60 * 1000): boolean {

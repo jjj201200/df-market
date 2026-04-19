@@ -89,7 +89,14 @@ export declare function writeAuditConfig(filePath: string, patch: AuditConfig): 
 export interface HookHeartbeat {
     pid: number;
     at: string;
+    /** Absolute path of the fetch-hook.cjs that actually ran. Added in v2.12.
+     *  Older heartbeats written by pre-v2.12 hooks won't have this field. */
+    hookPath?: string;
 }
 export declare function readHookHeartbeat(outDir: string): HookHeartbeat | null;
+/** Extract the `--require=<path>` value from our managed alias line in the
+ *  given shell rc file. Returns null when no alias or no NODE_OPTIONS flag is
+ *  found. Matches both single and double quoted alias bodies. */
+export declare function parseAliasHookPath(rcPath: string): string | null;
 export declare function isHookStale(outDir: string, maxAgeMs?: number): boolean;
 //# sourceMappingURL=audit-settings.d.ts.map

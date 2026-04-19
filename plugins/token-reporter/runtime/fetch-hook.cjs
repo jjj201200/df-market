@@ -82,6 +82,7 @@ function heartbeat() {
     fs.writeFileSync(path.join(OUT_DIR, '.heartbeat'), JSON.stringify({
       pid: PID,
       at: new Date().toISOString(),
+      hookPath: __filename,
     }));
   } catch {}
 }

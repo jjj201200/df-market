@@ -240,6 +240,23 @@ export function readHookHeartbeat(outDir) {
         return null;
     }
 }
+/** Extract the `--require=<path>` value from our managed alias line in the
+ *  given shell rc file. Returns null when no alias or no NODE_OPTIONS flag is
+ *  found. Matches both single and double quoted alias bodies. */
+export function parseAliasHookPath(rcPath) {
+    if (!fs.existsSync(rcPath))
+        return null;
+    const src = fs.readFileSync(rcPath, 'utf8');
+    if (!src.includes(SHELL_RC_MARKER))
+        return null;
+    const lines = src.split('\n');
+    const idx = lines.findIndex((l) => l === SHELL_RC_MARKER);
+    const aliasLine = idx >= 0 ? lines[idx + 1] : undefined;
+    if (!aliasLine)
+        return null;
+    const m = aliasLine.match(/NODE_OPTIONS\s*=\s*["']--require=([^"']+)["']/);
+    return m ? m[1] : null;
+}
 export function isHookStale(outDir, maxAgeMs = 5 * 60 * 1000) {
     const p = path.join(outDir, '.heartbeat');
     if (!fs.existsSync(p))

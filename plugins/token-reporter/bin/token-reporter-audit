@@ -30,6 +30,7 @@ const {
   readHookHeartbeat, isHookStale,
   detectShellRc,
   detectExistingProxy,
+  parseAliasHookPath,
 } = await import(auditSettingsPath);
 const { MANAGED_ENV_KEYS, hookPathForPlugin, SHELL_RC_MARKER } = await import(auditKeysPath);
 
@@ -203,12 +204,19 @@ function cmdStatus() {
   const cfg = loadAuditConfig(CONFIG_PATH);
   console.log(`auditEnabled: ${cfg.auditEnabled === true}`);
   console.log(`auditPromptedAt: ${cfg.auditPromptedAt || 'never'}`);
-  console.log(`hook path: ${hookPathForPlugin(PLUGIN_ROOT)}`);
   console.log(`shell rc patched by us: ${cfg.shellRcPatched || 'no'}`);
   console.log(`captures dir: ${OUT_DIR}`);
   const hb = readHookHeartbeat(OUT_DIR);
   console.log(`last hook heartbeat: ${hb ? hb.at : 'none'}`);
   console.log(`hook stale: ${cfg.auditEnabled === true ? isHookStale(OUT_DIR) : 'n/a'}`);
+  const aliasPath = cfg.shellRcPatched ? parseAliasHookPath(cfg.shellRcPatched) : null;
+  const runningPath = hb && hb.hookPath ? hb.hookPath : null;
+  console.log(`hook path (rc alias): ${aliasPath || (cfg.shellRcPatched ? 'alias line not found' : 'not patched')}`);
+  console.log(`hook path (running): ${runningPath || (hb ? 'unknown — heartbeat missing hookPath (pre-v2.12 hook)' : 'unknown — no heartbeat')}`);
+  if (aliasPath && runningPath) {
+    const mismatch = aliasPath !== runningPath;
+    console.log(`hook path mismatch: ${mismatch ? 'YES — rc alias and running hook differ; restart claude from a patched shell' : 'no'}`);
+  }
   const snap = readManagedSnapshot(SETTINGS_PATH);
   for (const k of MANAGED_ENV_KEYS) {
     const r = snap[k];
