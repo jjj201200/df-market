@@ -2,3 +2,8 @@ node_modules/
 *.pid
 *.lock
 sessions/
+
+# TypeScript incremental build cache — regenerated on every `tsc -b`, not
+# needed at runtime. Plugin dist/ is still committed because users install
+# the plugin without a build step.
+*.tsbuildinfo
