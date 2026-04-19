@@ -10,7 +10,13 @@ export function semverCompare(a: string, b: string): number {
   return 0;
 }
 
-export const MIGRATIONS: Array<[string, (config: Record<string, unknown>, dataDir: string) => Promise<void> | void]> = [];
+export const MIGRATIONS: Array<[string, (config: Record<string, unknown>, dataDir: string) => Promise<void> | void]> = [
+  ['2.11.0', (config) => {
+    if (!('auditEnabled' in config)) config.auditEnabled = false;
+    if (!('auditPromptedAt' in config)) config.auditPromptedAt = null;
+    if (!('userNodeOptions' in config)) config.userNodeOptions = null;
+  }],
+];
 
 export async function migrate({
   lastVersion,

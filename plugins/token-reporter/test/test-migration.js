@@ -105,6 +105,28 @@ async function main() {
     }
   });
 
+  await test("2.11.0 migration adds auditEnabled/auditPromptedAt/userNodeOptions", async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "tr-test-"));
+    const configPath = path.join(tmpDir, "config.json");
+    const config = { port: 3737, autoStart: true, lastVersion: "2.10.1" };
+    fs.writeFileSync(configPath, JSON.stringify(config));
+
+    await migrate({
+      lastVersion: "2.10.1",
+      pluginVersion: "2.11.0",
+      config,
+      dataDir: tmpDir,
+      configPath,
+    });
+
+    const written = JSON.parse(fs.readFileSync(configPath, "utf8"));
+    assert.strictEqual(written.auditEnabled, false);
+    assert.strictEqual(written.auditPromptedAt, null);
+    assert.strictEqual(written.userNodeOptions, null);
+    assert.strictEqual(written.lastVersion, "2.11.0");
+    fs.rmSync(tmpDir, { recursive: true });
+  });
+
   // ── results ────────────────────────────────────────
   console.log(`\nResults: ${passed} passed, ${failed} failed`);
   if (failed > 0) process.exit(1);
