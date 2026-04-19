@@ -1,0 +1,13 @@
+{
+  "id": "222-1700000010000-1",
+  "capturedAt": "2026-05-28T20:26:40.000Z",
+  "url": "https://api.anthropic.com/v1/messages?beta=true",
+  "method": "POST",
+  "headers": {
+    "x-claude-code-session-id": "sess-with-tool",
+    "content-type": "application/json"
+  },
+  "bodyBytes": 1185,
+  "bodyNote": null,
+  "body": "{\"model\":\"claude-haiku-4-5\",\"system\":\"You are a coding assistant.You are a coding assistant.You are a coding assistant.You are a coding assistant.You are a coding assistant.You are a coding assistant.You are a coding assistant.You are a coding assistant.You are a coding assistant.You are a coding assistant.\",\"tools\":[{\"name\":\"Bash\",\"description\":\"Run a shell command in the current working directory.\",\"input_schema\":{\"type\":\"object\",\"properties\":{\"command\":{\"type\":\"string\"},\"cwd\":{\"type\":\"string\"}},\"required\":[\"command\"]}},{\"name\":\"Read\",\"description\":\"Read a file from disk.\",\"input_schema\":{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"lines\":{\"type\":\"number\"}},\"required\":[\"path\"]}}],\"messages\":[{\"role\":\"user\",\"content\":[{\"type\":\"text\",\"text\":\"List files in cwd\"}]},{\"role\":\"assistant\",\"content\":[{\"type\":\"text\",\"text\":\"Running ls.\"},{\"type\":\"tool_use\",\"id\":\"toolu_1\",\"name\":\"Bash\",\"input\":{\"command\":\"ls -la\"}}]},{\"role\":\"user\",\"content\":[{\"type\":\"tool_result\",\"tool_use_id\":\"toolu_1\",\"content\":\"total 64\\ndrwxr-xr-x  12 user  staff  384 Apr 19 10:00 .\\ndrwxr-xr-x   8 user  staff  256 Apr 19 10:00 ..\\n-rw-r--r--   1 user  staff  123 Apr 19 10:00 file.txt\\n\"}]}]}"
+}

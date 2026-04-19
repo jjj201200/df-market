@@ -1,0 +1,13 @@
+{
+  "id": "111-1700000000000-1",
+  "capturedAt": "2026-05-28T20:26:40.000Z",
+  "url": "https://api.anthropic.com/v1/messages?beta=true",
+  "method": "POST",
+  "headers": {
+    "x-claude-code-session-id": "sess-simple",
+    "content-type": "application/json"
+  },
+  "bodyBytes": 498,
+  "bodyNote": null,
+  "body": "{\"model\":\"claude-haiku-4-5\",\"system\":\"You are helpful.You are helpful.You are helpful.You are helpful.You are helpful.You are helpful.You are helpful.You are helpful.You are helpful.You are helpful.You are helpful.You are helpful.You are helpful.You are helpful.You are helpful.You are helpful.You are helpful.You are helpful.You are helpful.You are helpful.\",\"tools\":[],\"messages\":[{\"role\":\"user\",\"content\":[{\"type\":\"text\",\"text\":\"hello hello hello hello hello hello hello hello hello hello \"}]}]}"
+}

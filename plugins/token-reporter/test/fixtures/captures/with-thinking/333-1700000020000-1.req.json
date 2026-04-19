@@ -1,0 +1,13 @@
+{
+  "id": "333-1700000020000-1",
+  "capturedAt": "2026-05-28T20:26:40.000Z",
+  "url": "https://api.anthropic.com/v1/messages?beta=true",
+  "method": "POST",
+  "headers": {
+    "x-claude-code-session-id": "sess-with-thinking",
+    "content-type": "application/json"
+  },
+  "bodyBytes": 570,
+  "bodyNote": null,
+  "body": "{\"model\":\"claude-haiku-4-5\",\"system\":\"Reason step by step.\",\"tools\":[],\"messages\":[{\"role\":\"user\",\"content\":[{\"type\":\"text\",\"text\":\"What is 17 * 23?\"}]},{\"role\":\"assistant\",\"content\":[{\"type\":\"thinking\",\"thinking\":\"Let me break this down: 17 * 23 = 17*20 + 17*3 = 340 + 51 = 391.Let me break this down: 17 * 23 = 17*20 + 17*3 = 340 + 51 = 391.Let me break this down: 17 * 23 = 17*20 + 17*3 = 340 + 51 = 391.Let me break this down: 17 * 23 = 17*20 + 17*3 = 340 + 51 = 391.Let me break this down: 17 * 23 = 17*20 + 17*3 = 340 + 51 = 391.\"},{\"type\":\"text\",\"text\":\"391\"}]}]}"
+}
