@@ -135,3 +135,38 @@ export interface RateLimitEntry {
   used_percentage: number;
   resets_at?: number;
 }
+
+// ── Audit + Composition (F-path captures) ──────────────────────
+
+export interface AuditStatus {
+  auditEnabled: boolean;
+  auditPromptedAt: string | null;
+  hookHeartbeatAt: string | null;
+  hookStale: boolean;
+  settingsLocalKeys: Record<string, {present: boolean; value: string | null}>;
+}
+
+export interface CompositionSources {
+  system_prompt: number;
+  tools_schema: number;
+  messages_user: number;
+  messages_assistant: number;
+  messages_tool_use: number;
+  messages_tool_result: number;
+  messages_thinking: number;
+}
+
+export interface CompositionPoint {
+  turnId: number;
+  capturedAt: string;
+  requestId: string | null;
+  total: number;
+  sources: CompositionSources;
+}
+
+export interface CompositionResponse {
+  source: 'live' | 'estimated';
+  points: CompositionPoint[];
+  unknownSources?: Array<keyof CompositionSources>;
+  hookStale?: boolean;
+}

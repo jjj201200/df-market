@@ -307,6 +307,44 @@ export const en = {
     viewTurns: 'View {count} turns',
   },
 
+  composition: {
+    title: 'Context Composition',
+    live: 'live',
+    estimated: 'estimated',
+    hookStale: 'hook stale',
+    enableAuditHint: 'Enable audit for exact data: `token-reporter-audit on`',
+    hookStaleHint: 'Hook has not captured in 5+ minutes. Restart Claude Code or run `token-reporter-audit status`.',
+    unknownPlaceholder: '— (enable audit)',
+    deltaLabel: 'Δ {delta}',
+    pctLabel: '{pct}%',
+    sources: {
+      systemPrompt: 'System prompt',
+      toolsSchema: 'Tools schema',
+      user: 'User messages',
+      assistant: 'Assistant messages',
+      toolUse: 'Tool use',
+      toolResult: 'Tool result',
+      thinking: 'Thinking',
+    },
+  },
+
+  audit: {
+    banner: {
+      title: 'Context composition is estimated.',
+      cta: 'Run `token-reporter-audit on` for real data.',
+      dismiss: 'Dismiss',
+      hookStaleTitle: 'Audit hook appears inactive.',
+      hookStaleCta: 'Restart Claude Code, or run `token-reporter-audit status` to inspect.',
+      showAgain: 'Show audit status',
+      enabledTitle: 'Context audit is enabled.',
+      enabledCta: 'Live composition from captured API bodies. Run `token-reporter-audit off` to disable.',
+    },
+    privacy: {
+      warning: 'Enabling audit stores full API request/response bodies (system prompt, tools, your prompts, assistant output, thinking) under ~/.claude/token-reporter/captures/ in plaintext. Nothing is uploaded.',
+      purgeHint: 'Run `token-reporter-audit purge` to clear all captures.',
+    },
+  },
+
   rec: {
     potentialSavings: 'Potential savings: {amount}',
     lowCache: {

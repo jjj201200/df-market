@@ -309,6 +309,44 @@ export const zhCN: Translation = {
     viewTurns: '查看 {count} 轮',
   },
 
+  composition: {
+    title: '上下文构成',
+    live: '实时',
+    estimated: '估算',
+    hookStale: 'hook 无心跳',
+    enableAuditHint: '启用审计获取精确数据：`token-reporter-audit on`',
+    hookStaleHint: 'Hook 已超过 5 分钟未抓到请求。请重启 Claude Code，或运行 `token-reporter-audit status` 检查。',
+    unknownPlaceholder: '— (启用审计)',
+    deltaLabel: 'Δ {delta}',
+    pctLabel: '{pct}%',
+    sources: {
+      systemPrompt: '系统提示',
+      toolsSchema: '工具 schema',
+      user: '用户消息',
+      assistant: '助手消息',
+      toolUse: '工具调用',
+      toolResult: '工具结果',
+      thinking: '思考',
+    },
+  },
+
+  audit: {
+    banner: {
+      title: '上下文构成数据当前为估算。',
+      cta: '运行 `token-reporter-audit on` 获取真实数据。',
+      dismiss: '不再提示',
+      hookStaleTitle: '审计 hook 可能已失效。',
+      hookStaleCta: '请重启 Claude Code，或运行 `token-reporter-audit status` 检查。',
+      showAgain: '显示审计状态',
+      enabledTitle: '上下文审计已启用。',
+      enabledCta: '正在从抓到的 API body 解析真实构成。运行 `token-reporter-audit off` 关闭。',
+    },
+    privacy: {
+      warning: '启用审计后，完整的 API 请求体 / 响应体（系统提示、工具 schema、你的 prompt、助手输出、思考）会以明文写入 ~/.claude/token-reporter/captures/。永不上传，但对能读本机磁盘的人可见。',
+      purgeHint: '运行 `token-reporter-audit purge` 清空所有抓包。',
+    },
+  },
+
   rec: {
     potentialSavings: '潜在节省: {amount}',
     lowCache: {

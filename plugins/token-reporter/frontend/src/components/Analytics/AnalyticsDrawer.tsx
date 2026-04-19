@@ -6,8 +6,11 @@ import {useI18n} from '../../i18n';
 import Tooltip from '../common/Tooltip';
 import AnalyticsNav from './AnalyticsNav';
 import AnalyticsPage from './AnalyticsPage';
+import AuditShowAgainButton from './common/AuditShowAgainButton';
+import GradientIconButton from './common/GradientIconButton';
+import LayoutToggleButton from './common/LayoutToggleButton';
 import s from './AnalyticsDrawer.module.scss';
-import {IconX, IconLayoutColumns, IconLayoutSidebarRight} from '@tabler/icons-react';
+import {IconX} from '@tabler/icons-react';
 
 export default function AnalyticsDrawer() {
   const drawerOpen = useAnalyticsStore((st) => st.drawerOpen);
@@ -47,15 +50,12 @@ export default function AnalyticsDrawer() {
           <div className={s.header}>
             <span className={s.title}>{t('nav.sessionAnalytics')}</span>
             <div className={s.headerActions}>
-              <Tooltip content={t('nav.exitSplitView')}>
-                <button className={s.closeBtn} onClick={toggleSplitView}>
-                  <IconLayoutColumns size={16} stroke={1.5} />
-                </button>
-              </Tooltip>
+              <AuditShowAgainButton />
+              <LayoutToggleButton splitView={true} onToggle={toggleSplitView} />
               <Tooltip content={t('common.close')}>
-                <button className={s.closeBtn} onClick={closeDrawer}>
-                  <IconX size={16} stroke={1.5} />
-                </button>
+                <GradientIconButton tone="danger" onClick={closeDrawer} ariaLabel={t('common.close')}>
+                  <IconX size={18} stroke={2} />
+                </GradientIconButton>
               </Tooltip>
             </div>
           </div>
@@ -76,15 +76,12 @@ export default function AnalyticsDrawer() {
           <div className={s.header}>
             <span className={s.title}>{t('nav.sessionAnalytics')}</span>
             <div className={s.headerActions}>
-              <Tooltip content={t('nav.splitView')}>
-                <button className={s.closeBtn} onClick={toggleSplitView}>
-                  <IconLayoutSidebarRight size={16} stroke={1.5} />
-                </button>
-              </Tooltip>
+              <AuditShowAgainButton />
+              <LayoutToggleButton splitView={false} onToggle={toggleSplitView} />
               <Tooltip content={t('common.close')}>
-                <button className={s.closeBtn} onClick={closeDrawer}>
-                  <IconX size={16} stroke={1.5} />
-                </button>
+                <GradientIconButton tone="danger" onClick={closeDrawer} ariaLabel={t('common.close')}>
+                  <IconX size={18} stroke={2} />
+                </GradientIconButton>
               </Tooltip>
             </div>
           </div>

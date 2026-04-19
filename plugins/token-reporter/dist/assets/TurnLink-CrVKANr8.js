@@ -1,0 +1,1 @@
+import{b as r,k as a,j as u,s as k}from"./index-Bllo3dTD.js";const d="_link_16oca_1",x={link:d};function S({turnId:n,prefix:e="#",children:o}){const t=r(s=>s.turns),i=a(s=>s.setSelected),c=()=>{const s=t.findIndex(l=>l.id===n);s>=0&&(k(t,s,"top"),i(n))};return u.jsx("button",{className:x.link,onClick:c,type:"button",children:o??`${e}${n}`})}export{S as T};

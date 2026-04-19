@@ -19,15 +19,20 @@ import ChartBox from '../common/ChartBox';
 import StatCard from '../common/StatCard';
 import TurnLink from '../common/TurnLink';
 import {useChartTurnClick} from '../common/useChartTurnClick';
+import CompositionStack from './CompositionStack';
+import SourceCards from './SourceCards';
+import {useComposition} from './useComposition';
 import s from './ContextPanel.module.scss';
 
 export default function ContextPanel() {
   const {t} = useI18n();
   const turns = useSessionStore((st) => st.turns);
   const data = useSessionStore((st) => st.data);
+  const activeSessionId = useSessionStore((st) => st.activeSessionId);
   const context = useMemo(() => computeContextGrowth(data, turns), [data, turns]);
   const thinking = useMemo(() => computeThinkingMetrics(turns), [turns]);
   const pressure = useMemo(() => computePressureMetrics(data, turns), [data, turns]);
+  const composition = useComposition(activeSessionId);
   const hasThinking = thinking.turnsWithThinking > 0;
 
   const chartData = context.points.map((p, i) => ({
@@ -169,6 +174,9 @@ export default function ContextPanel() {
           </AreaChart>
         </ResponsiveContainer>
       </ChartBox>
+
+      <CompositionStack composition={composition} />
+      <SourceCards composition={composition} />
 
       {/* High spike turns */}
       {pressure.highSpikeTurns.length > 0 && (

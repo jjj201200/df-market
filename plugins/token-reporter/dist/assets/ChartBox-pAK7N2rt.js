@@ -1,0 +1,1 @@
+import{j as t}from"./index-Bllo3dTD.js";const i="_box_1efqj_1",x="_title_1efqj_8",s={box:i,title:x};function r({title:e,children:o}){return t.jsxs("div",{className:s.box,children:[t.jsx("div",{className:s.title,children:e}),o]})}export{r as C};

@@ -2,6 +2,7 @@ import {lazy, Suspense} from 'react';
 import {useAnalyticsStore} from '../../stores/analyticsStore';
 import {useSessionStore} from '../../stores/sessionStore';
 import {useI18n} from '../../i18n';
+import AuditBanner from './common/AuditBanner';
 import s from './AnalyticsPage.module.scss';
 
 const OverviewPanel = lazy(() => import('./OverviewPanel/OverviewPanel'));
@@ -27,6 +28,7 @@ export default function AnalyticsPage() {
   if (turns.length === 0) {
     return (
       <div className={s.page}>
+        <AuditBanner />
         {isLoading ? (
           <div className={s.content}>
             <PanelSkeleton />
@@ -40,6 +42,7 @@ export default function AnalyticsPage() {
 
   return (
     <div className={s.page}>
+      <AuditBanner />
       <div className={s.content}>
         <Suspense fallback={<PanelSkeleton />}>
           {activeTab === 'overview' && <OverviewPanel />}

@@ -1,0 +1,42 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--fg-muted);
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    background 120ms ease,
+    color 120ms ease;
+
+  svg {
+    display: block;
+  }
+
+  &:hover {
+    background: var(--bg-surface-overlay);
+    transform: scale(1.08);
+  }
+
+  &:active {
+    transform: scale(0.94);
+  }
+}
+
+/* Hover color per tone — text/stroke only; background stays neutral grey. */
+.tone_muted:hover { color: var(--fg-default); }
+.tone_accent:hover { color: var(--accent); }
+.tone_danger:hover { color: var(--danger, #f85149); }
+.tone_success:hover { color: var(--success); }
+
+/* Active state: the tone color is shown without needing hover. */
+.active.tone_accent  { color: var(--accent); background: var(--accent-muted); }
+.active.tone_danger  { color: var(--danger, #f85149); background: var(--danger-muted, rgba(248, 81, 73, 0.12)); }
+.active.tone_success { color: var(--success); background: var(--success-muted); }
+.active.tone_muted   { color: var(--fg-default); background: var(--bg-surface-overlay); }
