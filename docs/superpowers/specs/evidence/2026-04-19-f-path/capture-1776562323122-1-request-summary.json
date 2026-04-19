@@ -1,0 +1,26 @@
+{
+  "capturedAt": "2026-04-19T01:32:03.122Z",
+  "url": "https://api.anthropic.com/api/eval/sdk-zAZezfDKGoZuXXKe",
+  "method": "POST",
+  "bodyBytes": 563,
+  "bodyHeadChars": 563,
+  "headerKeys": [
+    "Authorization",
+    "Content-Type",
+    "anthropic-beta"
+  ],
+  "bodyJsonParses": true,
+  "topLevelKeys": [
+    "attributes",
+    "forcedVariations",
+    "forcedFeatures",
+    "url"
+  ],
+  "systemCharCount": null,
+  "toolsCount": null,
+  "toolsSchemaCharCount": null,
+  "messagesCount": null,
+  "model": null,
+  "maxTokens": null,
+  "stream": null
+}
