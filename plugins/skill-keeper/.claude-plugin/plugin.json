@@ -1,7 +1,7 @@
 {
   "name": "skill-keeper",
   "description": "Consistency keeper for SKILL.md and project docs. Bundles 7 methodology skills (task retrospective orchestration + pre-commit guards for both docs and SKILL.md + iterative pre-commit code review loop + subagent report verification guard + full audits for both docs and SKILL.md), and ships /skill-keeper-welcome as a progressive guide that helps you derive project-specific variants via skill-creator.",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "author": {
     "name": "jjj201200",
     "email": "jjj201200@gmail.com"

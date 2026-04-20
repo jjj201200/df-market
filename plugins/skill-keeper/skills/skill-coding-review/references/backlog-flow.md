@@ -131,7 +131,7 @@ backlog 当前积压 N 项（详见 <backlog 文件绝对路径>）：
 | 台账 | 内容 | 用途 |
 | --- | --- | --- |
 | **本 skill 的 backlog** | 本次不做但值得做的建议 | 下次开发同模块时提醒 |
-| `skill-subagent-audit` 忽略台账 | subagent 报告被阻断但用户选"B 显式忽略"的条目 | 全量审计时对账 |
+| `skill-subagent-check` 忽略台账 | subagent 报告被阻断但用户选"B 显式忽略"的条目 | 全量审计时对账 |
 | `skill-doc-sync-check` / `skill-sync-check` 忽略台账 | 文档/skill 落盘守门被阻断但用户选"B 显式忽略"的条目 | 全量审计时对账 |
 
-**台账可复用同一物理文件**（项目定制版决定），但**条目前缀必须区分**（如 `[review]` / `[subagent-audit]` / `[doc]` / `[skill]`）。
+**台账可复用同一物理文件**（项目定制版决定），但**条目前缀必须区分**（如 `[review]` / `[subagent-check]` / `[doc]` / `[skill]`）。

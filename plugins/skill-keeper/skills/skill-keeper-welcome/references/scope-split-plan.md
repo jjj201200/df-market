@@ -51,7 +51,7 @@ AUQ 单个问题最多 4 个 options，而 skill-keeper 的派生候选有 7 个
       "description": "SKILL.md 全量审计，检测触发词漂移 / description↔正文脱节 / 职责重叠 等隐性失效。"
     },
     {
-      "label": "skill-subagent-audit",
+      "label": "skill-subagent-check",
       "description": "Subagent 报告接收端审计，主 skill 派发 subagent 后消费结论前调用，防空载回答 / 抽样降级。"
     }
   ]
@@ -81,5 +81,5 @@ AUQ 单个问题最多 4 个 options，而 skill-keeper 的派生候选有 7 个
 | 四件套 A + 三件套 B              | 按**调用强度**分组：A 是主流程主轴+每次任务都会跑的轻量守门；B 是周期性或 subagent 场景才触发的核验 |
 | A 全打推荐标，B 不打             | 引导用户至少选完 A（跑通最小闭环）；B 根据项目情况自由决定                               |
 | skill-coding-review 归 A 而非 B         | 它不是"全量审计"，是**每次 commit 前必跑的循环守门**，与 sync-check 同类                 |
-| skill-subagent-audit 归 B 而非 A | 虽然每次派发 subagent 都会触发，但"派发 subagent"本身是特定工作流才出现——与定期 audit 同属"条件触发类" |
+| skill-subagent-check 归 B 而非 A | 虽然每次派发 subagent 都会触发，但"派发 subagent"本身是特定工作流才出现——与定期 audit 同属"条件触发类" |
 | 不按"文档类 vs skill 类"拆       | 那样拆会把 recap 孤零零放一组，用户直觉上难以选                                         |

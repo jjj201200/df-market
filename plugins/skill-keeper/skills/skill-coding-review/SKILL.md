@@ -1,6 +1,6 @@
 ---
 name: skill-coding-review
-description: "commit 前的**循环式**代码审查与修复方法论（不同于 Claude Code 内置 simplify 的单轮审查、不同于 skill-audit / skill-doc-audit 的周期性全量体检）。在 commit/push 前对本轮 git diff 做「代码复用 / 质量 / 效率」三维度审查，每轮按工作量弹性派发 1-3+ 个硬化过 prompt 的 subagent（每份报告受 skill-subagent-audit 接收端守门），按 Critical / Important / Minor 等级分类问题，三分类决策（修 / 归档 backlog / 误报），直到某一轮 subagent 独立回合返回零发现才允许进入 commit。build 成功是流程前置门槛；backlog 项统一归档到项目单一入口文件，每轮 5 步整理。触发词：coding-review、coding review、code review、代码审查、commit 前审查、commit 前循环审查、pre-commit review、precommit cleanup、iterative code review loop、循环审查、零修改收敛、backlog 归档、commit 前守门、派发 reuse/quality/efficiency agent、subagent 硬化 prompt。"
+description: "commit 前的**循环式**代码审查与修复方法论（不同于 Claude Code 内置 simplify 的单轮审查、不同于 skill-audit / skill-doc-audit 的周期性全量体检）。在 commit/push 前对本轮 git diff 做「代码复用 / 质量 / 效率」三维度审查，每轮按工作量弹性派发 1-3+ 个硬化过 prompt 的 subagent（每份报告受 skill-subagent-check 接收端守门），按 Critical / Important / Minor 等级分类问题，三分类决策（修 / 归档 backlog / 误报），直到某一轮 subagent 独立回合返回零发现才允许进入 commit。build 成功是流程前置门槛；backlog 项统一归档到项目单一入口文件，每轮 5 步整理。触发词：coding-review、coding review、code review、代码审查、commit 前审查、commit 前循环审查、pre-commit review、precommit cleanup、iterative code review loop、循环审查、零修改收敛、backlog 归档、commit 前守门、派发 reuse/quality/efficiency agent、subagent 硬化 prompt。"
 ---
 
 # commit 前代码审查与修复（通用方法论）
@@ -8,7 +8,7 @@ description: "commit 前的**循环式**代码审查与修复方法论（不同�
 commit 是本 skill 完成后的下一步，**不允许跳过直接 commit**，也不允许"先 commit 再审查"。本 skill 是针对本轮代码变更的循环式审查 + 修复框架：
 
 - 每轮并行派发三个 subagent（复用 / 质量 / 效率）
-- 每份 subagent 报告必须过 `skill-subagent-audit` 守门
+- 每份 subagent 报告必须过 `skill-subagent-check` 守门
 - 按 Critical / Important / Minor 等级分类问题，三分类决策（修 / 归档 backlog / 误报）
 - 零修改 + backlog 已整理 + build 通过 才允许进入 commit
 
@@ -28,7 +28,7 @@ commit 是本 skill 完成后的下一步，**不允许跳过直接 commit**，�
 - **循环直到收敛**：每轮修复后必须回到步骤 1 跑完整审查；直到 agent 独立回合返回零发现才允许退出
 - **弹性派发**：默认三维度三 subagent，但允许按工作量（diff 规模 / 涉及子模块 / 改动类型）调整数量（见步骤 2 工作量分档）
 - **build 先行**：审查前 build 必须成功；`getDiagnostics` 零诊断 ≠ build 通过
-- **subagent 硬化 + 守门**：派发前硬化 prompt（见 template），派发后必过 `skill-subagent-audit`
+- **subagent 硬化 + 守门**：派发前硬化 prompt（见 template），派发后必过 `skill-subagent-check`
 - **backlog 不丢失**：审查过程中被决策为"本次不做"的有价值建议硬性归档到项目 backlog 文件
 
 ## 触发条件
@@ -84,9 +84,9 @@ commit 是本 skill 完成后的下一步，**不允许跳过直接 commit**，�
 
 **并行派发**：Agent 工具调用放在**单条消息**的多个 tool_use 块中（2 个及以上 subagent 时）。
 
-### 步骤 3. 接收端守门（调用 skill-subagent-audit）
+### 步骤 3. 接收端守门（调用 skill-subagent-check）
 
-对每份 subagent 报告分别调用 `skill-subagent-audit`。任一阻断 → 按 A/B/C 处理：
+对每份 subagent 报告分别调用 `skill-subagent-check`。任一阻断 → 按 A/B/C 处理：
 
 - **A) 重派** → 硬化 prompt（提高 N、加枚举要求）→ 回步骤 2
 - **B) 显式忽略** → 归档到项目忽略台账（同 skill-recap 阶段 6）→ 继续
@@ -163,7 +163,7 @@ backlog 当前积压 N 项（详见 <backlog 文件路径>）：
 ### 工作量判定
 本轮 diff：<规模 · 中等/大/小/极小> · 派发策略：<默认三维度 / 按子模块切 / 合并为单 agent / 跳过 subagent>
 
-### Subagent 报告（已过 skill-subagent-audit）
+### Subagent 报告（已过 skill-subagent-check）
 - reuse: N1 个发现       [派发：是/否]
 - quality: N2 个发现     [派发：是/否]
 - efficiency: N3 个发现  [派发：是/否]
@@ -187,7 +187,7 @@ subagent 报告被守门**阻断**时，单独列出处理方式（A/B/C）并�
 
 ## 与其他 skill 的区别
 
-| 维度 | 本 skill（review） | skill-audit | skill-doc-audit | skill-sync-check | skill-subagent-audit |
+| 维度 | 本 skill（review） | skill-audit | skill-doc-audit | skill-sync-check | skill-subagent-check |
 | --- | --- | --- | --- | --- | --- |
 | 对象 | 当前未 commit 代码 diff | 全部 SKILL.md | 全部规范/手册/memory | 单次 SKILL.md 落盘 | subagent 报告本身 |
 | 触发 | commit 前 | 周期性/手动 | 周期性/手动 | SKILL.md 落盘前 | subagent 派发后 |
@@ -207,7 +207,7 @@ subagent 报告被守门**阻断**时，单独列出处理方式（A/B/C）并�
 | 等级化分类标准 | 项目 backlog 文件的绝对路径（默认 `memory/pending-tasks.md`） |
 | backlog 5 步整理流程 | 与 skill-recap 定制版的衔接（通常在 recap 阶段 5.3 的"commit 前置"引用本 skill） |
 | 循环收敛规则 | commit 约定、push 后总结的具体措辞 |
-| 与 skill-subagent-audit 的守门配对 | 本项目历史踩坑过的高危盲区（作为 subagent 派发时附的"高危维度清单"输入） |
+| 与 skill-subagent-check 的守门配对 | 本项目历史踩坑过的高危盲区（作为 subagent 派发时附的"高危维度清单"输入） |
 
 **定制 skill 开头必须声明**：
 

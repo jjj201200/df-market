@@ -1,9 +1,9 @@
 ---
-name: skill-subagent-audit
-description: "Subagent 报告接收端审计方法论。主 skill 派发 subagent 后、在消费其结论前调用，核查工具调用计数是否达到派发下限、已读清单是否完整、'无发现'是否附差集数字、结论是否带 file:line 证据、高危盲区是否逐项表态。默认阻断 + 三选一（重派 / 显式忽略归档 / 主 skill 自查）。与 doc-sync-check / sync-check 共享忽略台账。触发词：subagent 审计、subagent-audit、子代理核查、subagent 报告审查、审计 subagent 报告、空载回答守门、抽样降级守门、subagent 守门、代理结论核验、subagent verification。"
+name: skill-subagent-check
+description: "Subagent 报告接收端即时守门方法论（与 doc-sync-check / sync-check 同属 check 族——每次派发后即时核查，不同于 skill-audit / skill-doc-audit 的周期性全量体检）。主 skill 派发 subagent 后、在消费其结论前调用，核查工具调用计数是否达到派发下限、已读清单是否完整、'无发现'是否附差集数字、结论是否带 file:line 证据、高危盲区是否逐项表态。默认阻断 + 三选一（重派 / 显式忽略归档 / 主 skill 自查）。与 doc-sync-check / sync-check 共享忽略台账。触发词：subagent-check、subagent 守门、subagent 核查、subagent 接收端守门、子代理核查、subagent 报告审查、核查 subagent 报告、空载回答守门、抽样降级守门、代理结论核验、subagent verification、subagent audit（旧名兼容触发）。"
 ---
 
-# Subagent 报告接收端审计（通用方法论）
+# Subagent 报告接收端即时守门（通用方法论）
 
 在主 skill 把 subagent 的报告用作决策依据**之前**，快速核对 subagent 是否"真的做事了、做透了、证据连得上"。本 skill 是**接收端守门**，与派发端的"prompt 硬化"（主 skill 在派发时已加的工具调用下限、已读清单要求等）配对使用——**派发端规定 subagent 必须做什么，接收端验证它是否做到了**。
 
@@ -54,7 +54,7 @@ description: "Subagent 报告接收端审计方法论。主 skill 派发 subagen
 ### 通过
 
 ```
-✅ Subagent 审计通过
+✅ Subagent 守门通过
 
 报告来源：[subagent 标识 / 报告文件路径]
 工具调用：X 次（≥ 要求下限 Y）
@@ -67,7 +67,7 @@ description: "Subagent 报告接收端审计方法论。主 skill 派发 subagen
 ### 阻断
 
 ```
-❌ Subagent 审计阻断 — 发现 N 处问题
+❌ Subagent 守门阻断 — 发现 N 处问题
 
 1. **[核查项编号 + 问题类型]**：[定位 + 原因]
    - 证据：[报告原文摘录]
@@ -91,12 +91,12 @@ description: "Subagent 报告接收端审计方法论。主 skill 派发 subagen
 主调方若选择"B 显式忽略继续"，必须将忽略项归档到项目约定的忽略台账：
 
 ```
-[YYYY-MM-DD] [subagent-audit] [任务名 / subagent 标识] [问题摘要] 理由：[用户陈述]
+[YYYY-MM-DD] [subagent-check] [任务名 / subagent 标识] [问题摘要] 理由：[用户陈述]
 ```
 
 该台账供后续全量审计对账（已在相同位置落盘 doc / skill 快检忽略项的项目可复用同一份台账）。
 
-## 与其他审计类 skill 的区别
+## 与其他 check / audit 类 skill 的区别
 
 | 维度     | 本 skill                          | skill-doc-sync-check | skill-sync-check    |
 | -------- | --------------------------------- | -------------------- | ------------------- |
@@ -105,15 +105,17 @@ description: "Subagent 报告接收端审计方法论。主 skill 派发 subagen
 | 核心价值 | 防"空载回答 / 抽样降级"           | 防文档漂移           | 防 skill 级联失效   |
 | 输出     | 通过 / 阻断                       | 通过 / 阻断          | 通过 / 阻断         |
 
-三者可并列出现在同一轮 retrospective 中：**subagent 审计 → 文档守门 → skill 守门**（前者先于后者，因为后者的结论可能依赖 subagent 的输入）。
+三者可并列出现在同一轮 retrospective 中：**subagent 守门 → 文档守门 → skill 守门**（前者先于后者，因为后者的结论可能依赖 subagent 的输入）。
 
 ## 与 skill-audit / skill-doc-audit 的关系
 
-本 skill 是**落盘守门**（每次消费 subagent 结论都跑），skill-audit / skill-doc-audit 是**周期性全量体检**。两者不替代——前者防"单次决策被 subagent 污染"，后者防"长期积累的漂移"。
+本 skill 是**即时守门**（check 族——每次消费 subagent 结论都跑），skill-audit / skill-doc-audit 是**周期性全量体检**（audit 族）。两者不替代——前者防"单次决策被 subagent 污染"，后者防"长期积累的漂移"。
+
+**一般做 audit 时没有 subagent 上下文**——subagent 做了什么只能在分派并执行后才知道，因此本 skill 必须在 subagent 报告返回那一刻就运行，不能延后到 audit 阶段。
 
 ## 如何派生项目定制版
 
-每个项目应创建 `skill-subagent-audit-<project>`。分工：
+每个项目应创建 `skill-subagent-check-<project>`。分工：
 
 | 通用 skill 负责        | 定制 skill 负责                                             |
 | ---------------------- | ----------------------------------------------------------- |
@@ -124,4 +126,4 @@ description: "Subagent 报告接收端审计方法论。主 skill 派发 subagen
 
 **定制 skill 开头必须声明**：
 
-> 前置：先阅读并遵循 `skill-subagent-audit`（通用方法论）。本 skill 只列出本项目特有触发范围、高危盲区模板、retrospective 接入点与忽略台账路径，不重复通用内容。
+> 前置：先阅读并遵循 `skill-subagent-check`（通用方法论）。本 skill 只列出本项目特有触发范围、高危盲区模板、retrospective 接入点与忽略台账路径，不重复通用内容。

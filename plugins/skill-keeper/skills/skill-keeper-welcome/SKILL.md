@@ -1,6 +1,6 @@
 ---
 name: skill-keeper-welcome
-description: "skill-keeper 插件首次安装后的渐进式派生引导。当用户首次安装 skill-keeper、运行 /skill-keeper-welcome、或表达「想为本项目派生 recap/audit/sync-check/subagent-audit/coding-review 的定制版」「把 skill-keeper 的 skill 接入本项目」等意图时使用。职责：用 AskUserQuestion 同时收集沟通语言 + 骨架正文语言 → 价值阐述 → 意向分流 → skill-creator 依赖检测 → 派生范围（多选）/ 通用参数 / 命名方案 → 逐份收集项目特有字段 → 委派 skill-creator 落盘 → 主动提醒是否登记到 CLAUDE.md / AGENTS.md / MEMORY.md。允许用户随时放弃。触发词：skill-keeper 欢迎、派生定制版、welcome、skill-keeper-welcome、派生 recap/audit/sync-check/subagent-audit/coding-review 定制版。"
+description: "skill-keeper 插件首次安装后的渐进式派生引导。当用户首次安装 skill-keeper、运行 /skill-keeper-welcome、或表达「想为本项目派生 recap/audit/sync-check/subagent-check/coding-review 的定制版」「把 skill-keeper 的 skill 接入本项目」等意图时使用。职责：用 AskUserQuestion 同时收集沟通语言 + 骨架正文语言 → 价值阐述 → 意向分流 → skill-creator 依赖检测 → 派生范围（多选）/ 通用参数 / 命名方案 → 逐份收集项目特有字段 → 委派 skill-creator 落盘 → 主动提醒是否登记到 CLAUDE.md / AGENTS.md / MEMORY.md。允许用户随时放弃。触发词：skill-keeper 欢迎、派生定制版、welcome、skill-keeper-welcome、派生 recap/audit/sync-check/subagent-check/coding-review 定制版。"
 ---
 
 # skill-keeper 首次安装引导（派生定制版）
@@ -15,7 +15,7 @@ description: "skill-keeper 插件首次安装后的渐进式派生引导。当�
 | `skill-doc-sync-check`    | 文档落盘前增量守门（被 recap 串联）                            |
 | `skill-sync-check`        | SKILL.md 落盘前增量守门（被 recap 串联）                       |
 | `skill-coding-review`            | commit 前循环式代码审查与修复（零修改收敛前阻断 commit）       |
-| `skill-subagent-audit`    | Subagent 报告接收端守门（主 skill 派发 subagent 后消费结论前） |
+| `skill-subagent-check`    | Subagent 报告接收端守门（主 skill 派发 subagent 后消费结论前） |
 | `skill-doc-audit`         | 文档与代码一致性全量审计                                       |
 | `skill-audit`             | SKILL.md 全量审计                                              |
 

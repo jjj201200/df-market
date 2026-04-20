@@ -1,6 +1,6 @@
-# skill-subagent-audit 核查维度手册（5 维度）
+# skill-subagent-check 核查维度手册（5 维度）
 
-本 reference 详述 `skill-subagent-audit` 的 5 个核查维度。主流程执行阶段 Read 本文件，按每个维度的"判定规则 / 常见降级模式 / 证据格式 / 示例"逐项做。
+本 reference 详述 `skill-subagent-check` 的 5 个核查维度。主流程执行阶段 Read 本文件，按每个维度的"判定规则 / 常见降级模式 / 证据格式 / 示例"逐项做。
 
 ---
 
@@ -102,7 +102,7 @@
 **证据格式**：
 
 - ✅ "`foo.service.ts:59` 的 `createBatch` 签名缺 `X` 字段，`caller.ts:289` 调用处已传但被 `map` 丢弃"
-- ✅ "`CLAUDE.md#L163` 声明 5 份 skill，但 `plugins/skill-keeper/skills/` 下实际有 6 份（差集：`skill-subagent-audit`）"
+- ✅ "`CLAUDE.md#L163` 声明 5 份 skill，但 `plugins/skill-keeper/skills/` 下实际有 6 份（差集：`skill-subagent-check`）"
 - ❌ "createBatch 实现与调用对齐，未发现问题"
 - ❌ "文档声明与实际实现保持一致"
 

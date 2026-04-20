@@ -84,7 +84,7 @@
 
 **示例**：
 
-- 签名缺字段导致持久化静默丢失（见 `skill-subagent-audit/references/dimensions.md` 5.1）
+- 签名缺字段导致持久化静默丢失（见 `skill-subagent-check/references/dimensions.md` 5.1）
 - SQL 拼接、XSS、命令注入
 - 异步代码缺 await 导致并发竞争
 - 主流程的 `try/catch` 吞掉错误不抛
@@ -134,4 +134,4 @@ subagent 容易把以下情况误判为"问题"，收到这类发现时倾向判
 
 - 决策表填写**必须引用 subagent 报告的原文**作为等级判定证据
 - 对"修 / 归档 / 误报"三分类任意决策，理由栏必须 ≥ 10 字
-- 与 `skill-subagent-audit` 的关系：本文件讲"怎么审"，subagent-audit dimensions.md 讲"subagent 报告可不可信"——两份都读
+- 与 `skill-subagent-check` 的关系：本文件讲"怎么审"，subagent-check dimensions.md 讲"subagent 报告可不可信"——两份都读
