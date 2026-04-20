@@ -1,17 +1,17 @@
 # 派生范围 AUQ 拆分方案（固定）
 
-AUQ 单个问题最多 4 个 options，而 skill-keeper 的派生候选有 6 个，必须拆分。本文件固定下来拆分方案，welcome 环节 5.1 **直接 Read 本文件后按结构填 AUQ**，不要临时设计新拆法。
+AUQ 单个问题最多 4 个 options，而 skill-keeper 的派生候选有 7 个，必须拆分。本文件固定下来拆分方案，welcome 环节 5.1 **直接 Read 本文件后按结构填 AUQ**，不要临时设计新拆法。
 
 ---
 
 ## 方案（同轮发起 2 个 multiSelect 问题）
 
-**问题 A（multiSelect = true）**：勾选要派生的「流程主轴+守门四件套」
+**问题 A（multiSelect = true）**：勾选要派生的「主轴+轻守门四件套」（都是主流程必跑的）
 
 ```json
 {
-  "question": "勾选要派生的「流程主轴+守门四件套」（可多选）",
-  "header": "主轴/守门",
+  "question": "勾选要派生的「主轴+轻守门四件套」（可多选）",
+  "header": "主轴/轻守门",
   "multiSelect": true,
   "options": [
     {
@@ -24,22 +24,22 @@ AUQ 单个问题最多 4 个 options，而 skill-keeper 的派生候选有 6 个
     },
     {
       "label": "skill-sync-check",
-      "description": "推荐 · SKILL.md 落盘前增量守门，同在 recap 的阶段 5.1 被串联调用。"
+      "description": "推荐 · SKILL.md 落盘前增量守门,同在 recap 的阶段 5.1 被串联调用。"
     },
     {
-      "label": "skill-subagent-audit",
-      "description": "推荐 · Subagent 报告接收端守门，主 skill 派发 subagent 后、消费结论前调用。"
+      "label": "skill-coding-review",
+      "description": "推荐 · commit 前循环式代码审查与修复，零修改收敛前阻断 commit。"
     }
   ]
 }
 ```
 
-**问题 B（multiSelect = true）**：勾选要派生的「全量审计」两件套
+**问题 B（multiSelect = true）**：勾选要派生的「全量审计+接收端核验三件套」（周期性或 subagent 场景触发的）
 
 ```json
 {
-  "question": "勾选要派生的「全量审计」两件套（可多选，可不选）",
-  "header": "全量审计",
+  "question": "勾选要派生的「全量审计+接收端核验三件套」（可多选，可不选）",
+  "header": "全量/核验",
   "multiSelect": true,
   "options": [
     {
@@ -49,6 +49,10 @@ AUQ 单个问题最多 4 个 options，而 skill-keeper 的派生候选有 6 个
     {
       "label": "skill-audit",
       "description": "SKILL.md 全量审计，检测触发词漂移 / description↔正文脱节 / 职责重叠 等隐性失效。"
+    },
+    {
+      "label": "skill-subagent-audit",
+      "description": "Subagent 报告接收端审计，主 skill 派发 subagent 后消费结论前调用，防空载回答 / 抽样降级。"
     }
   ]
 }
@@ -58,7 +62,7 @@ AUQ 单个问题最多 4 个 options，而 skill-keeper 的派生候选有 6 个
 
 ## 结果合并
 
-两个问题答案合并为 `selected` 列表（最多 6 项）。
+两个问题答案合并为 `selected` 列表（最多 7 项）。
 
 **全部不勾 → 视为"放弃派生"**，welcome 结束流程，不生成任何文件。
 
@@ -74,7 +78,8 @@ AUQ 单个问题最多 4 个 options，而 skill-keeper 的派生候选有 6 个
 
 | 拆法                             | 理由                                                                                   |
 | -------------------------------- | -------------------------------------------------------------------------------------- |
-| 四件套 A + 两件套 B              | 按**触发频率**分组：A 是每次任务/派发都会触发的主轴+守门；B 是周期性体检                |
-| A 全打推荐标，B 不打             | 引导用户至少选完 A（跑通最小闭环）；B 根据是否做周期审计自由决定                         |
-| subagent-audit 归 A 而非 B       | 虽含"audit"字样，但语义是**每次派发 subagent 都要跑的守门**，与 doc-sync / sync-check 同类 |
+| 四件套 A + 三件套 B              | 按**调用强度**分组：A 是主流程主轴+每次任务都会跑的轻量守门；B 是周期性或 subagent 场景才触发的核验 |
+| A 全打推荐标，B 不打             | 引导用户至少选完 A（跑通最小闭环）；B 根据项目情况自由决定                               |
+| skill-coding-review 归 A 而非 B         | 它不是"全量审计"，是**每次 commit 前必跑的循环守门**，与 sync-check 同类                 |
+| skill-subagent-audit 归 B 而非 A | 虽然每次派发 subagent 都会触发，但"派发 subagent"本身是特定工作流才出现——与定期 audit 同属"条件触发类" |
 | 不按"文档类 vs skill 类"拆       | 那样拆会把 recap 孤零零放一组，用户直觉上难以选                                         |

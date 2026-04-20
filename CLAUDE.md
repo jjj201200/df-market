@@ -160,11 +160,11 @@ export function generateRecommendations(input: Input, t: TFunction): Result[] {
 
 ## Plugin: skill-keeper
 
-`plugins/skill-keeper/` 捆绑 6 份通用方法论 skill（`skill-recap` / `skill-doc-sync-check` / `skill-sync-check` / `skill-subagent-audit` / `skill-doc-audit` / `skill-audit`）并附带一份渐进式引导 skill `skill-keeper-welcome`。
+`plugins/skill-keeper/` 捆绑 7 份通用方法论 skill（`skill-recap` / `skill-doc-sync-check` / `skill-sync-check` / `skill-coding-review` / `skill-subagent-audit` / `skill-doc-audit` / `skill-audit`）并附带一份渐进式引导 skill `skill-keeper-welcome`。
 
 ### 关键约束
 
-- 6 份通用 skill 的 frontmatter `name` 字段**必须保持原值**（不加 `-keeper` 前缀 / 后缀）。它们彼此通过 name 交叉引用——`skill-recap` 正文调用 `skill-sync-check` / `skill-doc-sync-check`，定制版"前置"声明也按原名引用通用版。改名会让整套引用链失效。
+- 7 份通用 skill 的 frontmatter `name` 字段**必须保持原值**（不加 `-keeper` 前缀 / 后缀）。它们彼此通过 name 交叉引用——`skill-recap` 正文调用 `skill-sync-check` / `skill-doc-sync-check`，`skill-coding-review` 调用 `skill-subagent-audit`，定制版"前置"声明也按原名引用通用版。改名会让整套引用链失效。
 - 目录名与 frontmatter `name` 必须一致。
 - 新增/修改本插件内的 skill 时，**权威源是插件版**（`plugins/skill-keeper/skills/<name>/`）——进 git、随插件分发、有版本历史。个人版 `~/.claude/skills/<name>/` 是按需同步的本地镜像，**不是权威源**。迭代流程：先改插件版，再 `cp -R` 同步到个人版（SKILL.md / references/ / scripts/）。
 
@@ -194,6 +194,7 @@ welcome skill 本身不写任何 SKILL.md 文件——落盘交给 `skill-creato
 | `skill-recap`          | `references/decision-trees.md`              | 改进维度、过程反哺、四问归类、综合考量维度              |
 | `skill-sync-check`     | `references/cascade-patterns.md`            | 6 种变更类型的级联检查清单、工具选择                    |
 | `skill-doc-sync-check` | `references/check-catalog.md`               | 四项核查清单、索引完整性五步闭环、工具选择              |
+| `skill-coding-review`         | `references/dimensions.md` / `references/subagent-prompt-template.md` / `references/backlog-flow.md` | 三维度定义 + 等级分类、硬化 subagent prompt 骨架、backlog 5 步整理流程 |
 | `skill-subagent-audit` | `references/dimensions.md`                  | 五项核查判定规则、常见降级模式、4 条通用高危盲区模板    |
 | `skill-audit`          | `references/dimensions.md`                  | 7 核查维度                                              |
 | `skill-doc-audit`      | `references/dimensions.md`                  | 5 核查维度、索引强制步骤、并行切分策略                  |

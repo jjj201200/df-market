@@ -21,6 +21,7 @@
 | `git log --oneline -20`                              | recap.commit 约定的真实格式（Conventional / 自由文本）                         |
 | `<repo>/package.json` / `pyproject.toml`             | doc-audit.并行切分方案（根据项目规模估算）                                    |
 | `git log --grep='subagent\|agent' --oneline -30` + Glob `<repo>/**/retrospective*.md` + Glob `<repo>/.claude/agents/` | subagent-audit.高危盲区清单（从历史 bug/retro 提取候选）、subagent-audit.主 skill 派发位置清单 |
+| `<repo>/package.json` / `pyproject.toml` / `Cargo.toml` 扫 scripts / `<repo>/.husky/` / `<repo>/.githooks/` | review.build 命令（按子模块）、review.项目 override 初稿（从 CLAUDE.md 风格段提取）、review.backlog 文件路径（若已存在则复用） |
 
 **预填策略**：预扫到的默认值作为 AUQ 选项列表的**第一项**（标签前缀"默认：..."），其他候选或"留 TODO" 排后。用户可选 / 可改 / 可走 Other 自由输入。
 
@@ -78,6 +79,19 @@
 | 项目 skill 清单         | 必填      | 个人 + 项目层所有 SKILL.md 的绝对路径                                 | 默认 Glob `.claude/skills/**/SKILL.md` + `~/.claude/skills/**/SKILL.md` |
 | 命名约定                | 推荐      | 例："定制版 name 必须以 `-<projectCode>` 结尾"                        | 默认 `-<projectCode>` 后缀     |
 | 硬性规则                | 可选      | 例："定制版必须声明前置通用版"                                        | 留 TODO                         |
+
+---
+
+## coding-review 定制版
+
+| 字段                         | 分类      | 说明                                                                             | 默认推导                                                                                           |
+| ---------------------------- | --------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| build 命令（按子模块）       | 必填      | 步骤 0 的具体 build 命令；跨子模块改动时每个子模块列一条。没有 build 概念的项目声明"跳过步骤 0" | 从 `package.json` scripts / `Cargo.toml` / `pyproject.toml` 提取候选（如 `npm run -w frontend build` / `npm run build` / `cargo build` / `pnpm build`）；多 workspace 列多条；无则留 TODO |
+| 项目规则 override            | 必填      | 注入到每次 subagent prompt 的 `{{projectOverrides}}` 块；列出项目与默认 code-reviewer 模板冲突的点 | 默认 4 条通用起始：`保留 WHAT 注释/JSDoc/分节注释（CLAUDE.md 没明说要删则保留）` / `字面量抽常量仅在真复制粘贴 ≥ 3 处时建议` / `不引入新依赖（lodash/moment 等）` / `命名风格偏好不算 quality 问题`；用户可增删 |
+| backlog 文件路径             | 必填      | 项目单一 backlog 入口的绝对路径                                                  | 默认 `memory/pending-tasks.md`；若项目已有其他命名（如 `docs/backlog.md` / `TODO.md`）则预填为候选 |
+| 与 recap 定制版的衔接        | 推荐      | recap 的"commit 前置规则"引用本 skill 的定制版名；写"recap 阶段 5.3 触发 skill-coding-review-<project>" | 从 `selected` 中已派生的 recap 定制版自动填入；无则留 TODO                                         |
+| push 后总结模板的措辞定制    | 可选      | 根据项目 commit 约定定制（如"不加 Co-Authored-By"、"commit message 用中文"）     | 从 CLAUDE.md commit 约定段提取；无则使用通用模板                                                   |
+| 历史踩坑高危盲区（送 subagent-audit） | 可选 | 作为派发 subagent 时附的"高危维度清单"，与 subagent-audit 定制版的该字段复用     | 从 `selected` 中已派生的 subagent-audit 定制版该字段复用；无则留 TODO                              |
 
 ---
 

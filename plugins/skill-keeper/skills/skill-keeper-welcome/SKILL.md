@@ -1,19 +1,20 @@
 ---
 name: skill-keeper-welcome
-description: "skill-keeper 插件首次安装后的渐进式派生引导。当用户首次安装 skill-keeper、运行 /skill-keeper-welcome、或表达「想为本项目派生 recap/audit/sync-check/subagent-audit 的定制版」「把 skill-keeper 的 skill 接入本项目」等意图时使用。职责：用 AskUserQuestion 同时收集沟通语言 + 骨架正文语言 → 价值阐述 → 意向分流 → skill-creator 依赖检测 → 派生范围（多选）/ 通用参数 / 命名方案 → 逐份收集项目特有字段 → 委派 skill-creator 落盘 → 主动提醒是否登记到 CLAUDE.md / AGENTS.md / MEMORY.md。允许用户随时放弃。触发词：skill-keeper 欢迎、派生定制版、welcome、skill-keeper-welcome、派生 recap/audit/sync-check/subagent-audit 定制版。"
+description: "skill-keeper 插件首次安装后的渐进式派生引导。当用户首次安装 skill-keeper、运行 /skill-keeper-welcome、或表达「想为本项目派生 recap/audit/sync-check/subagent-audit/coding-review 的定制版」「把 skill-keeper 的 skill 接入本项目」等意图时使用。职责：用 AskUserQuestion 同时收集沟通语言 + 骨架正文语言 → 价值阐述 → 意向分流 → skill-creator 依赖检测 → 派生范围（多选）/ 通用参数 / 命名方案 → 逐份收集项目特有字段 → 委派 skill-creator 落盘 → 主动提醒是否登记到 CLAUDE.md / AGENTS.md / MEMORY.md。允许用户随时放弃。触发词：skill-keeper 欢迎、派生定制版、welcome、skill-keeper-welcome、派生 recap/audit/sync-check/subagent-audit/coding-review 定制版。"
 ---
 
 # skill-keeper 首次安装引导（派生定制版）
 
-本 skill 的唯一职责是**用渐进式 AskUserQuestion 引导用户**决定是否为本项目派生 6 份通用方法论 skill 的定制版。本 skill **不直接写任何 SKILL.md 文件**——最终落盘交给官方 `skill-creator`。
+本 skill 的唯一职责是**用渐进式 AskUserQuestion 引导用户**决定是否为本项目派生 7 份通用方法论 skill 的定制版。本 skill **不直接写任何 SKILL.md 文件**——最终落盘交给官方 `skill-creator`。
 
-## 背景：skill-keeper 内置的 6 份通用 skill
+## 背景：skill-keeper 内置的 7 份通用 skill
 
 | 通用 skill                | 角色                                                           |
 | ------------------------- | -------------------------------------------------------------- |
 | `skill-recap`             | 任务回顾 + 改进编排入口（流程主轴）                            |
 | `skill-doc-sync-check`    | 文档落盘前增量守门（被 recap 串联）                            |
 | `skill-sync-check`        | SKILL.md 落盘前增量守门（被 recap 串联）                       |
+| `skill-coding-review`            | commit 前循环式代码审查与修复（零修改收敛前阻断 commit）       |
 | `skill-subagent-audit`    | Subagent 报告接收端守门（主 skill 派发 subagent 后消费结论前） |
 | `skill-doc-audit`         | 文档与代码一致性全量审计                                       |
 | `skill-audit`             | SKILL.md 全量审计                                              |
@@ -47,13 +48,13 @@ description: "skill-keeper 插件首次安装后的渐进式派生引导。当�
 
 用 `{{uiLanguage}}` 写一段简短文本向用户说明：
 
-1. 6 个通用 skill 当前都已经可用——只想用通用版可以立即退出本引导
+1. 7 个通用 skill 当前都已经可用——只想用通用版可以立即退出本引导
 2. 派生定制版的价值：把本项目的绝对路径 / 核心业务链路 / 忽略项台账 / commit 约定写进一份 `-<project>` 后缀的 skill；否则 recap 里"调用项目定制版"的指令就是悬空的
 3. 派生成本很低：每份骨架 1-3 句话填空即可，其余部分留 TODO
 
 ### 环节 3. 意向分流（AUQ 单选，2 选项）
 
-问题：「是否现在为本项目派生 skill-keeper 的 6 份通用 skill 的定制版？」
+问题：「是否现在为本项目派生 skill-keeper 的 7 份通用 skill 的定制版？」
 
 - **直接开始派生** → 进入环节 4
 - **暂时跳过** → 直接结束，用一句话提示"随时可再跑 `/skill-keeper-welcome`"后退出
@@ -80,11 +81,11 @@ description: "skill-keeper 插件首次安装后的渐进式派生引导。当�
 
 ### 环节 5. 通用参数 + 派生范围
 
-本环节一次性采集多项参数。**派生范围用 multiSelect**，其余按下述类型。因为派生范围候选有 6 个（超出单个 AUQ 的 4 选项上限），需要**拆成两个 AUQ 同轮发起**。
+本环节一次性采集多项参数。**派生范围用 multiSelect**，其余按下述类型。因为派生范围候选有 7 个（超出单个 AUQ 的 4 选项上限），需要**拆成两个 AUQ 同轮发起**。
 
 #### 环节 5.1 派生范围（**multiSelect = true，拆成 2 个 AUQ**）
 
-AUQ 单个问题最多 4 个 options，派生候选有 6 个，必须拆。**Read `references/scope-split-plan.md`**，按其中固定方案的 JSON 骨架同轮发起 2 个 multiSelect 问题（问题 A：流程主轴+守门四件套；问题 B：全量审计两件套）。
+AUQ 单个问题最多 4 个 options，派生候选有 7 个，必须拆。**Read `references/scope-split-plan.md`**，按其中固定方案的 JSON 骨架同轮发起 2 个 multiSelect 问题（问题 A：主轴+轻守门四件套；问题 B：全量审计+接收端核验三件套）。
 
 合并两个问题答案为 `selected`。**全部不勾 → 视为"放弃派生"**，结束流程，不生成任何文件。
 
