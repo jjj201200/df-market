@@ -20,6 +20,7 @@
 | `<repo>/plugins/*/`（Glob）                          | sync-check.触发范围（插件内 skill 路径）、audit.项目 skill 清单                 |
 | `git log --oneline -20`                              | recap.commit 约定的真实格式（Conventional / 自由文本）                         |
 | `<repo>/package.json` / `pyproject.toml`             | doc-audit.并行切分方案（根据项目规模估算）                                    |
+| `git log --grep='subagent\|agent' --oneline -30` + Glob `<repo>/**/retrospective*.md` + Glob `<repo>/.claude/agents/` | subagent-audit.高危盲区清单（从历史 bug/retro 提取候选）、subagent-audit.主 skill 派发位置清单 |
 
 **预填策略**：预扫到的默认值作为 AUQ 选项列表的**第一项**（标签前缀"默认：..."），其他候选或"留 TODO" 排后。用户可选 / 可改 / 可走 Other 自由输入。
 
@@ -77,6 +78,17 @@
 | 项目 skill 清单         | 必填      | 个人 + 项目层所有 SKILL.md 的绝对路径                                 | 默认 Glob `.claude/skills/**/SKILL.md` + `~/.claude/skills/**/SKILL.md` |
 | 命名约定                | 推荐      | 例："定制版 name 必须以 `-<projectCode>` 结尾"                        | 默认 `-<projectCode>` 后缀     |
 | 硬性规则                | 可选      | 例："定制版必须声明前置通用版"                                        | 留 TODO                         |
+
+---
+
+## subagent-audit 定制版
+
+| 字段                         | 分类      | 说明                                                                             | 默认推导                                                                                           |
+| ---------------------------- | --------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| 项目历史踩坑的高危盲区清单   | 必填      | 项目内 subagent 易漏的维度（一句话/条），写入定制版作为"跨 agent 盲区覆盖"的清单 | 默认给 4 条通用占位：`签名↔持久层 required 字段对照` / `类型断言宽泛化` / `索引硬性规则` / `YAGNI 死代码`；用户可一键接受或增删；预扫 retro/git log 若命中更多候选则加到选项列表 |
+| 主 skill 派发位置清单        | 推荐      | 项目内哪些主 skill 会派 subagent，定制版写明接入点                                 | 从 `selected` 中已派生的 recap/doc-audit/audit 定制版名罗列；无则留 TODO                           |
+| 项目专属忽略台账路径         | 推荐      | 与 recap / doc-sync-check 定制版共享同一份忽略台账                                | 从 recap 定制版字段复用；否则默认 `memory/doc-audit-ignored.md`                                    |
+| 与 retrospective 接入阶段    | 可选      | 通常是"recap 阶段 5.0（在 sync-check 之前）"                                     | 默认 `recap 阶段 5.0`                                                                               |
 
 ---
 
