@@ -115,12 +115,21 @@ push（或 commit 完成后）主流程必须在结尾输出一段**简短总结
 backlog 当前积压 N 项（详见 <backlog 文件绝对路径>）：
 
 - [位置] 问题摘要
-- ...
+- ...（**最多 10 条**；超出用「... 等 X 条」省略，引导用户看 backlog 文件全貌）
 
 如需处理任意一项告诉我。
 ```
 
+**硬性约束**：
+
+- **清单最多 10 条**——超出则只列前 10 条，末尾加一句「... 等 X 条详见 `<backlog 文件路径>`」。防止总结段过长淹没关键信息
+- **排序**：按严重等级（Critical 优先）或按本轮 review 新增倒序，让最值得关注的先露出
+
 定制版可补充项目 commit 约定、对 push 后总结的具体措辞做本土化调整。
+
+### push 后的 recap 触发（与 `skill-coding-review` 步骤 7.3 协调）
+
+push 后总结输出完 → 主流程**主动**触发 `skill-recap`（或项目定制版 `skill-recap-<project>`）做任务回顾。coding-review → commit → recap 是闭环，recap 负责把经验沉淀为 memory / 文档 / skill 改进。跳过 recap = 经验丢失。
 
 ---
 

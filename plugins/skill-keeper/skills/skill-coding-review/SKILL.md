@@ -1,16 +1,38 @@
 ---
 name: skill-coding-review
-description: "commit 前的**循环式**代码审查与修复方法论（不同于 Claude Code 内置 simplify 的单轮审查、不同于 skill-audit / skill-doc-audit 的周期性全量体检）。在 commit/push 前对本轮 git diff 做「代码复用 / 质量 / 效率」三维度审查，每轮按工作量弹性派发 1-3+ 个硬化过 prompt 的 subagent（每份报告受 skill-subagent-check 接收端守门），按 Critical / Important / Minor 等级分类问题，三分类决策（修 / 归档 backlog / 误报），直到某一轮 subagent 独立回合返回零发现才允许进入 commit。build 成功是流程前置门槛；backlog 项统一归档到项目单一入口文件，每轮 5 步整理。触发词：coding-review、coding review、code review、代码审查、commit 前审查、commit 前循环审查、pre-commit review、precommit cleanup、iterative code review loop、循环审查、零修改收敛、backlog 归档、commit 前守门、派发 reuse/quality/efficiency agent、subagent 硬化 prompt。"
+description: "commit 前的**循环式**代码审查与修复方法论（不同于 Claude Code 内置 simplify 的单轮审查、不同于 skill-audit / skill-doc-audit 的周期性全量体检）。在 commit/push 前对本轮 git diff 做「代码复用 / 质量 / 效率」三维度审查，每轮按工作量弹性派发 1-3+ 个硬化过 prompt 的 subagent（每份报告受 skill-subagent-check 接收端守门），按 Critical / Important / Minor 等级分类问题，四分类决策（修 / 归档 backlog / 跳过 / 误报），直到某一轮 subagent 独立回合返回零发现才允许进入 commit。build 成功是流程前置门槛；backlog 项统一归档到项目单一入口文件，每轮 5 步整理。触发词：coding-review、coding review、code review、代码审查、commit 前审查、commit 前循环审查、pre-commit review、precommit cleanup、iterative code review loop、循环审查、零修改收敛、backlog 归档、commit 前守门、派发 reuse/quality/efficiency agent、subagent 硬化 prompt。"
 ---
 
 # commit 前代码审查与修复（通用方法论）
 
-commit 是本 skill 完成后的下一步，**不允许跳过直接 commit**，也不允许"先 commit 再审查"。本 skill 是针对本轮代码变更的循环式审查 + 修复框架：
+commit 是本 skill 完成后的下一步，**不允许跳过直接 commit**，也不允许"先 commit 再审查"。本 skill 是针对本轮代码变更的循环式审查 + 修复框架。
 
-- 每轮并行派发三个 subagent（复用 / 质量 / 效率）
+## ⚠️ 收敛条件（硬性刚性约束）
+
+本 skill **唯一**的退出条件是以下三项**同时成立**：
+
+1. **最近一轮 subagent 独立回合返回零发现**（或所有发现均为"误报"/"已显式归档 backlog"）——必须来自 agent 新一轮独立执行，**不允许**主 skill 主观判断"这次修得干净没必要再跑"
+2. **本轮零修改**——上一轮无任何代码改动
+3. **build 通过** + **backlog 已整理**
+
+任何一项不满足 → **继续循环**，回步骤 1 从 build 校验开始再跑完整一轮。
+
+**破窗警告**：
+
+- ❌ "第二轮应该更轻" 是错误直觉——真正的信号是 **agent 返回无遗漏**，不是主 agent 预判"没必要深查"
+- ❌ "第一轮修完 build 通过就直接 commit" 是最常见破窗——禁止
+- ❌ 每轮审查范围永远是 `git diff HEAD` **完整变更**，不是上一轮增量
+- ❌ agent prompt 不允许写"只查新引入的问题"——会让 agent 放松标准、漏掉第一轮本该揭示但被遗漏的问题
+
+---
+
+## 流程概览
+
+- 每轮并行派发 subagent（复用 / 质量 / 效率，数量按工作量弹性）
 - 每份 subagent 报告必须过 `skill-subagent-check` 守门
-- 按 Critical / Important / Minor 等级分类问题，三分类决策（修 / 归档 backlog / 误报）
-- 零修改 + backlog 已整理 + build 通过 才允许进入 commit
+- 按 Critical / Important / Minor 等级分类问题，四分类决策（修 / 归档 backlog / 跳过 / 误报）
+- 每轮末尾做**全盘梳理**：以 agent 报告为线索扩展到未被报告但可能相关的代码路径
+- 收敛条件三项全满足 → 进入 commit → 触发 `skill-recap` 做任务回顾
 
 本 skill 不同于 `skill-audit` / `skill-doc-audit`（后者是周期性全量体检）——本 skill 的对象始终是**当前未 commit 的代码 diff**，且每次 commit 前必跑。
 
@@ -44,7 +66,7 @@ commit 是本 skill 完成后的下一步，**不允许跳过直接 commit**，�
 - skill-keeper 范围内的 SKILL.md 修改（走 `skill-sync-check`）
 - git 操作本身（checkout / fetch / 查看 status），不涉及新 commit
 
-## 流程（严格顺序 · 7 步）
+## 流程（严格顺序 · 7 步 + 全盘梳理子步骤 4.5）
 
 ### 步骤 0. build 前置校验（硬性门槛）
 
@@ -69,7 +91,8 @@ commit 是本 skill 完成后的下一步，**不允许跳过直接 commit**，�
 2. **项目规则 override**：从定制版 SKILL.md 的 `{{projectOverrides}}` 字段读取注入（`skill-keeper` memory 约束不到 subagent，必须写进 prompt）
 3. **维度聚焦**：reuse / quality / efficiency 之一（或组合，见下方工作量分档）
 4. **全量审查指令**：禁止 "只看第一轮修了什么"——每轮都要审全量 diff
-5. **backlog 指示**：有价值但本次范围外的建议明确标记 "suggest-backlog"
+5. **关联路径扩展要求**：发现共享性问题（可抽的字面量 / 可复用的函数 / 跨模块的错误处理模式）时，**subagent 必须主动 Grep 全仓**确认其它同类位置有没有也该一起改——不能只报本轮 diff 里的一处
+6. **backlog 指示**：有价值但本次范围外的建议明确标记 "suggest-backlog"
 
 #### 工作量分档（决定本轮派发几个 subagent）
 
@@ -100,24 +123,46 @@ commit 是本 skill 完成后的下一步，**不允许跳过直接 commit**，�
 
 | 发现项 | 维度 | 等级 | 决策 | 理由 |
 | --- | --- | --- | --- | --- |
-| [file:line] | reuse/quality/efficiency | Critical/Important/Minor | 修 / 归档 backlog / 误报 | ... |
+| [file:line] | reuse/quality/efficiency | Critical/Important/Minor | 修 / 归档 backlog / 跳过 / 误报 | ... |
 
-**三分类定义**：
+**四分类定义**（顺序即优先级）：
 
 - **修** → 本轮立即修复
-- **归档 backlog** → 本轮不做，但写进项目 backlog 文件（走步骤 5）
+- **归档 backlog** → 同主题但本次刻意不做的（需要前端配合 / 独立 PR 处理 / 需要协议讨论等）；写进项目 backlog 文件（走步骤 5）
+- **跳过** → 与本次范围完全无关但 agent 顺带提到的，不值得进 backlog 也不值得修
 - **误报** → 不记录、不修复；必须给出 "为什么是误报" 的一句话理由
 
 **等级约束**：
 
-- Critical 不允许"归档 backlog"——必须修或显式向用户请示
-- Important 可归档，但理由必须具体（"需要前端配合"、"独立 PR 处理"）
+- Critical 不允许"归档 backlog / 跳过"——必须修或显式向用户请示
+- Important 可归档 backlog，但理由必须具体；不允许"跳过"
 - Minor 自由决策
 
 执行"修"后：
 
 - 再跑一次步骤 0（build）确认未引入新错误
 - 对修复处附近抽样验证未引入回归
+
+#### 步骤 4.5. 全盘梳理（硬性必跑，不允许因 subagent 报告已空就跳过）
+
+subagent 报告只覆盖它**当轮读过的文件**——其价值的最大延展在于：把报告作为线索，主动扩展到**未出现在报告里但可能相关**的代码路径。
+
+**必跑场景**（符合其一即必须做）：
+
+- 本轮有"修"决策——尤其是抽共享常量 / 共享函数 / 改类型声明 / 改接口签名 时
+- subagent 报告指出某类问题（如"此处 `try/catch` 吞错"），即使只报了一处也要全仓扫同类
+- 修了任何持久层 / 路由 / 全局状态 / 配置相关的代码
+
+**执行手法**：
+
+- 抽了共享常量 → `Grep` 全仓确认其它模块没有类似字面量未被纳入
+- 修了一类错误处理 → `Grep` 全仓扫同类 `try/catch`、`.catch(...)`、静默 `return null` 的位置
+- 改了接口签名 → `Grep` 全仓所有调用点（不只本轮 diff 里的）
+- 抽了共享函数 → `Grep` 原始实现的每一处，确认都替换了
+
+**输出**：全盘梳理结果必须进入本轮的"决策表"——发现的新问题按四分类处理（修 / 归档 backlog / 跳过 / 误报）；即使零发现也要在本轮输出显式写"全盘梳理：已扫 N 个关联路径，无新增问题"（有数字，不含糊）。
+
+**为什么这是硬步骤**：simplify 最有价值的功能是"以新鲜视角重新审视完整代码面"。如果只依赖 subagent 报告的局部条目，第一轮没被 agent 抽中的文件永远不会被检查——这是跳过"全盘梳理"的真实代价。
 
 ### 步骤 5. backlog 归档
 
@@ -131,26 +176,42 @@ commit 是本 skill 完成后的下一步，**不允许跳过直接 commit**，�
 
 ### 步骤 6. 收敛判定
 
+对照首段「⚠️ 收敛条件」：
+
 - **本轮有任何修改** → 回步骤 1 再跑完整一轮
-- **本轮零修改** + **最近一轮 subagent 独立回合（过了步骤 3 守门）报告零发现或全部为误报/已 backlog** + **build 通过** + **backlog 已整理** → 允许进入 commit
+- **本轮零修改** + **最近一轮 subagent 独立回合（过了步骤 3 守门）报告零发现或全部为误报/已 backlog** + **步骤 4.5 全盘梳理无新增问题** + **build 通过** + **backlog 已整理** → 允许进入步骤 7
 
-**刚性约束**：零修改判定**必须**来自 agent 独立回合，**不允许**主 skill 主观判断"这次修得干净没必要再跑"。常见破窗：第一轮修完 build 通过就直接 commit——禁止。"第二轮应该更轻" 是错误直觉：真正的信号是 agent 返回"无遗漏"，而不是主 agent 预判"没必要深查"。
+完整破窗清单已在首段「⚠️ 收敛条件」列出——此步只做判定，不重复警示。
 
-### 步骤 7. 进入 commit + push 后总结
+### 步骤 7. 进入 commit + push 后总结 + 触发 recap
 
-退出本 skill，移交 commit 流程。**commit/push 完成后**由主流程输出总结：
+退出本 skill，移交 commit 流程。
+
+#### 7.1 commit / push
+
+commit message 规范由项目定制版补充（如"用中文 / 不加 Co-Authored-By / 按子模块顺序"等）。通用版只规定：commit message 要能让人一句话看懂本轮做了什么。
+
+#### 7.2 push 后总结（强制）
+
+**commit/push 完成后**由主流程输出总结（**不征求用户意见，仅汇报**）：
 
 ```
 已 commit/push：<一句话描述>
 
 backlog 当前积压 N 项（详见 <backlog 文件路径>）：
 - [位置] 问题摘要
-- ...
+- ...（最多 10 条，超出用"... 等 X 条"省略）
 
 如需处理任意一项告诉我。
 ```
 
-（总结模板的具体措辞由定制版补充 commit 约定。）
+#### 7.3 主动触发 recap（硬规则 · 闭环）
+
+push 后总结输出完 → 主流程**主动**触发 `skill-recap`（或项目定制版 `skill-recap-<project>`）做任务回顾。
+
+**不允许等用户开口才触发 recap**——coding-review → commit → recap 是闭环，recap 会把本次会话的经验沉淀为 memory / 文档 / skill 改进。跳过 recap = 经验丢失。
+
+定制版可指定触发的具体 skill name（通用版或项目定制版）与衔接提示语。
 
 ## 输出格式（每轮）
 
