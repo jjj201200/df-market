@@ -108,13 +108,7 @@ skill 数量通常不多（~20 以下），**单 agent 即可完成**；若超�
 
 ## 如何派生项目定制版
 
-每个项目应创建 `skill-audit-<project>`：
-
-| 通用 skill 负责     | 定制 skill 负责                                                      |
-| ------------------- | -------------------------------------------------------------------- |
-| 七维度核查标准      | 本项目 skill 清单（个人 + 项目）                                     |
-| 汇总/输出规则       | 本项目的 skill 硬性规则（如命名约定、必备触发词、定制版必须声明前置） |
-| 工具纪律            | 本项目特定的 skill 编排关系（如 retrospective 必须引用 sync-check）   |
+项目应派生定制版（命名 `skill-audit-<project>`）。定制版的字段清单、分工、预扫规则见 `skill-keeper-welcome/references/derivation-fields-catalog.md`。
 
 **定制 skill 开头必须声明**：
 

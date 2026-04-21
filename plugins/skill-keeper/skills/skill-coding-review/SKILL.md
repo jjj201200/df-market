@@ -158,9 +158,9 @@ subagent 报告只覆盖它**当轮读过的文件**——其价值的最大延�
 - 改了接口签名 → `Grep` 全仓所有调用点（不只本轮 diff 里的）
 - 抽了共享函数 → `Grep` 原始实现的每一处，确认都替换了
 
-**输出**：全盘梳理结果必须进入本轮的"决策表"——发现的新问题按四分类处理（修 / 归档 backlog / 跳过 / 误报）；即使零发现也要在本轮输出显式写"全盘梳理：已扫 N 个关联路径，无新增问题"（有数字，不含糊）。
+**输出**：全盘梳理结果必须进入本轮的"决策表"——发现的新问题按四分类处理（修 / 归档 backlog / 跳过 / 误报）；即使零发现也要显式写"全盘梳理：已扫 N 个关联路径，无新增问题"（有数字，不含糊）。
 
-**为什么这是硬步骤**：simplify 最有价值的功能是"以新鲜视角重新审视完整代码面"。如果只依赖 subagent 报告的局部条目，第一轮没被 agent 抽中的文件永远不会被检查——这是跳过"全盘梳理"的真实代价。
+**为什么**：跳过全盘梳理 = 漏掉第一轮 agent 没抽中的文件。
 
 ### 步骤 5. backlog 归档
 
@@ -205,11 +205,9 @@ backlog 当前积压 N 项（详见 <backlog 文件路径>）：
 
 #### 7.3 主动触发 recap（硬规则 · 闭环）
 
-push 后总结输出完 → 主流程**主动**触发 `skill-recap`（或项目定制版 `skill-recap-<project>`）做任务回顾。
+push 后总结输出完 → 主流程**主动**触发 `skill-recap`（或项目定制版 `skill-recap-<project>`）做任务回顾，不允许等用户开口。coding-review → commit → recap 是闭环，跳过 recap = 经验丢失。
 
-**不允许等用户开口才触发 recap**——coding-review → commit → recap 是闭环，recap 会把本次会话的经验沉淀为 memory / 文档 / skill 改进。跳过 recap = 经验丢失。
-
-定制版可指定触发的具体 skill name（通用版或项目定制版）与衔接提示语。
+定制版可指定触发的具体 skill name 与衔接提示语。
 
 ## 输出格式（每轮）
 
@@ -257,16 +255,7 @@ subagent 报告被守门**阻断**时，单独列出处理方式（A/B/C）并�
 
 ## 如何派生项目定制版
 
-每个项目应创建 `skill-coding-review-<project>`。分工：
-
-| 通用 skill 负责 | 定制 skill 负责 |
-| --- | --- |
-| 7 步刚性流程 | 步骤 0 的具体 build 命令（按子模块列出） |
-| 三维度审查框架 | 项目规则 override（注入到每次 subagent prompt 的 `{{projectOverrides}}`） |
-| 等级化分类标准 | 项目 backlog 文件的绝对路径（默认 `memory/pending-tasks.md`） |
-| backlog 5 步整理流程 | 与 skill-recap 定制版的衔接（通常在 recap 阶段 5.3 的"commit 前置"引用本 skill） |
-| 循环收敛规则 | commit 约定、push 后总结的具体措辞 |
-| 与 skill-subagent-check 的守门配对 | 本项目历史踩坑过的高危盲区（作为 subagent 派发时附的"高危维度清单"输入） |
+项目应派生定制版（命名 `skill-coding-review-<project>`）。定制版的字段清单、分工、预扫规则见 `skill-keeper-welcome/references/derivation-fields-catalog.md`。
 
 **定制 skill 开头必须声明**：
 

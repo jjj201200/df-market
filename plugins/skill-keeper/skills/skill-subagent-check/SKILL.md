@@ -84,7 +84,7 @@ description: "Subagent 报告接收端即时守门方法论（与 doc-sync-check
 
 ## 阻断策略
 
-**默认阻断**。subagent 报告里最难发现的就是"看似完整但实际空载"——工具调用计数、已读清单数字、差集数字是最低成本的客观证据。没有这些证据就判定不可采信。
+**默认阻断**：无工具调用 / 已读清单 / 差集数字等客观证据即判不可采信。
 
 ## 记录落点（与 doc-sync-check / sync-check 共享）
 
@@ -107,22 +107,13 @@ description: "Subagent 报告接收端即时守门方法论（与 doc-sync-check
 
 三者可并列出现在同一轮 retrospective 中：**subagent 守门 → 文档守门 → skill 守门**（前者先于后者，因为后者的结论可能依赖 subagent 的输入）。
 
-## 与 skill-audit / skill-doc-audit 的关系
+## 与 audit 族的关系
 
-本 skill 是**即时守门**（check 族——每次消费 subagent 结论都跑），skill-audit / skill-doc-audit 是**周期性全量体检**（audit 族）。两者不替代——前者防"单次决策被 subagent 污染"，后者防"长期积累的漂移"。
-
-**一般做 audit 时没有 subagent 上下文**——subagent 做了什么只能在分派并执行后才知道，因此本 skill 必须在 subagent 报告返回那一刻就运行，不能延后到 audit 阶段。
+check 族（本 skill / sync-check / doc-sync-check）在事件发生时即时守门；audit 族（skill-audit / doc-audit）对既有资产周期体检。subagent 上下文只在派发即刻存在，因此本 skill 必须在报告返回那一刻运行，不能延后到 audit。
 
 ## 如何派生项目定制版
 
-每个项目应创建 `skill-subagent-check-<project>`。分工：
-
-| 通用 skill 负责        | 定制 skill 负责                                             |
-| ---------------------- | ----------------------------------------------------------- |
-| 五项核查的通用判定规则 | 本项目的**高危盲区模板**（从项目历史踩坑沉淀）              |
-| 默认阻断策略           | 本项目 retrospective / recap 类 skill 的具体接入阶段        |
-| 输出格式               | 项目专属忽略台账路径（与 recap / doc-sync-check 共享同一份） |
-| 通用 4 条盲区模板      | 主 skill 派发位置清单（项目内哪些 skill 会派 subagent）     |
+项目应派生定制版（命名 `skill-subagent-check-<project>`）。定制版的字段清单、分工、预扫规则见 `skill-keeper-welcome/references/derivation-fields-catalog.md`。
 
 **定制 skill 开头必须声明**：
 

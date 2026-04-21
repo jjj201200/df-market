@@ -95,13 +95,7 @@ description: "Skill 落盘前增量一致性快检方法论。在修改、新增
 
 ## 如何派生项目定制版
 
-每个项目应创建 `skill-sync-check-<project>`，分工：
-
-| 通用 skill 负责             | 定制 skill 负责                                                             |
-| --------------------------- | --------------------------------------------------------------------------- |
-| 级联检查清单（六种变更类型） | 本项目**触发范围**的绝对路径                                                |
-| 阻断策略                    | 本项目的专项检查（如"修改 retrospective 不得破坏与 sync-check 的引用"）      |
-| 输出格式                    | 与主调方（retrospective）的具体衔接                                         |
+项目应派生定制版（命名 `skill-sync-check-<project>`）。定制版的字段清单、分工、预扫规则见 `skill-keeper-welcome/references/derivation-fields-catalog.md`。
 
 **定制 skill 开头必须声明**：
 

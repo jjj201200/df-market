@@ -107,15 +107,8 @@ Read `references/check-catalog.md`，按其「1. 每份文档的四项核查」�
 
 ## 如何派生项目定制版
 
-本 skill 是方法论版。具体项目应创建定制版（命名约定：`skill-doc-sync-check-<project>`），分工如下：
+本 skill 是方法论版。项目应派生定制版（命名 `skill-doc-sync-check-<project>`）。定制版的字段清单、分工、预扫规则见 `skill-keeper-welcome/references/derivation-fields-catalog.md`。
 
-| 通用 skill 负责 | 定制 skill 负责                                                             |
-| --------------- | --------------------------------------------------------------------------- |
-| 核查清单四项    | 本项目**触发范围**的绝对路径（具体 CLAUDE.md / memory 目录）                 |
-| 工具选择与反模式 | 本项目**专项检查**（如索引硬性规则、子项目登记规则）                         |
-| 输出格式模板    | 与本项目 retrospective 类 skill 的具体衔接（挂哪个阶段、怎么失败反馈）       |
-| 阻断策略        | —                                                                           |
-
-**定制 skill 的开头必须声明**：
+**定制 skill 开头必须声明**：
 
 > 前置：先阅读并遵循 `skill-doc-sync-check`（通用方法论）。本 skill 只列出本项目特有触发范围与专项检查，不重复通用内容。
