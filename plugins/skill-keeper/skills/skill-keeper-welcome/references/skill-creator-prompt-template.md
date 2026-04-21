@@ -74,9 +74,4 @@ welcome Step N 对 `selected` 中每份 skill **串行调用** skill-creator 时
 
 ---
 
-## 调用纪律
-
-1. **串行调用**：对 `selected` 中每份 skill 依次发起一次 Skill 调用，不要并行（避免 name 冲突、文件竞争）
-2. **一次一份**：每次 Skill 调用只负责一个定制版；不要在一次 prompt 里让 skill-creator 同时建多份
-3. **失败处理**：skill-creator 返回错误 → welcome 提示用户错误信息，AUQ 让用户选择"重试 / 跳过该份 / 终止全部"，不要静默失败
-4. **落盘后**：收尾提示里**用加粗和 emoji 强调**：**⚠️ 修改了 skill 文件，需要重启 Claude Code 才能使改动生效。**
+（调用纪律见 welcome SKILL.md 环节 8.3）

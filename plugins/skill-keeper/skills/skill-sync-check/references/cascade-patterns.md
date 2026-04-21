@@ -53,12 +53,10 @@
 
 ## 工具选择
 
-| 验证什么                  | 用什么                                      |
-| ------------------------- | ------------------------------------------- |
-| 某 skill 是否存在         | Glob `**/SKILL.md` 对比 name                |
-| 其他 skill 是否引用旧 name | Grep 字面                                   |
-| frontmatter YAML 有效性    | Read 后人工核对（或简单语法检查）           |
-| 正文引用的代码符号        | LSP workspaceSymbol；失败再 Grep            |
+- skill 存在性 → Glob `**/SKILL.md` 对比 name
+- 其他 skill 引用旧 name → Grep 字面
+- frontmatter YAML 有效性 → Read 后人工核对
+- 正文引用的代码符号 → LSP workspaceSymbol，失败再 Grep
 
 **反模式**：`bash grep/rg/find`——用 Grep 工具。
 

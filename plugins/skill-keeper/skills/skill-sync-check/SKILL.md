@@ -9,9 +9,7 @@ description: "Skill 落盘前增量一致性快检方法论。在修改、新增
 
 ## 辅助文件
 
-- `references/cascade-patterns.md` —— 6 种变更类型（改 description / 改正文 / 改 name / 删除 / 搬家 / 新增）各自的级联检查清单，以及工具选择建议
-
-执行级联检查时 Read 该文件，不在本 SKILL.md 重复 6 种变更的详细条目。
+- `references/cascade-patterns.md` —— 6 种变更类型（改 description / 改正文 / 改 name / 删除 / 搬家 / 新增）各自的级联检查清单 + 工具选择建议
 
 ## 核心原则
 

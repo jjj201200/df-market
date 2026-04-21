@@ -56,14 +56,6 @@ welcome 的**环节 1（语言）**一次 AUQ 同时发起两个问题：沟通�
 
 ---
 
-## 为什么同一轮 AUQ 发两问
-
-- AUQ 一轮支持最多 4 个 questions；两个语言决策相关、但互相独立，合并发起可节省一次交互往返
-- 用户一次性定好"对话 / 产出"两种语言，心智更清晰
-- frontmatter 的 YAML 标识符（`name` / `description` 这种 key）保持英文不变；只有 description 值与正文内容受 `{{docLanguage}}` 影响
-
----
-
 ## 维护指南
 
 - 预设列表刻意保持精简（English + 中文），其他语言走 Other 自由输入

@@ -39,10 +39,8 @@ commit 是本 skill 完成后的下一步，**不允许跳过直接 commit**，�
 ## 辅助文件
 
 - `references/dimensions.md` —— 三维度定义（reuse / quality / efficiency）、等级化分类（Critical / Important / Minor）、典型误报模式
-- `references/subagent-prompt-template.md` —— 每轮派发给三个 subagent 的硬化 prompt 骨架、项目 override 注入点、证据要求
+- `references/subagent-prompt-template.md` —— 每轮派发给 subagent 的硬化 prompt 骨架、项目 override 注入点、证据要求
 - `references/backlog-flow.md` —— backlog 文件 5 步整理流程、单条归档格式、push 后总结模板
-
-正文只保留骨架与刚性规则；细节全部搬到 references。
 
 ## 核心原则
 

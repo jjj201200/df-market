@@ -33,12 +33,10 @@
 
 ## 3. 工具选择
 
-| 要验证什么                | 用什么                                            |
-| ------------------------- | ------------------------------------------------- |
-| 某路径是否存在            | Glob（精确 pattern）或 Read 尝试打开             |
-| 某函数/类名是否存在       | LSP workspaceSymbol；失败再 Grep 字面            |
-| 某符号定义/引用位置       | LSP goToDefinition / findReferences              |
-| 某命令/CLI 是否可用        | 优先 Read 配置（package.json/pyproject.toml）；不要真执行 |
-| 索引列表 vs 目录实际       | Glob 列目录 + Read 索引 逐项比对                 |
+- 路径存在性 → Glob 或 Read
+- 函数/类名 → LSP workspaceSymbol；失败再 Grep 字面
+- 符号定义/引用 → LSP goToDefinition / findReferences
+- 命令/CLI 可用性 → Read 配置（package.json/pyproject.toml），不真执行
+- 索引 vs 目录 → Glob 列目录 + Read 索引逐项比对
 
-**反模式**：`bash grep/rg/find/cat`、裸 `git diff HEAD`——见项目的「节省 token 反模式」指南。
+**反模式**：`bash grep/rg/find/cat`、裸 `git diff HEAD`。

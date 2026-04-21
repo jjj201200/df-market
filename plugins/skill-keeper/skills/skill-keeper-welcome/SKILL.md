@@ -29,7 +29,7 @@ description: "skill-keeper 插件首次安装后的渐进式派生引导。当�
 - `references/skill-creator-prompt-template.md` —— 委派 skill-creator 的 prompt 模板
 - `references/doc-registration-flow.md` —— 环节 9 文档登记子环节 flow（落盘后主动提醒是否登记到 CLAUDE.md / AGENTS.md / MEMORY.md）
 
-执行到对应环节时 Read 对应 reference；不要在本 SKILL.md 中重复那里的内容。
+执行到对应环节时 Read 对应 reference。
 
 ## 执行流程
 
@@ -186,13 +186,8 @@ AUQ 单选 2 选项：
 
 ## 交互纪律
 
-- **不展示环节编号或"Step X"标题给用户**——直接用自然段与 AUQ 沟通，编号只供本 SKILL.md 内部使用
-- **选项互斥用单选；选项可共存用 multiSelect**——典型：派生范围（多选），命名方案（单选，方案互斥），意向分流（单选，分支互斥）
-- **AUQ 单个问题最多 4 个选项**——超出需拆成独立问题（5.1 就是典型案例）
-- **AUQ 每次调用最多 4 道题**——超过分批发起
-- **用户回答"放弃 / 跳过"** → 立即退出，不要追问
-- **纯文本段落精简**，避免长篇
-- **不并行调用 skill-creator**（防 name 冲突 / 路径竞争）
-- **frontmatter name/description 字段的 YAML 标识符保持英文**，只有 description 值与正文受 `{{docLanguage}}` 影响
-- **welcome 自身不写 SKILL.md 文件**，落盘全部交给 skill-creator
-- **`{{uiLanguage}}` 与 `{{docLanguage}}` 是独立变量**——一个管对话、一个管骨架正文，不要混用
+- **AUQ 约束**：单问题最多 4 选项、单次最多 4 题；超出拆分或分批；互斥用单选、可共存用 multiSelect
+- **welcome 不写 SKILL.md 文件**，落盘全交给 skill-creator；**串行调用** skill-creator（防 name 冲突 / 路径竞争）
+- **用户放弃 / 跳过 → 立即退出，不追问**
+- **不对用户展示环节编号**，编号仅供本 SKILL.md 内部交叉引用
+- **frontmatter YAML 标识符（`name`、字段 key）保持英文**；只有 description 值与正文受 `{{docLanguage}}` 影响
