@@ -1,6 +1,6 @@
 ---
 name: skill-coding-review
-description: "commit 前的**循环式**代码审查与修复方法论（不同于 Claude Code 内置 simplify 的单轮审查、不同于 skill-audit / skill-doc-audit 的周期性全量体检）。在 commit/push 前对本轮 git diff 做「代码复用 / 质量 / 效率」三维度审查，每轮按工作量弹性派发 1-3+ 个硬化过 prompt 的 subagent（每份报告受 skill-subagent-check 接收端守门），按 Critical / Important / Minor 等级分类问题，四分类决策（修 / 归档 backlog / 跳过 / 误报），直到某一轮 subagent 独立回合返回零发现才允许进入 commit。build 成功是流程前置门槛；backlog 项统一归档到项目单一入口文件，每轮 5 步整理。触发词：coding-review、coding review、code review、代码审查、commit 前审查、commit 前循环审查、pre-commit review、precommit cleanup、iterative code review loop、循环审查、零修改收敛、backlog 归档、commit 前守门、派发 reuse/quality/efficiency agent、subagent 硬化 prompt。"
+description: "commit 前循环式代码审查与修复：对本轮 git diff 做「代码复用 / 质量 / 效率」三维度审查，每轮弹性派发 1-3+ 个硬化 subagent，按 Critical / Important / Minor 分级与四分类决策（修 / 归档 backlog / 跳过 / 误报），直到独立回合零发现才允许 commit。build 成功是前置门槛。触发词：commit 前审查、循环审查、代码审查、code review、coding-review、simplify、review、precommit、commit 前守门、backlog 归档、零修改收敛。"
 ---
 
 # commit 前代码审查与修复（通用方法论）
@@ -25,16 +25,6 @@ commit 是本 skill 完成后的下一步，**不允许跳过直接 commit**，�
 - ❌ agent prompt 不允许写"只查新引入的问题"——会让 agent 放松标准、漏掉第一轮本该揭示但被遗漏的问题
 
 ---
-
-## 流程概览
-
-- 每轮并行派发 subagent（复用 / 质量 / 效率，数量按工作量弹性）
-- 每份 subagent 报告必须过 `skill-subagent-check` 守门
-- 按 Critical / Important / Minor 等级分类问题，四分类决策（修 / 归档 backlog / 跳过 / 误报）
-- 每轮末尾做**全盘梳理**：以 agent 报告为线索扩展到未被报告但可能相关的代码路径
-- 收敛条件三项全满足 → 进入 commit → 触发 `skill-recap` 做任务回顾
-
-本 skill 不同于 `skill-audit` / `skill-doc-audit`（后者是周期性全量体检）——本 skill 的对象始终是**当前未 commit 的代码 diff**，且每次 commit 前必跑。
 
 ## 辅助文件
 
@@ -179,8 +169,6 @@ subagent 报告只覆盖它**当轮读过的文件**——其价值的最大延�
 - **本轮有任何修改** → 回步骤 1 再跑完整一轮
 - **本轮零修改** + **最近一轮 subagent 独立回合（过了步骤 3 守门）报告零发现或全部为误报/已 backlog** + **步骤 4.5 全盘梳理无新增问题** + **build 通过** + **backlog 已整理** → 允许进入步骤 7
 
-完整破窗清单已在首段「⚠️ 收敛条件」列出——此步只做判定，不重复警示。
-
 ### 步骤 7. 进入 commit + push 后总结 + 触发 recap
 
 退出本 skill，移交 commit 流程。
@@ -241,17 +229,6 @@ push 后总结输出完 → 主流程**主动**触发 `skill-recap`（或项目�
 ```
 
 subagent 报告被守门**阻断**时，单独列出处理方式（A/B/C）并说明未通过的具体原因。
-
-## 与其他 skill 的区别
-
-| 维度 | 本 skill（review） | skill-audit | skill-doc-audit | skill-sync-check | skill-subagent-check |
-| --- | --- | --- | --- | --- | --- |
-| 对象 | 当前未 commit 代码 diff | 全部 SKILL.md | 全部规范/手册/memory | 单次 SKILL.md 落盘 | subagent 报告本身 |
-| 触发 | commit 前 | 周期性/手动 | 周期性/手动 | SKILL.md 落盘前 | subagent 派发后 |
-| 循环 | **是**（零修改收敛） | 否 | 否 | 否 | 否 |
-| 修复 | 本 skill 内完成 | 只给建议不改 | 只给建议不改 | 守门通过即落盘 | 只给阻断信号 |
-
-本 skill 是唯一**循环式 + 会修改代码**的守门 skill——职责最重、最接近代码变更本身。
 
 ## 如何派生项目定制版
 

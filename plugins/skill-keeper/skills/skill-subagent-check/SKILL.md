@@ -1,11 +1,11 @@
 ---
 name: skill-subagent-check
-description: "Subagent 报告接收端即时守门方法论（与 doc-sync-check / sync-check 同属 check 族——每次派发后即时核查，不同于 skill-audit / skill-doc-audit 的周期性全量体检）。主 skill 派发 subagent 后、在消费其结论前调用，核查工具调用计数是否达到派发下限、已读清单是否完整、'无发现'是否附差集数字、结论是否带 file:line 证据、高危盲区是否逐项表态。默认阻断 + 三选一（重派 / 显式忽略归档 / 主 skill 自查）。与 doc-sync-check / sync-check 共享忽略台账。触发词：subagent-check、subagent 守门、subagent 核查、subagent 接收端守门、子代理核查、subagent 报告审查、核查 subagent 报告、空载回答守门、抽样降级守门、代理结论核验、subagent verification、subagent audit（旧名兼容触发）。"
+description: "subagent 报告接收端即时守门：主 skill 派发 subagent 后、消费结论前核查工具调用计数、已读清单、'无发现'是否附差集数字、结论是否带 file:line 证据、高危盲区是否逐项表态。默认阻断 + 三选一（重派 / 忽略归档 / 主 skill 自查）。触发词：subagent 守门、subagent 核查、子代理核查、subagent 报告审查、subagent-check、空载回答守门、抽样降级守门。"
 ---
 
 # Subagent 报告接收端即时守门（通用方法论）
 
-在主 skill 把 subagent 的报告用作决策依据**之前**，快速核对 subagent 是否"真的做事了、做透了、证据连得上"。本 skill 是**接收端守门**，与派发端的"prompt 硬化"（主 skill 在派发时已加的工具调用下限、已读清单要求等）配对使用——**派发端规定 subagent 必须做什么，接收端验证它是否做到了**。
+主 skill 把 subagent 报告用作决策**之前**，核对是否"真的做事了、做透了、证据连得上"。与派发端的 prompt 硬化（工具调用下限、已读清单等）配对使用：派发端规定 subagent 必须做什么，本 skill 验证是否做到。
 
 ## 辅助文件
 
@@ -95,21 +95,6 @@ description: "Subagent 报告接收端即时守门方法论（与 doc-sync-check
 ```
 
 该台账供后续全量审计对账（已在相同位置落盘 doc / skill 快检忽略项的项目可复用同一份台账）。
-
-## 与其他 check / audit 类 skill 的区别
-
-| 维度     | 本 skill                          | skill-doc-sync-check | skill-sync-check    |
-| -------- | --------------------------------- | -------------------- | ------------------- |
-| 审查对象 | subagent 的报告文本 + 派发 prompt | 文档落盘前变更       | SKILL.md 落盘前变更 |
-| 触发时机 | subagent 报告返回后、主决策前     | 文档落盘前           | SKILL.md 落盘前     |
-| 核心价值 | 防"空载回答 / 抽样降级"           | 防文档漂移           | 防 skill 级联失效   |
-| 输出     | 通过 / 阻断                       | 通过 / 阻断          | 通过 / 阻断         |
-
-三者可并列出现在同一轮 retrospective 中：**subagent 守门 → 文档守门 → skill 守门**（前者先于后者，因为后者的结论可能依赖 subagent 的输入）。
-
-## 与 audit 族的关系
-
-check 族（本 skill / sync-check / doc-sync-check）在事件发生时即时守门；audit 族（skill-audit / doc-audit）对既有资产周期体检。subagent 上下文只在派发即刻存在，因此本 skill 必须在报告返回那一刻运行，不能延后到 audit。
 
 ## 如何派生项目定制版
 

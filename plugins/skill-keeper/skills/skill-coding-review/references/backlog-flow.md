@@ -118,18 +118,5 @@ backlog 当前积压 N 项（详见 <backlog 文件绝对路径>）：
 
 ### push 后的 recap 触发（与 `skill-coding-review` 步骤 7.3 协调）
 
-push 后总结输出完 → 主流程**主动**触发 `skill-recap`（或项目定制版 `skill-recap-<project>`）做任务回顾。coding-review → commit → recap 是闭环，recap 负责把经验沉淀为 memory / 文档 / skill 改进。跳过 recap = 经验丢失。
+（具体在 SKILL.md 步骤 7.3 说明。）
 
----
-
-## 与其他 skill 的忽略台账的区别
-
-本 skill 的 backlog 是"**有价值但本次不做**"的建设性条目。与以下三者不同：
-
-| 台账 | 内容 | 用途 |
-| --- | --- | --- |
-| **本 skill 的 backlog** | 本次不做但值得做的建议 | 下次开发同模块时提醒 |
-| `skill-subagent-check` 忽略台账 | subagent 报告被阻断但用户选"B 显式忽略"的条目 | 全量审计时对账 |
-| `skill-doc-sync-check` / `skill-sync-check` 忽略台账 | 文档/skill 落盘守门被阻断但用户选"B 显式忽略"的条目 | 全量审计时对账 |
-
-**台账可复用同一物理文件**（项目定制版决定），但**条目前缀必须区分**（如 `[review]` / `[subagent-check]` / `[doc]` / `[skill]`）。

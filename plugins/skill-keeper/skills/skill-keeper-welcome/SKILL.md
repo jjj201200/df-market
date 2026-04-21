@@ -1,11 +1,11 @@
 ---
 name: skill-keeper-welcome
-description: "skill-keeper 插件首次安装后的渐进式派生引导。当用户首次安装 skill-keeper、运行 /skill-keeper-welcome、或表达「想为本项目派生 recap/audit/sync-check/subagent-check/coding-review 的定制版」「把 skill-keeper 的 skill 接入本项目」等意图时使用。职责：用 AskUserQuestion 同时收集沟通语言 + 骨架正文语言 → 价值阐述 → 意向分流 → skill-creator 依赖检测 → 派生范围（多选）/ 通用参数 / 命名方案 → 逐份收集项目特有字段 → 委派 skill-creator 落盘 → 主动提醒是否登记到 CLAUDE.md / AGENTS.md / MEMORY.md。允许用户随时放弃。触发词：skill-keeper 欢迎、派生定制版、welcome、skill-keeper-welcome、派生 recap/audit/sync-check/subagent-check/coding-review 定制版。"
+description: "skill-keeper 首次安装后的渐进式派生引导：用 AskUserQuestion 逐步收集语言、派生范围、命名、项目特有字段，委派 skill-creator 落盘 7 份定制版 skill，并主动提醒文档登记。允许随时放弃。触发词：skill-keeper 欢迎、派生定制版、welcome、skill-keeper-welcome、为本项目派生 skill。"
 ---
 
 # skill-keeper 首次安装引导（派生定制版）
 
-本 skill 的唯一职责是**用渐进式 AskUserQuestion 引导用户**决定是否为本项目派生 7 份通用方法论 skill 的定制版。本 skill **不直接写任何 SKILL.md 文件**——最终落盘交给官方 `skill-creator`。
+用渐进式 AskUserQuestion 引导用户为本项目派生 7 份 skill 的定制版。本 skill **不直接写 SKILL.md 文件**——落盘交给官方 `skill-creator`。
 
 ## 背景：skill-keeper 内置的 7 份通用 skill
 
@@ -19,7 +19,7 @@ description: "skill-keeper 插件首次安装后的渐进式派生引导。当�
 | `skill-doc-audit`         | 文档与代码一致性全量审计                                       |
 | `skill-audit`             | SKILL.md 全量审计                                              |
 
-每份 skill 的末尾都写有「如何派生项目定制版」章节——因为**通用版不绑定任何项目拓扑**，真正要在某个项目里跑顺必须派生一个 `-<project>` 后缀的定制版。派生**是可选的**：用户也可以只装 skill-keeper 用通用版。
+派生**可选**：通用版可直接用；派生出 `-<project>` 后缀定制版后才能把项目路径/链路写死，守门更准。
 
 ## 本 skill 的辅助文件
 

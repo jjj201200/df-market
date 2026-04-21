@@ -1,11 +1,11 @@
 ---
 name: skill-audit
-description: "Skill 全量审计方法论。对个人 skill（~/.claude/skills/）与项目 skill（.claude/skills/）进行系统性核对，验证触发词覆盖度、description 与正文一致性、前置 skill 声明、交叉引用有效性、职责边界、frontmatter 合规性、正文引用的工具/路径有效性，产出修订建议但不改文件。文档审计请用 skill-doc-audit。触发词：审计 skill、skill-audit、skill 核查、skill 一致性检查。"
+description: "SKILL.md 全量审计：对个人与项目 skill 系统核对触发词覆盖、description↔正文一致、前置声明、交叉引用、职责边界、frontmatter 合规、正文引用有效性，只产出修订建议不改文件。触发词：审计 skill、skill-audit、skill 全量核查、skill 一致性检查。"
 ---
 
 # Skill 全量审计（通用方法论）
 
-对项目中所有 SKILL.md（个人层 + 项目层）做一次系统性体检，识别 skill 失效、职责重叠、触发词漂移等问题。本 skill 是**通用方法论**，项目定制版应补充本项目的 skill 清单与硬性规则。
+对项目中所有 SKILL.md（个人层 + 项目层）做一次系统性体检，识别 skill 失效、职责重叠、触发词漂移等问题。
 
 ## 辅助文件
 
@@ -14,23 +14,11 @@ description: "Skill 全量审计方法论。对个人 skill（~/.claude/skills/�
 
 执行核查时 Read `references/dimensions.md`，frontmatter 合规维度允许**优先调用脚本**做初筛，发现命中再 Claude 回读核对。
 
-## 为什么独立于 `skill-doc-audit`
-
-| 维度         | 文档审计                           | Skill 审计（本 skill）                                                 |
-| ------------ | ---------------------------------- | ---------------------------------------------------------------------- |
-| 主语         | 规范 / 指南 / 索引 / 时效性         | 可触发的流程说明 + frontmatter 元数据                                  |
-| 失效信号     | 路径不存在、符号改名、规则过时      | 触发词覆盖不到实际说法、description ↔ 正文脱节、skill 搬家后其他 skill 引用失效 |
-| 漏检代价     | 索引残缺（可见）                    | skill 不被触发（**隐性失效**，更危险）                                 |
-| 修复工具链   | memory-refine、指南创建手册         | skill-creator                                                          |
-| 变更频率     | 较低                                | 较高                                                                   |
-
-**文档审计的维度无法替代本 skill**——反之亦然。两者分工，一个项目应同时拥有两套审计能力。
-
 ## 核心原则
 
 - **只读审计**：全程 Read/Grep/Glob/LSP；不改任何文件（脚本 `validate-frontmatter.sh` 也是只读）
 - **产出建议**：修订由 skill-creator / sync-check 类 skill 在用户确认后执行
-- **聚焦隐性失效**：skill 最大的失效模式不是"路径错了"而是"该触发时没触发"，审计需直面这一点
+- **聚焦隐性失效**：核查"该触发时未触发"重于"路径错了"
 
 ## 适用场景
 
