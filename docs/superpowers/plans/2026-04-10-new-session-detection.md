@@ -1,5 +1,8 @@
 # New Session Detection & Badge Notification Implementation Plan
 
+> **Status**: ✓ 已完成
+> **最后更新**: 2026-04-13（实施提交：`d719ec8` `d94ea32`）
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 当有新 Claude Code session 创建时，前端 session 下拉按钮显示数字徽标，下拉列表中新 session 条目高亮，点击后标记消除。
@@ -16,7 +19,7 @@
 
 - Modify: `plugins/token-reporter/backend/server.js:85-95`
 
-- [ ] **Step 1: 在 `/notify` 端点之后插入新端点**
+- [x] **Step 1: 在 `/notify` 端点之后插入新端点**
 
 在 `server.js` 第 95 行（`/notify` 的 `return;` 之后），插入以下代码：
 
@@ -35,7 +38,7 @@ if (url.pathname === '/notify-new-session' && req.method === 'POST') {
 }
 ```
 
-- [ ] **Step 2: 手动验证服务器能广播 `new_session` 事件**
+- [x] **Step 2: 手动验证服务器能广播 `new_session` 事件**
 
 启动服务器并用 curl 测试：
 
@@ -55,7 +58,7 @@ curl -X POST http://localhost:3737/notify-new-session \
 
 预期终端 2 输出：`data: {"type":"new_session","sessionId":"test-abc123"}`
 
-- [ ] **Step 3: 提交**
+- [x] **Step 3: 提交**
 
 ```bash
 git add plugins/token-reporter/backend/server.js
@@ -70,7 +73,7 @@ git commit -m "feat(token-reporter): add /notify-new-session SSE broadcast endpo
 
 - Modify: `plugins/token-reporter/hooks/session-start.js:111-117`
 
-- [ ] **Step 1: 在等待 PID 写入完成后，添加通知逻辑**
+- [x] **Step 1: 在等待 PID 写入完成后，添加通知逻辑**
 
 将 `session-start.js` 第 111-117 行（等待 PID 循环 + `process.exit(0)`）替换为：
 
@@ -104,7 +107,7 @@ notifyReq.end(body);
 process.exit(0);
 ```
 
-- [ ] **Step 2: 在文件顶部添加 `http` 模块引入**
+- [x] **Step 2: 在文件顶部添加 `http` 模块引入**
 
 在 `session-start.js` 第 1 行 `"use strict";` 之后，第 2 行 `const fs = require("fs");` 之前插入：
 
@@ -112,7 +115,7 @@ process.exit(0);
 const http = require('http');
 ```
 
-- [ ] **Step 3: 手动验证 hook 能触发通知**
+- [x] **Step 3: 手动验证 hook 能触发通知**
 
 ```bash
 # 终端 1：启动服务器
@@ -128,7 +131,7 @@ TOKEN_REPORTER_DATA_DIR=/tmp/tr-test CLAUDE_SESSION_ID=session-xyz node hooks/se
 
 预期终端 2 输出：`data: {"type":"new_session","sessionId":"session-xyz"}`
 
-- [ ] **Step 4: 提交**
+- [x] **Step 4: 提交**
 
 ```bash
 git add plugins/token-reporter/hooks/session-start.js
@@ -143,7 +146,7 @@ git commit -m "feat(token-reporter): notify server of new session on startup"
 
 - Modify: `plugins/token-reporter/frontend/src/stores/sessionStore.ts`
 
-- [ ] **Step 1: 扩展 `SessionStore` 接口**
+- [x] **Step 1: 扩展 `SessionStore` 接口**
 
 在 `sessionStore.ts` 第 11 行的 `interface SessionStore {` 块中，在 `refreshCurrentSession` 之后添加：
 
@@ -154,7 +157,7 @@ git commit -m "feat(token-reporter): notify server of new session on startup"
   fetchSessionsQuietly: () => Promise<void>;
 ```
 
-- [ ] **Step 2: 添加初始状态**
+- [x] **Step 2: 添加初始状态**
 
 在 `create<SessionStore>((set, get) => ({` 的初始值块（第 26 行），在 `sessionError: null,` 之后添加：
 
@@ -162,7 +165,7 @@ git commit -m "feat(token-reporter): notify server of new session on startup"
   newSessionIds: new Set<string>(),
 ```
 
-- [ ] **Step 3: 实现三个新方法**
+- [x] **Step 3: 实现三个新方法**
 
 在 `refreshCurrentSession` 方法之后添加：
 
@@ -190,7 +193,7 @@ git commit -m "feat(token-reporter): notify server of new session on startup"
   },
 ```
 
-- [ ] **Step 4: 在 `loadSession` 成功时清除标记**
+- [x] **Step 4: 在 `loadSession` 成功时清除标记**
 
 在 `loadSession` 方法中，`localStorage.setItem(LAST_SESSION_KEY, sessionId);` 这行（第 84 行）之后添加：
 
@@ -198,7 +201,7 @@ git commit -m "feat(token-reporter): notify server of new session on startup"
 get().clearNewSessionId(sessionId);
 ```
 
-- [ ] **Step 5: 验证 TypeScript 编译无错误**
+- [x] **Step 5: 验证 TypeScript 编译无错误**
 
 ```bash
 cd plugins/token-reporter/frontend
@@ -207,7 +210,7 @@ npx tsc --noEmit
 
 预期：无错误输出。
 
-- [ ] **Step 6: 提交**
+- [x] **Step 6: 提交**
 
 ```bash
 git add plugins/token-reporter/frontend/src/stores/sessionStore.ts
@@ -222,7 +225,7 @@ git commit -m "feat(token-reporter): add newSessionIds state and quiet refresh t
 
 - Modify: `plugins/token-reporter/frontend/src/hooks/useSSE.ts`
 
-- [ ] **Step 1: 订阅新 store 方法**
+- [x] **Step 1: 订阅新 store 方法**
 
 在 `useSSE.ts` 第 11 行，在 `const refreshCurrentSession` 之后添加：
 
@@ -231,7 +234,7 @@ const fetchSessionsQuietly = useSessionStore((s) => s.fetchSessionsQuietly);
 const addNewSessionId = useSessionStore((s) => s.addNewSessionId);
 ```
 
-- [ ] **Step 2: 在消息处理中新增 `new_session` 分支**
+- [x] **Step 2: 在消息处理中新增 `new_session` 分支**
 
 在 `es.onmessage` 的消息处理块中（第 64 行），在 `limits_update` 的 `else if` 之后添加：
 
@@ -244,7 +247,7 @@ const addNewSessionId = useSessionStore((s) => s.addNewSessionId);
             }
 ```
 
-- [ ] **Step 3: 更新 useEffect 依赖数组**
+- [x] **Step 3: 更新 useEffect 依赖数组**
 
 将 `useEffect` 的依赖数组（第 133 行）从：
 
@@ -258,7 +261,7 @@ const addNewSessionId = useSessionStore((s) => s.addNewSessionId);
   }, [refreshCurrentSession, setLimits, fetchSessionsQuietly, addNewSessionId]);
 ```
 
-- [ ] **Step 4: 验证 TypeScript 编译无错误**
+- [x] **Step 4: 验证 TypeScript 编译无错误**
 
 ```bash
 cd plugins/token-reporter/frontend
@@ -267,7 +270,7 @@ npx tsc --noEmit
 
 预期：无错误输出。
 
-- [ ] **Step 5: 提交**
+- [x] **Step 5: 提交**
 
 ```bash
 git add plugins/token-reporter/frontend/src/hooks/useSSE.ts
@@ -283,7 +286,7 @@ git commit -m "feat(token-reporter): handle new_session SSE event in useSSE"
 - Modify: `plugins/token-reporter/frontend/src/components/common/Dropdown.tsx`
 - Modify: `plugins/token-reporter/frontend/src/components/common/Dropdown.module.scss`
 
-- [ ] **Step 1: 扩展 `DropdownOption` 接口**
+- [x] **Step 1: 扩展 `DropdownOption` 接口**
 
 在 `Dropdown.tsx` 第 17 行的 `DropdownOption` 接口中，在 `sub?: string;` 之后添加：
 
@@ -291,7 +294,7 @@ git commit -m "feat(token-reporter): handle new_session SSE event in useSSE"
   isNew?: boolean;
 ```
 
-- [ ] **Step 2: 在普通渲染模式中添加 NEW 标签**
+- [x] **Step 2: 在普通渲染模式中添加 NEW 标签**
 
 在非虚拟化渲染（第 144 行）的 `<button>` 内，在 `{opt.sub && ...}` 之后添加：
 
@@ -301,7 +304,7 @@ git commit -m "feat(token-reporter): handle new_session SSE event in useSSE"
 }
 ```
 
-- [ ] **Step 3: 在虚拟化渲染模式中也添加 NEW 标签**
+- [x] **Step 3: 在虚拟化渲染模式中也添加 NEW 标签**
 
 在虚拟化渲染（第 124 行）的 `<button>` 内，在 `{opt.sub && ...}` 之后同样添加：
 
@@ -311,7 +314,7 @@ git commit -m "feat(token-reporter): handle new_session SSE event in useSSE"
 }
 ```
 
-- [ ] **Step 4: 在 Dropdown.module.scss 末尾添加 NEW 标签样式**
+- [x] **Step 4: 在 Dropdown.module.scss 末尾添加 NEW 标签样式**
 
 ```scss
 .optNew {
@@ -327,14 +330,14 @@ git commit -m "feat(token-reporter): handle new_session SSE event in useSSE"
 }
 ```
 
-- [ ] **Step 5: 验证 TypeScript 编译无错误**
+- [x] **Step 5: 验证 TypeScript 编译无错误**
 
 ```bash
 cd plugins/token-reporter/frontend
 npx tsc --noEmit
 ```
 
-- [ ] **Step 6: 提交**
+- [x] **Step 6: 提交**
 
 ```bash
 git add plugins/token-reporter/frontend/src/components/common/Dropdown.tsx \
@@ -351,7 +354,7 @@ git commit -m "feat(token-reporter): add isNew option support to Dropdown compon
 - Modify: `plugins/token-reporter/frontend/src/components/StickyChart/SessionBar.tsx`
 - Modify: `plugins/token-reporter/frontend/src/components/StickyChart/SessionBar.module.scss`
 
-- [ ] **Step 1: 订阅 `newSessionIds`**
+- [x] **Step 1: 订阅 `newSessionIds`**
 
 在 `SessionBar.tsx` 第 15 行现有 store 订阅之后添加：
 
@@ -359,7 +362,7 @@ git commit -m "feat(token-reporter): add isNew option support to Dropdown compon
 const newSessionIds = useSessionStore((s) => s.newSessionIds);
 ```
 
-- [ ] **Step 2: 在 `sessionOptions` 构造中设置 `isNew`**
+- [x] **Step 2: 在 `sessionOptions` 构造中设置 `isNew`**
 
 将现有的 `sessionOptions` useMemo（第 25-34 行）替换为：
 
@@ -381,7 +384,7 @@ const sessionOptions: DropdownOption[] = useMemo(
 );
 ```
 
-- [ ] **Step 3: 将 Dropdown 外层容器改为相对定位并添加徽标**
+- [x] **Step 3: 将 Dropdown 外层容器改为相对定位并添加徽标**
 
 将 `SessionBar.tsx` 中的 `<div className={styles.sessionSelectContainer}>` 块替换为：
 
@@ -409,7 +412,7 @@ const sessionOptions: DropdownOption[] = useMemo(
 </div>
 ```
 
-- [ ] **Step 4: 在 `SessionBar.module.scss` 末尾添加徽标样式**
+- [x] **Step 4: 在 `SessionBar.module.scss` 末尾添加徽标样式**
 
 ```scss
 .sessionDropdownWrap {
@@ -439,7 +442,7 @@ const sessionOptions: DropdownOption[] = useMemo(
 }
 ```
 
-- [ ] **Step 5: 更新 `.sessionDropdown` 样式**
+- [x] **Step 5: 更新 `.sessionDropdown` 样式**
 
 将现有的：
 
@@ -461,14 +464,14 @@ const sessionOptions: DropdownOption[] = useMemo(
 
 （flex 改由 `sessionDropdownWrap` 承担）
 
-- [ ] **Step 6: 验证 TypeScript 编译无错误**
+- [x] **Step 6: 验证 TypeScript 编译无错误**
 
 ```bash
 cd plugins/token-reporter/frontend
 npx tsc --noEmit
 ```
 
-- [ ] **Step 7: 提交**
+- [x] **Step 7: 提交**
 
 ```bash
 git add plugins/token-reporter/frontend/src/components/StickyChart/SessionBar.tsx \
@@ -484,7 +487,7 @@ git commit -m "feat(token-reporter): show new session badge on session dropdown"
 
 - Modify: `plugins/token-reporter/dist/` (构建产物)
 
-- [ ] **Step 1: 构建前端**
+- [x] **Step 1: 构建前端**
 
 ```bash
 cd plugins/token-reporter/frontend
@@ -493,7 +496,7 @@ npm run build
 
 预期：无错误，`dist/` 目录更新。
 
-- [ ] **Step 2: 运行现有测试**
+- [x] **Step 2: 运行现有测试**
 
 ```bash
 cd plugins/token-reporter
@@ -504,7 +507,7 @@ node test/test-single-instance.js
 
 预期：所有测试通过。
 
-- [ ] **Step 3: 手动端到端验证**
+- [x] **Step 3: 手动端到端验证**
 
 ```bash
 # 终端 1：启动服务器
@@ -522,7 +525,7 @@ curl -X POST http://localhost:3737/notify-new-session \
 
 多次发送不同 sessionId，验证数字正确累加（上限显示 `9+`）。
 
-- [ ] **Step 4: 版本检查**
+- [x] **Step 4: 版本检查**
 
 ```bash
 node plugins/token-reporter/scripts/check-version.cjs
@@ -534,7 +537,7 @@ node plugins/token-reporter/scripts/check-version.cjs
 node plugins/token-reporter/scripts/bump-version.cjs patch
 ```
 
-- [ ] **Step 5: 提交构建产物**
+- [x] **Step 5: 提交构建产物**
 
 ```bash
 git add plugins/token-reporter/dist/
