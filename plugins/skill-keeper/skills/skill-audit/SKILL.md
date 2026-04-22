@@ -9,7 +9,7 @@ description: "SKILL.md 全量审计：对个人与项目 skill 系统核对触�
 
 ## 辅助文件
 
-- `references/dimensions.md` —— 7 核查维度的详细方法与典型漂移
+- `references/dimensions.md` —— 8 核查维度的详细方法与典型漂移
 - `scripts/validate-frontmatter.sh` —— frontmatter 合规维度的机械校验脚本（YAML lint + name↔目录名一致性）
 
 执行核查时 Read `references/dimensions.md`，frontmatter 合规维度允许**优先调用脚本**做初筛，发现命中再 Claude 回读核对。
@@ -37,7 +37,7 @@ description: "SKILL.md 全量审计：对个人与项目 skill 系统核对触�
 
 ## 核查维度
 
-7 维度详情见 `references/dimensions.md`。条目摘要：
+8 维度详情见 `references/dimensions.md`。条目摘要：
 
 1. 触发词覆盖度
 2. description ↔ 正文一致性
@@ -46,6 +46,7 @@ description: "SKILL.md 全量审计：对个人与项目 skill 系统核对触�
 5. 交叉引用有效性
 6. frontmatter 合规（**可用 `scripts/validate-frontmatter.sh` 做机械初筛**）
 7. 正文引用的工具/路径有效性（含 `references/*.md` 的枚举与孤儿检查）
+8. 信号密度 / 稀释剂检测
 
 ## 并行切分策略
 
@@ -54,7 +55,7 @@ skill 数量通常不多（~20 以下），**单 agent 即可完成**；若超�
 ## 汇总规则（与其他 audit 类 skill 统一）
 
 1. **去重**：按 `(SKILL.md 路径, 维度, 问题指纹)` 三元组去重
-2. **排序**：frontmatter 合规违反 > 触发词覆盖度 > 交叉引用失效 > 前置声明缺失 > description/正文一致性 > 职责边界模糊 > 工具引用失效
+2. **排序**：frontmatter 合规违反 > 触发词覆盖度 > 交叉引用失效 > 前置声明缺失 > description/正文一致性 > 职责边界模糊 > 工具引用失效 > 信号密度
 3. **二次核验**：主 agent 对 top 5 高优先级建议再亲自 Read 一次 SKILL.md，确认问题属实；避免 subagent 误报
 4. **证据要求**：每条建议必须附 `文件:行 + 原文引用`
 
