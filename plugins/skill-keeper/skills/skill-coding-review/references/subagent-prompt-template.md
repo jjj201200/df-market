@@ -15,9 +15,12 @@ memory 约束不到 subagent——项目规则 override 必须写进 prompt，�
 
 对本轮 diff（见下方"审查代码范围"）做 **{{dimension}}** 维度的审查。仅报告该维度的发现，不越界到其他维度。
 
+- **本次 REVIEW_DEPTH**：`{{reviewDepth}}`
+- **触发本次派发的信号**：`{{triggerSignals}}`（命中的信号指示应重点审查的代码路径类型；`none` 代表默认全量审查）
+
 ## 硬性证据要求（必须满足，否则结论无效）
 
-- **必须实际执行** `git diff HEAD` / `Read` / `Grep` 等工具调用，**总数 ≥ 5 次**才能下结论
+- **必须实际执行** `git diff HEAD` / `Read` / `Grep` 等工具调用，**总数 ≥ {{toolUsesMin}} 次**才能下结论
 - 报告末尾**必须附已读文件清单**（绝对路径，不是相对路径也不是仅文件名）
 - 报告末尾**必须汇报工具调用次数**（例：`tool_uses: 7`）
 - 若某项声称"未发现问题"，必须附具体差集数字（|A|=..., |B|=..., A−B=...）
@@ -117,6 +120,9 @@ memory 约束不到 subagent——项目规则 override 必须写进 prompt，�
 | `{{dimensionFocus}}` | 从 `dimensions.md` 对应维度节摘要 | 主 skill 步骤 2 |
 | `{{diffContent}}` | `git diff HEAD` 的原文 | 主 skill 步骤 1 拿到 |
 | `{{projectOverrides}}` | 定制版 SKILL.md 的 `projectOverrides` 段原文 | 定制版写死，主 skill 直接读取插入 |
+| `{{reviewDepth}}` | `quick` / `balanced` / `pre-release`（见 SKILL.md「参数：REVIEW_DEPTH」） | 主 skill 步骤 0.5 |
+| `{{toolUsesMin}}` | 工具调用下限：`quick`=5 / `balanced`=5 / `pre-release`=7 | 主 skill 派生自 reviewDepth |
+| `{{triggerSignals}}` | 触发本次派发的信号标签列表（见 SKILL.md signal matrix） | 主 skill 步骤 1.5 |
 
 ---
 
@@ -132,4 +138,4 @@ memory 约束不到 subagent——项目规则 override 必须写进 prompt，�
 
 ## 合并派发时的变体
 
-当按"小改动"档合并为 1 个综合 subagent 时（见 SKILL.md 步骤 2），`{{dimension}}` 填 `reuse + quality + efficiency 综合`，`{{dimensionFocus}}` 把三个维度节合并摘要。**硬性证据要求不合并**——仍是 `tool_uses ≥ 5`。
+当按"小改动"档合并为 1 个综合 subagent 时（见 SKILL.md 步骤 2），`{{dimension}}` 填 `reuse + quality + efficiency 综合`，`{{dimensionFocus}}` 把三个维度节合并摘要。**硬性证据要求不合并**——仍是 `tool_uses ≥ {{toolUsesMin}}`。

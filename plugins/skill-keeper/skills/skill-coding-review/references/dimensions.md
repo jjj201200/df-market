@@ -27,6 +27,8 @@
 - 字面量抽常量：**真的复制粘贴 ≥ 3 处**才建议；纯风格偏好（2 处相似）不算
 - 抽共享函数：两处"看起来像"但实际参数/返回语义不同 → 不抽
 
+**触发信号**：`new-deps` / `new-literals` / `sig-change` / `api-surface` / `persistence` / `config`
+
 ---
 
 ### 维度 2. Quality（代码质量）
@@ -50,6 +52,8 @@
 - WHAT 注释 / JSDoc / 分节注释（`// ========== xxx ==========`）：**项目 CLAUDE.md 没明说要删的就不要建议删**（这是来自通用 code-reviewer 默认模板的偏见，跨项目不一致）
 - 命名偏好："`handleX` vs `onX`" 纯风格偏好，不算质量问题
 
+**触发信号**：`new-deps` / `error-handling` / `async-pattern` / `sig-change` / `persistence` / `config` / `test-only` / `concurrency` / `api-surface` / `security` / `type-narrowing` / `io-boundary`
+
 ---
 
 ### 维度 3. Efficiency（效率）
@@ -71,6 +75,8 @@
 
 - 过早优化："把 `O(n)` 优化为 `O(log n)`" 但 n 永远 < 100 → 误报
 - 可读性胜过微优化："把 `map/filter` 合并为单个 `reduce`" → 多数情况下是误报
+
+**触发信号**：`loop-iter` / `async-pattern` / `persistence` / `config` / `perf-hot-path`
 
 ---
 
