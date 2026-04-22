@@ -3,51 +3,20 @@
 **日期**: 2026-04-19
 **范围**: token-reporter 新增「真实 context 构成」视图，数据源来自 Node 进程内 fetch hook
 **关联**:
-- 前版本（v1，已废弃）: [2026-04-19-context-auditing-dashboard-design.md](./2026-04-19-context-auditing-dashboard-design.md)
 - 证据: [evidence/2026-04-19-f-path/](./evidence/2026-04-19-f-path/)
 - 研究: [2026-04-19-claude-code-new-features-research.md](./2026-04-19-claude-code-new-features-research.md)
-**状态**: v1 OTel 路径因 60KB body 硬截断已废弃；v2 改走 F 路径，已 spike 证实可行
+**状态**: F 路径，spike 证实可行
 
 ---
 
-## 版本演进简史
+## 关键技术抉择：为何用 shell alias 注入 NODE_OPTIONS
 
-v1 设计基于 Anthropic 官方 OpenTelemetry 通道（`CLAUDE_CODE_ENABLE_TELEMETRY=1` + `OTEL_LOG_RAW_API_BODIES=1`）。实测发现 Claude Code CLI 在 `cli.js` 里**硬编码 61440（60KB）字面量**，任何超过 60KB 的 API request body 都会被截断并附 `[TRUNCATED - Content exceeds 60KB limit]` 标记，且没有任何 env 变量可以覆盖这个限制。由于真实对话很快就会突破 60KB，OTel 路径拿不到完整 body，无法精确拆解 `system_prompt` / `tools_schema` / `messages_*` 7 类来源。
+- **问题**：F 路径需要 `--require=<hook>` 在 Node binary 启动瞬间生效；写到 `settings.local.json.env` 不行，因为 Claude Code 在 runtime 之后才 `Object.assign(process.env, settings.env)`，对当前主进程的 `--require` 无效。
+- **必要参数**：rc 文件路径（`~/.zshrc` / `~/.bashrc`）、`SHELL_RC_MARKER` 注释、alias 行；如检测到用户已有 `HTTPS_PROXY`（env 或 rc 中已有 alias）则烘焙进新 alias。
+- **方案**：`token-reporter-audit on` 往 rc 追加 `alias claude='NODE_OPTIONS="--require=<hook>" claude'`；`off` 按 marker 精确删两行。`settings.local.json.env` 仅保留 `TOKEN_REPORTER_AUDIT_OUT` + `TOKEN_REPORTER_AUDIT_ACTIVE`（hook 启动后才读的目标目录 / flag）。
+- **预期结果**：用户敲 `claude` → shell 展开 alias → Node 启动读到 NODE_OPTIONS → hook 加载 → 拦截主进程 fetch；spike 实测 153KB body 完整可抓。
 
-v2 改走 **F 路径**：通过 `NODE_OPTIONS=--require=<hook>` 在 Claude Code 的 Node 进程启动时注入一份 fetch hook，在 TLS 加密之前截取 `api.anthropic.com` 的完整请求体。**纯旁路，不修改原请求，Claude Code 无感知。**
-
-### v2 hotfix（2026-04-19）：NODE_OPTIONS 改走 shell alias 注入
-
-原 v2 设计把 `NODE_OPTIONS=--require=<hook>` 写入 `~/.claude/settings.local.json.env`，期望 Claude Code 启动时把它注入到自身 `process.env`。源码阅读验证 Claude Code 确实会 `Object.assign(process.env, settings.env)`——但**发生在 Node runtime 初始化之后**。`NODE_OPTIONS` 里的 `--require` 语义只在 **Node binary 启动瞬间**读取 env 时生效；启动后才塞进 `process.env` 的 `NODE_OPTIONS` 对当前 Node 无效，只会传给 spawn 的子进程，而 Messages API `fetch()` 由 Claude Code **主进程**发出，拦不到。
-
-**修复过程中的方案演进**：
-
-1. **尝试 #1（PATH shim）**：在 `~/.claude/bin/claude` 写 bash wrapper `exec env NODE_OPTIONS=... real-claude "$@"`，往 shell rc 的 PATH 前面加 `~/.claude/bin`。实测失败——zsh 的 command hash cache 在 rc 末尾改 PATH 后不自动刷新，仍命中原 real claude；且 `whence` 始终报 user's `alias claude`，展开后第二次查 `claude` 走 PATH 时 hash 表陈旧。
-2. **最终方案（Shell alias 注入）**：`token-reporter-audit on` 往 `~/.zshrc` / `~/.bashrc` 追加一行：
-
-   ```zsh
-   # token-reporter-audit: alias wrapper
-   alias claude='NODE_OPTIONS="--require=/abs/path/fetch-hook.cjs" claude'
-   ```
-
-   zsh 遇到 `claude` 时先展开 alias（变成 `NODE_OPTIONS="..." claude arg1 arg2...`），第二个 `claude` 不再展开（防递归），走 PATH 到 real claude binary。Node 启动读到 NODE_OPTIONS → `--require` 生效 → hook 加载 → 拦截主进程 fetch。  
-   **优势**：alias 是 shell 的本命机制，不依赖 hash 刷新；用户已有的 `alias claude='HTTPS_PROXY=... claude'` 可以被我们自动检测并把 HTTPS_PROXY 烘焙进新 alias；`audit off` 只删两行（marker + alias）精确还原。
-
-**详细设计**：
-
-- 用户的 shell env 里如果已有 `HTTPS_PROXY`，CLI 自动把它烘焙进 alias（`HTTPS_PROXY="..." NODE_OPTIONS="..." claude`），保证代理继续生效
-- 如果 shell env 没 proxy 但 rc 里已有 `alias claude='HTTPS_PROXY=URL claude'`，CLI 从该 alias 里**提取 URL** 烘焙到新 alias（替代用户原 alias 的代理作用）
-- 发布版里默认不带 proxy（干净安装时用户 env 没 HTTPS_PROXY 的常见情况）
-- rc 里的两行（marker 注释 + alias）由 `SHELL_RC_MARKER` 标识，`off` 时按 marker 精确删除；不触碰用户其它 rc 内容
-- `settings.local.json.env` 仅保留 `TOKEN_REPORTER_AUDIT_OUT` + `TOKEN_REPORTER_AUDIT_ACTIVE` —— 这两个是 hook 启动后才读的目标目录 / flag，不属于 runtime-only env，Claude Code 后加载到 process.env 后传给 spawn 的子进程（hook 在主进程也能读到，因为主进程就是 Node 本身）
-
-**设计文件变更**：
-
-- `backend/src/audit-keys.ts`：`MANAGED_ENV_KEYS` 从 3 个降到 2 个（去掉 NODE_OPTIONS）；`SHELL_RC_MARKER` 从 PATH shim 注释改为 alias wrapper 注释
-- `backend/src/audit-settings.ts`：引入 `buildAliasLine()` / `detectExistingProxy()` / `patchShellRc(rcPath, aliasLine)` / `unpatchShellRc()`；`enableAudit` / `disableAudit` 不再管 shim 只管 alias 行；保留 `disableAudit` 里**清理旧 PATH shim** 的兜底（给已从尝试 #1 升级上来的用户）
-- `backend/src/migrate.ts` 2.11.0：新增 `userClaudeBin: null` + `shellRcPatched: null`（前者是尝试 #1 遗留字段，最终方案不写入但保留在 schema 以兼容）
-- `bin/token-reporter-audit`：flow「问 proceed → 检测已有 proxy（env 或 rc 的现有 alias）→ 问 rc 写入 → 追加 alias」；新增 `-y` / `--yes` flag for scripting
-- spike/证据仍成立（153KB body 完整可抓），变的是**如何让 NODE_OPTIONS 在 Node 启动前就位**：改用 shell alias 而非 PATH shim/settings.env
+> v1 OTel 路径与 PATH shim 等历史尝试不再保留过程叙事，按需查 git log 与 v1 设计文档。
 
 ---
 
@@ -328,7 +297,7 @@ composition 路由的数据源优先级：
 - `test/test-audit-status-api.js` —— API 四种场景（未启用、启用活、启用 stale、磁盘满）
 - 前端：dev server 13737 手工验证（沿用 CLAUDE.md 约定）
 
-**废弃的测试**：v1 的 `test/verify-otel-channel.js` 保留但标记为「历史参考，已不跑」，结果文件 `otel-verification-result.json` 同样保留作为设计演进证据。
+**已归档**：`test/verify-otel-channel.js` 与 `otel-verification-result.json` 不纳入 CI，仅留 git 痕迹。
 
 ---
 

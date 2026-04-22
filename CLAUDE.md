@@ -5,6 +5,7 @@
 ## 本仓库是什么
 
 **df-market** 是托管在 GitHub (`jjj201200/df-market`) 上的 Claude Code 插件市场。包含：
+
 - `.claude-plugin/marketplace.json` —— 可用插件注册表
 - `plugins/` —— 实际的插件源码
 
@@ -36,42 +37,71 @@ token-reporter-dev start                  # 监听 13737
 token-reporter-dev stop
 ```
 
-## 插件架构（token-reporter）
+## Plugin: token-reporter
 
-本插件遵循 Claude Code 插件生命周期模型：
+实时 token 使用监控插件。后端 TypeScript（`backend/src/` → 编译到 `backend/dist/`），前端 React + Vite + TypeScript（`frontend/src/` → 构建到 `dist/`）。遵循 Claude Code 插件生命周期模型。
 
 ### Hooks（`hooks/`）
+
 三个生命周期脚本，注册在 `hooks/hooks.json`：
+
 - **`session-start.js`** —— 确保数据目录存在、加载配置、跑迁移、获取文件锁、以 detached 方式派生 HTTP 服务器进程
 - **`post-tool-use.js`** —— 每次工具调用后向服务器 POST 通知，触发对 web 客户端的 SSE 广播
 - **`session-end.js`** —— 退出时清理
 
-### 服务器（`src/server.js`）
-轻量 HTTP 服务器（生产端口 `3737`；开发/测试端口 `13737`——见上文"开发服务器"章节），提供：
-- `GET /` → 返回 `src/report.html`（web 仪表盘）
+### 服务器（`backend/src/server.ts`）
+
+轻量 HTTP 服务器（生产端口 `3737`；开发/测试端口 `13737`——见上文"开发服务器"章节），提供以下端点：
+
+- `GET /` → 返回 `dist/index.html`（web 仪表盘 SPA）
 - `GET /events` → 仪表盘实时更新的 SSE 流
 - `POST /notify` → 接收来自 hook 的工具调用通知
+- `POST /notify-new-session` → 新 session 创建通知（触发前端徽标）
 - `GET /api/sessions` → 列出所有 Claude Code session 文件
 - `GET /api/sessions/:id` → 返回解析后的 session 数据
+- `GET /api/sessions/:id/composition` → 返回单 session 的 context 7 类来源构成（live / estimated 双模式）
+- `GET /api/limits` → 模型限额缓存读取
+- `POST /api/limits` → 模型限额缓存写入
+- `GET /api/audit/status` → 审计开启状态、hook 心跳、settings.local.json 关键键状态
+- `POST /api/audit/ack-prompt` → 标记审计引导横幅已确认
+- `POST /api/audit/purge` → 清空 captures/ 目录
 
-### 解析器（`src/parser.js`）
-读取 `~/.claude/projects/*/` 下的 JSONL session 文件（含 subagent）。按轮次提取 token 使用量（input、output、cache_read、cache_creation）和工具调用详情。工具分类：bash、read、edit、write、grep、glob、web、agent、other。
+### 解析器（`backend/src/parser/`）
+
+读取 `~/.claude/projects/*/` 下的 JSONL session 文件（含 subagent）。模块化拆分：`session.ts`（主入口）/ `core.ts` / `content.ts` / `metadata.ts` / `parent.ts` / `subagent.ts` / `tools.ts` / `types.ts`。按轮次提取 token 使用量（input、output、cache_read、cache_creation）和工具调用详情。工具分类：bash、read、edit、write、grep、glob、web、agent、other。
+
+### 审计系统（`backend/src/audit-*.ts` + `runtime/fetch-hook.cjs`）
+
+通过 shell alias 注入 `NODE_OPTIONS=--require=<hook>` 拦截 Claude Code 主进程的 `globalThis.fetch`，将 Anthropic Messages API 的完整 request/response body 旁路写盘到 `~/.claude/token-reporter/captures/`，供 composition-service 拆解 7 类 context 来源。设计文档见 `docs/superpowers/specs/2026-04-19-context-auditing-dashboard-design-v2.md`。
+
+相关组件：`audit-keys.ts`（受管 env 键白名单）/ `audit-settings.ts`（settings.local.json 合并/还原 + 心跳读取）/ `captures-parser.ts`（req.json → CompositionPoint）/ `composition-service.ts`（live/estimated/hookStale 三模式响应组装）。
 
 ### CLI 命令（`bin/`）
-`bin/` 下的可执行脚本在插件启用时加入 PATH。可用命令：
-- `token-reporter-start` —— 启动服务器
-- `token-reporter-stop` —— 停止服务器
-- `token-reporter-status` —— 显示服务器状态
-- `token-reporter-auto-launch-on` —— 开启自动启动
-- `token-reporter-auto-launch-off` —— 关闭自动启动
+
+`bin/` 下的可执行脚本在插件启用时加入 PATH：
+
+- **服务器管理**：`token-reporter-start` / `token-reporter-stop` / `token-reporter-status`
+- **自动启动**：`token-reporter-auto-launch-on` / `token-reporter-auto-launch-off`
+- **状态栏集成**：`token-reporter-statusline-on` / `token-reporter-statusline-off` / `token-reporter-statusline-status`
+- **审计**：`token-reporter-audit`（on / off / status / purge）—— 启停 fetch hook 注入并管理 captures
+- **开发**：`token-reporter-dev`（start / stop / status）—— 见上文"开发服务器"章节
 
 ### 持久化
+
 所有运行时数据存放在 `~/.claude/token-reporter/`：
-- `config.json` —— 端口和 `autoStart` 开关
+
+- `config.json` —— 端口、`autoStart`、`auditEnabled`、`auditPromptedAt` 等
 - `server.pid` —— 运行中服务器的进程 PID
 - `server.lock` —— 防止重复实例的文件锁
+- `captures/` —— 审计 hook 落盘的 `<pid>-<ts>-<seq>.req.json` / `.resp.json`（仅 audit 启用时生成）
+- `captures/.heartbeat` —— hook 心跳（hookStale 探测依据）
 
-### 版本迁移（`src/migrate.js`）
+### 前端 stores（`frontend/src/stores/`）
+
+7 个 Zustand store 各司其职：`sessionStore`（session 列表 + 当前 session）/ `analyticsStore`（解析后指标）/ `chartStore`（图表交互状态）/ `uiStore`（视图模式 / 折叠状态）/ `limitsStore`（模型限额缓存）/ `auditStore`（audit 启用状态 / 横幅）/ `i18nStore`（语言）。
+
+### 版本迁移（`backend/src/migrate.ts`）
+
 一个会在 session 启动时运行的迁移框架。添加破坏性配置变更时，在这里追加一条迁移。
 
 ## 国际化（i18n）
@@ -100,16 +130,18 @@ frontend/src/
 3. 组件里 `const {t} = useI18n()`，然后 `t('namespace.key')`
 
 含变量的字符串用 `{varName}` 占位：
+
 ```ts
 // en.ts
-nTurns: '{count} turns'
+nTurns: '{count} turns';
 // 组件里
-t('overview.nTurns', {count: 42})  // → "42 turns"
+t('overview.nTurns', {count: 42}); // → "42 turns"
 ```
 
 ### key 命名约定
 
 key 用点号分隔，按功能域组织：
+
 - `common.*` —— 共享标签（Input、Output、Copy 等）
 - `error.*` —— 错误和空状态消息
 - `nav.*` —— 导航标签
@@ -123,6 +155,7 @@ key 用点号分隔，按功能域组织：
 ### 在工具函数中使用 i18n
 
 非组件代码（如 `utils/analytics.ts` 里的 `generateRecommendations`），把 `t` 函数作为参数传入：
+
 ```ts
 import type {TFunction} from '../i18n';
 
@@ -148,10 +181,12 @@ export function generateRecommendations(input: Input, t: TFunction): Result[] {
 ### 图表轮次跳转交互
 
 所有 x 轴表示单轮对话（如 `#1`、`#2`）的分析图表必须支持点击跳转到对应轮次。这适用于：
+
 - `LineChart` / `AreaChart` / `BarChart` 里 x 轴用 `dataKey="turn"` 的图表
 - 每个数据点映射到具体 `turnId` 的图表
 
 实现模式：
+
 1. 在 Recharts 图表组件上挂 `onClick` handler
 2. 从点击事件里提取轮次序号（`activeLabel` 或坐标映射）
 3. 调用 `scrollToTurnIndex(turns, idx)` 和 `setSelected(turnId)` 完成跳转和高亮
@@ -168,7 +203,7 @@ export function generateRecommendations(input: Input, t: TFunction): Result[] {
 - 目录名与 frontmatter `name` 必须一致。
 - 新增/修改本插件内的 skill 时，**权威源是插件版**（`plugins/skill-keeper/skills/<name>/`）——进 git、随插件分发、有版本历史。个人版 `~/.claude/skills/<name>/` 是按需同步的本地镜像，**不是权威源**。迭代流程：先改插件版，再 `cp -R` 同步到个人版（SKILL.md / references/ / scripts/）。
 
-### welcome skill 流程（v0.2.0 起 10 环节）
+### welcome skill 流程（10 环节）
 
 `/skill-keeper-welcome` 命令 → 触发 `skill-keeper-welcome` skill → 渐进式 AskUserQuestion：
 
@@ -189,15 +224,15 @@ welcome skill 本身不写任何 SKILL.md 文件——落盘交给 `skill-creato
 
 为避免 SKILL.md 正文过长，skill-keeper 内每份 skill 把"可抽离的长清单"移到同级 `references/` 子目录。SKILL.md 正文保留骨架 + 指向 reference 的指针；执行到对应步骤时主流程 Read 对应 reference。
 
-| skill                  | references                                  | 抽出的内容                                              |
-| ---------------------- | ------------------------------------------- | ------------------------------------------------------- |
-| `skill-recap`          | `references/decision-trees.md`              | 改进维度、过程反哺、四问归类、综合考量维度              |
-| `skill-sync-check`     | `references/cascade-patterns.md`            | 6 种变更类型的级联检查清单、工具选择                    |
-| `skill-doc-sync-check` | `references/check-catalog.md`               | 四项核查清单、索引完整性五步闭环、工具选择              |
-| `skill-coding-review`         | `references/dimensions.md` / `references/subagent-prompt-template.md` / `references/backlog-flow.md` | 三维度定义 + 等级分类、硬化 subagent prompt 骨架、backlog 5 步整理流程 |
-| `skill-subagent-check` | `references/dimensions.md`                  | 五项核查判定规则、常见降级模式、4 条通用高危盲区模板    |
-| `skill-audit`          | `references/dimensions.md`                  | 7 核查维度                                              |
-| `skill-doc-audit`      | `references/dimensions.md`                  | 5 核查维度、索引强制步骤、并行切分策略                  |
+| skill                  | references                                                                                                                                                                                              | 抽出的内容                                                                                     |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `skill-recap`          | `references/decision-trees.md`                                                                                                                                                                          | 改进维度、过程反哺、四问归类、综合考量维度                                                     |
+| `skill-sync-check`     | `references/cascade-patterns.md`                                                                                                                                                                        | 6 种变更类型的级联检查清单、工具选择                                                           |
+| `skill-doc-sync-check` | `references/check-catalog.md`                                                                                                                                                                           | 四项核查清单、索引完整性五步闭环、工具选择                                                     |
+| `skill-coding-review`  | `references/dimensions.md` / `references/subagent-prompt-template.md` / `references/backlog-flow.md`                                                                                                    | 三维度定义 + 等级分类、硬化 subagent prompt 骨架、backlog 5 步整理流程                         |
+| `skill-subagent-check` | `references/dimensions.md`                                                                                                                                                                              | 五项核查判定规则、常见降级模式、4 条通用高危盲区模板                                           |
+| `skill-audit`          | `references/dimensions.md`                                                                                                                                                                              | 7 核查维度                                                                                     |
+| `skill-doc-audit`      | `references/dimensions.md`                                                                                                                                                                              | 5 核查维度、索引强制步骤、并行切分策略                                                         |
 | `skill-keeper-welcome` | `references/language-options.md` / `references/scope-split-plan.md` / `references/derivation-fields-catalog.md` / `references/skill-creator-prompt-template.md` / `references/doc-registration-flow.md` | 语言 AUQ（一次两问）、派生范围拆分方案、追问字段清单+预扫规则、委派 prompt 模板、文档登记 flow |
 
 **脚本**：`skill-audit/scripts/validate-frontmatter.sh` 对一份或多份 SKILL.md 做机械校验（YAML 合法 / name↔目录一致 / description 非空）。退出码 0=通过、1=违规、2=参数错。支持 `--dir <skills-root>` 扫描全目录。`skill-audit` 主流程的"frontmatter 合规"维度优先跑该脚本做初筛。
@@ -223,7 +258,7 @@ welcome skill 本身不写任何 SKILL.md 文件——落盘交给 `skill-creato
 - 派生流程从 4 个维度分支（`ecosystem` / `philosophy` / `packaging` / `exhaustive`），每个维度对应一份 flow reference + 主模板 + 若干子模板
 - 派生出的 release skill 的 frontmatter `name` / `description` 的 YAML key 保持英文；只有 description 值与正文受用户选择的 `docLanguage` 影响
 
-### welcome skill 流程（v0.3.0 起 12 环节）
+### welcome skill 流程（12 环节）
 
 `/release-creator-welcome` 命令 → 触发 `release-creator-welcome` skill → 渐进式 AskUserQuestion：
 
@@ -248,17 +283,17 @@ welcome skill 本身不写任何 SKILL.md 文件——落盘交给 `skill-creato
 
 为避免 SKILL.md 过长，`release-creator-welcome` 把所有可抽离内容移到 `references/` 下（25 份）：
 
-| 类别          | 数量 | 文件                                                                 |
-| ------------- | ---- | -------------------------------------------------------------------- |
-| 语言          | 1    | `language-options.md`                                                |
-| 维度 flow     | 4    | `dimension-{1-ecosystem,2-philosophy,3-packaging,4-exhaustive}-flow.md` |
-| Bump+Check    | 4    | `bump-check-flow.md` / `bump-catalog.md` / `check-catalog.md` / `hook-templates.md` |
-| 主模板        | 3    | `template-master-{ecosystem,philosophy,packaging}.md`                |
-| 生态子模板    | 4    | `template-ecosystem-{npm,python,claude-plugin,docs}.md`              |
-| 哲学子模板    | 3    | `template-philosophy-{commit,changeset,manual}.md`                   |
-| tag 子模板    | 3    | `template-tag-{simple,prefixed,scoped}.md`                           |
-| 工具          | 2    | `override-catalog.md` / `skill-creator-prompt-template.md`           |
-| 文档登记      | 1    | `doc-registration-flow.md`                                           |
+| 类别       | 数量 | 文件                                                                                |
+| ---------- | ---- | ----------------------------------------------------------------------------------- |
+| 语言       | 1    | `language-options.md`                                                               |
+| 维度 flow  | 4    | `dimension-{1-ecosystem,2-philosophy,3-packaging,4-exhaustive}-flow.md`             |
+| Bump+Check | 4    | `bump-check-flow.md` / `bump-catalog.md` / `check-catalog.md` / `hook-templates.md` |
+| 主模板     | 3    | `template-master-{ecosystem,philosophy,packaging}.md`                               |
+| 生态子模板 | 4    | `template-ecosystem-{npm,python,claude-plugin,docs}.md`                             |
+| 哲学子模板 | 3    | `template-philosophy-{commit,changeset,manual}.md`                                  |
+| tag 子模板 | 3    | `template-tag-{simple,prefixed,scoped}.md`                                          |
+| 工具       | 2    | `override-catalog.md` / `skill-creator-prompt-template.md`                          |
+| 文档登记   | 1    | `doc-registration-flow.md`                                                          |
 
 Bump+Check 4 份 reference 的职责：
 
@@ -301,6 +336,7 @@ Bump+Check 4 份 reference 的职责：
 ### 版本号出现位置（所有插件通用）
 
 每个插件的版本号出现在：
+
 - `plugins/<name>/.claude-plugin/plugin.json` > `version` —— 插件 manifest
 - `.claude-plugin/marketplace.json` > `plugins[name=<name>].version` —— marketplace 注册表
 - Git tag：`<plugin-name>-v<version>`（多插件仓库强制前缀）
