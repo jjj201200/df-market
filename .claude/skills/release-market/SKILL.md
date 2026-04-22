@@ -5,7 +5,7 @@ description: "df-market 项目专属的 release 流程。当用户说 release、
 
 # df-market Release Skill（打包派）
 
-本 skill 是 **df-market** 项目专属的 release 流程。由 release-creator 派生生成，记录本项目在 2026-04-17 时刻对版本决策 / 打包 / tag / Bump / Check 的明确选择。
+本 skill 是 **df-market** 项目专属的 release 流程。由 release-creator 派生生成，记录本项目对版本决策 / 打包 / tag / Bump / Check 的明确选择。
 
 ## 发行单元拓扑
 
