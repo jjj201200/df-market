@@ -29,12 +29,12 @@ node test/test-single-instance.js
 
 手动测试运行插件时**始终使用端口 `13737`**。`3737` 端口是用户日常运行的生产实例专用——切勿让测试或开发服务器指向它。
 
-开发服务器通过 `token-reporter-dev`（位于 `plugins/token-reporter/bin/`）启动。**调用前必须先将 `TOKEN_REPORTER_DEV_ROOT` 导出为当前项目根目录**，确保脚本解析到当前 checkout 而不是缓存/之前的路径：
+开发服务器通过仓库脚本 `scripts/token-reporter-dev.mjs` 启动。该脚本不属于插件 CLI（不进入 PATH），始终以仓库内 `plugins/token-reporter/` 为代码源，避免和市场缓存版本混淆：
 
 ```bash
-export TOKEN_REPORTER_DEV_ROOT="$(pwd)"   # 在仓库根目录下执行
-token-reporter-dev start                  # 监听 13737
-token-reporter-dev stop
+scripts/token-reporter-dev.mjs start    # 监听 13737
+scripts/token-reporter-dev.mjs stop
+scripts/token-reporter-dev.mjs status
 ```
 
 ## Plugin: token-reporter
@@ -84,7 +84,8 @@ token-reporter-dev stop
 - **自动启动**：`token-reporter-auto-launch-on` / `token-reporter-auto-launch-off`
 - **状态栏集成**：`token-reporter-statusline-on` / `token-reporter-statusline-off` / `token-reporter-statusline-status`
 - **审计**：`token-reporter-audit`（on / off / status / purge）—— 启停 fetch hook 注入并管理 captures
-- **开发**：`token-reporter-dev`（start / stop / status）—— 见上文"开发服务器"章节
+
+> 开发服务器不在此列——见上文"开发服务器"章节，使用仓库脚本 `scripts/token-reporter-dev.mjs`。
 
 ### 持久化
 
