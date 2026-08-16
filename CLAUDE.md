@@ -194,6 +194,22 @@ export function generateRecommendations(input: Input, t: TFunction): Result[] {
 
 跨轮次聚合的图表（如饼图、按类目的纵向柱状图）不需要此行为。
 
+## Plugin: glm
+
+`plugins/glm/` 是 GLM Coding Plan 工具箱。插件名 `glm` 是命名空间——后续 GLM 相关功能都以 `/glm:<name>` 命令挂在本插件下。
+
+### /glm:usage（`commands/usage.md` + `scripts/usage.mjs`）
+
+调智谱官方 monitor 接口，输出官方 `/usage` 风格的中文限额面板（5 小时窗口 + 7 天用量）。command 只做一件事：执行脚本并要求模型**逐字转述 stdout**——所有格式化都在脚本内完成，杜绝模型自由发挥。
+
+- **数据来源**：`{ANTHROPIC_BASE_URL origin}/api/monitor/usage/quota/limit`（国内端点；`api.z.ai` 为 `/quota`，404 自动回退）。**非正式公开接口**，结构变化时降级展示原始 JSON，不崩溃。
+- **key 安全（强约束）**：token 仅在脚本内从 `process.env.ANTHROPIC_AUTH_TOKEN` 读取——不进 argv、不打印、不落盘。修改本插件时不得引入任何携带 token 的参数或日志。
+- **核心逻辑**（`scripts/lib/core.mjs`）：纯函数 + 依赖注入（`fetchQuota(fetchImpl, …)`），`test/test-core.js`（Node 内置 assert）不发真实请求。`unit` 语义（3→小时、6→周）为逆向结论，未知值兜底显示，勿硬编码假设。
+
+### StatusBar 包装（M2，规划中）
+
+statusline 包装脚本：智谱后端时在 StatusBar 显示 5h/7d 用量，非智谱后端透传原有 statusLine 配置。设计见 `docs/superpowers/specs/2026-08-16-glm-usage-plugin-design.md`。
+
 ## Plugin: skill-keeper
 
 `plugins/skill-keeper/` 捆绑 7 份通用方法论 skill（`skill-recap` / `skill-doc-sync-check` / `skill-sync-check` / `skill-coding-review` / `skill-subagent-check` / `skill-doc-audit` / `skill-audit`）并附带一份渐进式引导 skill `skill-keeper-welcome`。
