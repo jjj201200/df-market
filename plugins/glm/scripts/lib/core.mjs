@@ -38,7 +38,7 @@ export function buildEndpoints(baseUrl) {
   const origin = url.origin;
   // 国内端点在 quota/limit，api.z.ai 国际端点在 quota——按序尝试，404 换下一个
   const urls = [`${origin}/api/monitor/usage/quota/limit`, `${origin}/api/monitor/usage/quota`];
-  const manageUrl = /(^|\.)z\.ai$/.test(host) ? 'https://z.ai/subscribe' : 'https://open.bigmodel.cn/usercenter/proj-mgmt';
+  const manageUrl = /(^|\.)z\.ai$/.test(host) ? 'https://z.ai/subscribe' : 'https://open.bigmodel.cn/coding-plan';
   return {origin, urls, manageUrl, host};
 }
 
@@ -140,30 +140,7 @@ export function formatNumber(n) {
   return Number(n ?? 0).toLocaleString('en-US');
 }
 
-const isWide = (cp) =>
-  (cp >= 0x1100 && cp <= 0x115f) ||
-  (cp >= 0x2e80 && cp <= 0x303e) ||
-  (cp >= 0x3041 && cp <= 0x33ff) ||
-  (cp >= 0x3400 && cp <= 0x4dbf) ||
-  (cp >= 0x4e00 && cp <= 0x9fff) ||
-  (cp >= 0xa000 && cp <= 0xa4cf) ||
-  (cp >= 0xac00 && cp <= 0xd7a3) ||
-  (cp >= 0xf900 && cp <= 0xfaff) ||
-  (cp >= 0xfe30 && cp <= 0xfe4f) ||
-  (cp >= 0xff00 && cp <= 0xff60) ||
-  (cp >= 0xffe0 && cp <= 0xffe6);
-
-/** 终端显示宽度（中文/全角计 2 列） */
-export function displayWidth(str) {
-  let w = 0;
-  for (const ch of String(str)) w += isWide(ch.codePointAt(0)) ? 2 : 1;
-  return w;
-}
-
-export function padEndDisplay(str, width) {
-  return str + ' '.repeat(Math.max(0, width - displayWidth(str)));
-}
-
+/** 进度条（█ 填充 / ░ 空位），整行同字符不参与跨字宽对齐，渲染稳定 */
 export function renderBar(percentage, width = 30) {
   const pct = clampPct(percentage);
   const filled = Math.round((pct / 100) * width);
@@ -172,26 +149,23 @@ export function renderBar(percentage, width = 30) {
 
 const LEVELS = {lite: 'Lite', pro: 'Pro', max: 'Max'};
 
-/** 格式化面板（官方 /usage 风格，中文）。框宽自适应内容，下限为进度条行 36 列 */
+/**
+ * 格式化面板（学官方 /usage：无框线、无 emoji——空行分区块，
+ * 中文标签 + 定宽空格做键值列对齐；标签等宽，跨字体渲染相对对齐稳定）。
+ */
 export function renderPanel(parsed, {now = Date.now(), manageUrl} = {}) {
   const levelText = parsed.level ? ` · ${LEVELS[parsed.level] ?? parsed.level} 档` : '';
-  const header = `GLM Coding Plan 用量${levelText}`;
-  const content = [];
+  const lines = [`GLM Coding Plan 用量${levelText}`];
   for (const win of parsed.windows) {
-    if (content.length > 0) content.push('');
-    content.push(win.label);
-    content.push({sep: true});
-    content.push(`${renderBar(win.percentage)}  ${String(win.percentage).padStart(3)}%`);
-    content.push(`已用 ${formatNumber(win.used)} / ${formatNumber(win.total)} · ${formatDuration(win.nextResetTimeMs - now)}`);
+    lines.push('');
+    lines.push(win.label);
+    lines.push(`  ${renderBar(win.percentage)}  ${String(win.percentage).padStart(3)}%`);
+    lines.push(`  已用  ${formatNumber(win.used)} / ${formatNumber(win.total)}`);
+    lines.push(`  重置  ${formatDuration(win.nextResetTimeMs - now)}`);
   }
-  // 下限 36 = 30 格 bar + 2 空格 + 4 字符百分比；中文明细行可能更长
-  const W = Math.max(36, ...content.map((l) => (typeof l === 'string' ? displayWidth(l) : 0)));
-  const box = [
-    `┌${'─'.repeat(W + 2)}┐`,
-    ...content.map((l) => `│ ${l.sep ? '─'.repeat(W) : padEndDisplay(l, W)} │`),
-    `└${'─'.repeat(W + 2)}┘`,
-  ];
-  const out = [header, '', ...box];
-  if (manageUrl) out.push(`管理套餐: ${manageUrl}`);
-  return out.join('\n');
+  if (manageUrl) {
+    lines.push('');
+    lines.push(`管理套餐: ${manageUrl}`);
+  }
+  return lines.join('\n');
 }

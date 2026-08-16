@@ -14,8 +14,6 @@ import {
   parseQuotaResponse,
   formatDuration,
   formatNumber,
-  displayWidth,
-  padEndDisplay,
   renderBar,
   renderPanel,
 } from '../scripts/lib/core.mjs';
@@ -51,17 +49,6 @@ test('formatNumber 千分位', () => {
   assert.equal(formatNumber(60000), '60,000');
   assert.equal(formatNumber(0), '0');
   assert.equal(formatNumber(null), '0');
-});
-
-test('displayWidth 中文计 2 列', () => {
-  assert.equal(displayWidth('abc'), 3);
-  assert.equal(displayWidth('用量'), 4);
-  assert.equal(displayWidth('7 天用量'), 8); // '7'+' '+'天'+'用'+'量' = 1+1+2+2+2
-});
-
-test('padEndDisplay 按显示宽度补齐', () => {
-  assert.equal(padEndDisplay('用量', 8), '用量    ');
-  assert.equal(displayWidth(padEndDisplay('已用 6,866 / 12,000', 36)), 36);
 });
 
 // ---------- windowLabel ----------
@@ -122,35 +109,43 @@ test('renderBar 30 格进度条', () => {
   assert.equal(renderBar(100), '█'.repeat(30));
 });
 
-test('renderPanel 快照（对齐回归基准）', () => {
+test('renderPanel 快照（学官方 /usage：无框键值列布局）', () => {
   const parsed = parseQuotaResponse(FIXTURE);
   const now = 1786848000000; // 固定基准时刻
-  const out = renderPanel(parsed, {now, manageUrl: 'https://open.bigmodel.cn/usercenter/proj-mgmt'});
+  const out = renderPanel(parsed, {now, manageUrl: 'https://open.bigmodel.cn/coding-plan'});
   const lines = out.split('\n');
-  // 头部 + 空行 + 框（上下边框 + 每窗口 4 行 + 窗口间空行 = 11）+ 链接 = 14 行
-  assert.equal(lines.length, 14);
+  // 头 1 + (空行 + 窗口 4 行) × 2 + 空行 + 链接 = 13 行
+  assert.equal(lines.length, 13);
   assert.equal(lines[0], 'GLM Coding Plan 用量 · Pro 档');
-  // 自适应框宽：内容最长行 = 5h 明细行（41 列）→ 框线 43
-  const inner = lines.slice(3, 12).map((l) => l.slice(2, -2));
-  const W = Math.max(36, ...inner.map(displayWidth));
-  assert.equal(lines[2], `┌${'─'.repeat(W + 2)}┐`);
-  assert.equal(lines[3], `│ ${padEndDisplay('5 小时窗口用量', W)} │`);
-  assert.equal(lines[4], `│ ${'─'.repeat(W)} │`);
-  assert.ok(lines[5].startsWith(`│ ${renderBar(57)}`));
+  assert.equal(lines[1], '');
+  assert.equal(lines[2], '5 小时窗口用量');
+  assert.equal(lines[3], `  ${renderBar(57)}   57%`);
+  assert.equal(lines[4], '  已用  6,866 / 12,000');
   // 5h 重置点 1786858288851 - now 1786848000000 = 10288851ms ≈ 171 分 = 2 小时 51 分
-  assert.ok(lines[6].includes('已用 6,866 / 12,000 · 2 小时 51 分后重置'));
+  assert.equal(lines[5], '  重置  2 小时 51 分后重置');
+  assert.equal(lines[7], '7 天用量');
   // 7d 重置点 1787308186998 - now 1786848000000 = 460186998ms ≈ 127.8h = 5 天 7 小时
-  assert.ok(lines[11].includes('已用 6,866 / 60,000 · 5 天 7 小时后重置'));
-  assert.equal(lines[13], '管理套餐: https://open.bigmodel.cn/usercenter/proj-mgmt');
+  assert.equal(lines[10], '  重置  5 天 7 小时后重置');
+  assert.equal(lines[12], '管理套餐: https://open.bigmodel.cn/coding-plan');
 });
 
-test('renderPanel 框线行显示宽度一致（对齐不变量，含极端时长文案）', () => {
+test('renderPanel 不含制表符框线/emoji（跨终端稳定不变量；█░ 进度条白名单放行）', () => {
   const parsed = parseQuotaResponse(FIXTURE);
-  for (const now of [0, 1786848000000, Date.now()]) {
-    const widths = renderPanel(parsed, {now, manageUrl: 'x'}).split('\n').map(displayWidth);
-    const boxWidths = widths.slice(2, -1);
-    for (const w of boxWidths) assert.equal(w, boxWidths[0]);
-  }
+  const out = renderPanel(parsed, {now: 0, manageUrl: 'x'});
+  // box-drawing（U+2500-257F，框线/分隔线）与 emoji 禁止——它们跨字体宽度不稳
+  assert.ok(!/[─-╿]/.test(out), '输出含制表符');
+  assert.ok(!out.includes('⏱'), '不含 emoji');
+  assert.ok(!/\u{1F000}-\u{1FAFF}/u.test(out), '不含 emoji 区字符');
+  // 除中文标签、间隔点、进度条 █░ 外不得引入其他非 ASCII
+  const nonAscii = out.replace(/[一-鿿·█░]/g, '');
+  assert.ok(/^[\x20-\x7E\n]*$/.test(nonAscii), '非 ASCII 字符超出白名单（中文标签/·/█░）');
+});
+
+test('renderPanel 标签列等宽（值行相对对齐不变量）', () => {
+  const parsed = parseQuotaResponse(FIXTURE);
+  const lines = renderPanel(parsed, {now: 0}).split('\n');
+  const labelLines = lines.filter((l) => /^  (已用|重置)  /.test(l));
+  assert.equal(labelLines.length, parsed.windows.length * 2);
 });
 
 test('renderPanel 无 level 时省略档位、无 manageUrl 时省略链接', () => {
@@ -165,7 +160,7 @@ test('buildEndpoints 国内端点', () => {
   const ep = buildEndpoints('https://open.bigmodel.cn/api/anthropic');
   assert.equal(ep.urls[0], 'https://open.bigmodel.cn/api/monitor/usage/quota/limit');
   assert.equal(ep.urls[1], 'https://open.bigmodel.cn/api/monitor/usage/quota');
-  assert.equal(ep.manageUrl, 'https://open.bigmodel.cn/usercenter/proj-mgmt');
+  assert.equal(ep.manageUrl, 'https://open.bigmodel.cn/coding-plan');
 });
 
 test('buildEndpoints 国际端点', () => {

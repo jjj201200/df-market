@@ -89,7 +89,8 @@ const WINDOWS = [
 
 test('renderGlmLine 智谱模式单行（去 ANSI 快照）', () => {
   const line = renderGlmLine(WINDOWS, {model: 'glm-5.3[1m]', cwd: '/home/jjj201200/work', ctxPct: 11, now: 0});
-  assert.equal(stripAnsi(line), '⏱ 5h 57% (10h0m) │ 7d 11% │ ctx 11% │ glm-5.3[1m] │ ~/work');
+  assert.equal(stripAnsi(line), '5h 57% (10h0m) | 7d 11% | ctx 11% | glm-5.3[1m] | ~/work');
+  assert.ok(!/[│⏱]/.test(line), '不含制表符分隔/emoji（跨终端零变形）');
 });
 
 test('renderGlmLine 着色档位', () => {
@@ -105,17 +106,17 @@ test('renderGlmLine 着色档位', () => {
 
 test('renderGlmLine 无数据 / stale 降级', () => {
   const unknown = renderGlmLine(null, {model: 'glm-5.3[1m]'});
-  assert.equal(stripAnsi(unknown), '⏱ 5h ?% │ 7d ?% │ glm-5.3[1m]');
+  assert.equal(stripAnsi(unknown), '5h ?% | 7d ?% | glm-5.3[1m]');
   const stale = renderGlmLine(WINDOWS, {stale: true, now: 0});
   assert.ok(stripAnsi(stale).includes('57%?'), 'stale 标记');
 });
 
 test('renderGlmLine 字段缺失逐级降级', () => {
-  assert.equal(stripAnsi(renderGlmLine(WINDOWS, {now: 0})), '⏱ 5h 57% (10h0m) │ 7d 11%');
+  assert.equal(stripAnsi(renderGlmLine(WINDOWS, {now: 0})), '5h 57% (10h0m) | 7d 11%');
 });
 
 test('renderBasicLine 兜底行', () => {
-  assert.equal(renderBasicLine({model: 'glm-5.3[1m]', cwd: '/home/jjj201200/w'}), 'glm-5.3[1m] │ ~/w');
+  assert.equal(renderBasicLine({model: 'glm-5.3[1m]', cwd: '/home/jjj201200/w'}), 'glm-5.3[1m] | ~/w');
   assert.equal(renderBasicLine({}), 'glm statusline');
 });
 

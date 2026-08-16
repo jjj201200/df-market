@@ -73,7 +73,7 @@ function shortTag(unit, number) {
 }
 
 /**
- * 智谱模式单行渲染。
+ * 智谱模式单行渲染（ASCII | 分隔，无 emoji）。
  * windows: parseQuotaResponse 产物（可能为 null → 全 ?%）；
  * opts.stale: 数据来自过期缓存；opts.model/cwd/ctxPct: stdin 提取值。
  */
@@ -82,13 +82,13 @@ export function renderGlmLine(windows, {model, cwd, ctxPct, stale = false, now =
   const w5 = windows?.find((w) => w.unit === 3);
   const w7 = windows?.find((w) => w.unit === 6);
   const rest = w5 && remainingShort(w5.nextResetTimeMs - now);
-  parts.push(`⏱ ${shortTag(w5?.unit ?? 3, w5?.number ?? 5)} ${pctText(w5?.percentage ?? null, {stale})}${rest ? ` (${rest})` : ''}`);
+  parts.push(`${shortTag(w5?.unit ?? 3, w5?.number ?? 5)} ${pctText(w5?.percentage ?? null, {stale})}${rest ? ` (${rest})` : ''}`);
   parts.push(`${shortTag(w7?.unit ?? 6, w7?.number ?? 1)} ${pctText(w7?.percentage ?? null, {stale})}`);
   if (ctxPct !== null && ctxPct !== undefined) parts.push(`ctx ${pctText(ctxPct)}`);
   if (model) parts.push(model);
   const dir = shortenPath(cwd);
   if (dir) parts.push(dir);
-  return parts.join(' │ ');
+  return parts.join(' | ');
 }
 
 /** 兜底基础行（非智谱且无原配置时），保证状态栏永不空白 */
@@ -97,7 +97,7 @@ export function renderBasicLine({model, cwd} = {}) {
   if (model) parts.push(model);
   const dir = shortenPath(cwd);
   if (dir) parts.push(dir);
-  return parts.join(' │ ') || 'glm statusline';
+  return parts.join(' | ') || 'glm statusline';
 }
 
 /** 读缓存：文件不存在/损坏返回 null；过期数据照常返回（由调用方标记 stale） */
