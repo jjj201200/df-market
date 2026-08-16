@@ -1,7 +1,7 @@
 {
   "name": "glm",
-  "description": "GLM Coding Plan toolkit for Claude Code. /glm:usage queries your Zhipu/Z.ai usage limits (5-hour & 7-day windows) from the official monitor API and renders an official-/usage-style panel in Chinese. Reads ANTHROPIC_AUTH_TOKEN from the environment only — never passed in plaintext.",
-  "version": "0.1.0",
+  "description": "GLM Coding Plan toolkit for Claude Code. /glm:usage queries your Zhipu/Z.ai usage limits (5-hour & 7-day windows) from the official monitor API and renders an official-/usage-style panel. glm-statusline-on/off wraps the Claude Code statusline: shows GLM usage in the StatusBar on a Zhipu backend, passes through your original statusline otherwise. Reads ANTHROPIC_AUTH_TOKEN from the environment only — never in plaintext.",
+  "version": "0.2.0",
   "author": {
     "name": "jjj201200",
     "email": "jjj201200@gmail.com"

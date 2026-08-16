@@ -1,0 +1,10 @@
+#!/usr/bin/env node
+// 还原 glm statusline 接管前的原 statusline 配置
+import os from 'node:os';
+import path from 'node:path';
+import {createInstaller} from '../scripts/install-statusline.mjs';
+
+const installer = createInstaller({claudeDir: path.join(os.homedir(), '.claude')});
+const result = installer.off();
+console.log(`${result.success ? '✓' : '✗'} ${result.message}`);
+process.exit(result.success ? 0 : 1);

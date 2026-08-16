@@ -206,9 +206,14 @@ export function generateRecommendations(input: Input, t: TFunction): Result[] {
 - **key 安全（强约束）**：token 仅在脚本内从 `process.env.ANTHROPIC_AUTH_TOKEN` 读取——不进 argv、不打印、不落盘。修改本插件时不得引入任何携带 token 的参数或日志。
 - **核心逻辑**（`scripts/lib/core.mjs`）：纯函数 + 依赖注入（`fetchQuota(fetchImpl, …)`），`test/test-core.js`（Node 内置 assert）不发真实请求。`unit` 语义（3→小时、6→周）为逆向结论，未知值兜底显示，勿硬编码假设。
 
-### StatusBar 包装（M2，规划中）
+### StatusBar 包装（`scripts/statusline.mjs` + `bin/glm-statusline-*`）
 
-statusline 包装脚本：智谱后端时在 StatusBar 显示 5h/7d 用量，非智谱后端透传原有 statusLine 配置。设计见 `docs/superpowers/specs/2026-08-16-glm-usage-plugin-design.md`。
+官方 statusline 在智谱后端下拿不到 GLM 限额（stdin JSON 无 `rate_limits` 字段）。`glm-statusline-on` 备份 `settings.json` 原 `statusLine` 配置到 `~/.claude/glm/statusline-backup.json` 并写入接管命令；`glm-statusline-off` 完整还原（备份为 `null` 时删除该键）；重复 `on` 幂等。
+
+- **双模式**（每次刷新按 `ANTHROPIC_BASE_URL` 动态判定）：智谱后端渲染用量单行（5h/7d 百分比 + 着色 + ctx% + 模型 + 目录）；非智谱后端 spawn 原命令透传 stdin/stdout。任何失败都降级输出，状态栏永不空白。
+- **stub 动态发现**：settings 指向 `~/.claude/glm/statusline.mjs`（stub），stub 每次刷新扫描 `~/.claude/plugins/cache/*/glm/<version>/` 选最新版转发——插件升级换版本目录后无需重新接管。改 stub 生成逻辑在 `scripts/install-statusline.mjs` 的 `STUB_SOURCE`。
+- **缓存**：`~/.claude/glm/cache.json`，TTL 5 分钟；拉新失败沿用旧值加 `?` 标记。缓存只存解析后的窗口数据，不含 token。
+- **测试**：`test/test-statusline.js`（临时目录 + HOME 重定向端到端，不碰真实 `~/.claude`）。
 
 ## Plugin: skill-keeper
 
