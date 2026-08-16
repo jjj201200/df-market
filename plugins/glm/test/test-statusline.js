@@ -10,12 +10,13 @@ import {fileURLToPath} from 'node:url';
 
 import {
   CACHE_TTL_MS,
+  REFRESH_INTERVAL_MS,
   isGlmBackend,
   parseStatuslineInput,
   resolveClaudeDir,
   shortenPath,
-  remainingShort,
   colorFor,
+  formatResetAt,
   renderGlmLine,
   renderBasicLine,
   readCache,
@@ -30,7 +31,7 @@ let failed = 0;
 const tests = [];
 const test = (name, fn) => tests.push({name, fn});
 
-const stripAnsi = (s) => s.replace(/\x1b\[\d+m/g, '');
+const stripAnsi = (s) => s.replace(/\x1b\[[\d;]*m/g, '');
 
 // ---------- resolveClaudeDir ----------
 test('resolveClaudeDir：CLAUDE_CONFIG_DIR 优先，未设置回落 ~/.claude', () => {
@@ -79,51 +80,74 @@ test('shortenPath HOME 缩写', () => {
   assert.equal(shortenPath(null), null);
 });
 
-test('remainingShort 紧凑倒计时', () => {
-  assert.equal(remainingShort(52 * 60000), '52m');
-  assert.equal(remainingShort(((3 * 60 + 24) * 60) * 1000), '3h24m');
-  assert.equal(remainingShort((((5 * 24) + 4) * 3600) * 1000), '5d4h');
-  assert.equal(remainingShort(0), null);
-  assert.equal(remainingShort(-5), null);
-  assert.equal(remainingShort(NaN), null);
-});
-
-// ---------- 渲染 ----------
+// ---------- 渲染（对齐原 statusline-command.sh 格式） ----------
 const WINDOWS = [
-  {label: '5 小时窗口用量', unit: 3, number: 5, used: 6866, total: 12000, percentage: 57, nextResetTimeMs: 1000 * 60 * 60 * 10},
+  {label: '5 小时窗口用量', unit: 3, number: 5, used: 6866, total: 12000, percentage: 57, nextResetTimeMs: 1000 * 60 * 60 * 3},
   {label: '7 天用量', unit: 6, number: 1, used: 6866, total: 60000, percentage: 11, nextResetTimeMs: 1000 * 60 * 60 * 24 * 5},
 ];
 
-test('renderGlmLine 智谱模式单行（去 ANSI 快照）', () => {
-  const line = renderGlmLine(WINDOWS, {model: 'glm-5.3[1m]', cwd: '/home/jjj201200/work', ctxPct: 11, now: 0});
-  assert.equal(stripAnsi(line), '5h 57% (10h0m) | 7d 11% | ctx 11% | glm-5.3[1m] | ~/work');
-  assert.ok(!/[│⏱]/.test(line), '不含制表符分隔/emoji（跨终端零变形）');
+test('renderGlmLine 官方格式快照：user@host:dir [model] ctx:NN% 5h:NN% 7d:NN%', () => {
+  const line = renderGlmLine(WINDOWS, {
+    user: 'jjj', host: 'ws', cwd: '/home/jjj201200/work', model: 'glm-5.3[1m]', ctxPct: 11,
+  });
+  assert.equal(
+    stripAnsi(line),
+    'jjj@ws:~/work [glm-5.3[1m]] ctx:11% 5h:57% 7d:11%',
+  );
+  assert.ok(!/[│⏱|]/.test(stripAnsi(line)), '无自造分隔符/emoji');
 });
 
-test('renderGlmLine 着色档位', () => {
+test('renderGlmLine 着色档位与官方一致：≥80 红、60-79 黄、其余暗灰', () => {
   const hot = renderGlmLine(
     WINDOWS.map((w) => ({...w, percentage: w.unit === 3 ? 85 : 65})),
-    {now: 0},
+    {user: 'u', host: 'h', cwd: '/w'},
   );
-  assert.ok(hot.includes(colorFor(85)), '≥80 红色');
-  assert.ok(hot.includes(colorFor(65)), '60-79 黄色');
-  const cool = renderGlmLine(WINDOWS, {now: 0});
-  assert.ok(cool.includes(colorFor(57)), '<60 绿色');
+  assert.ok(hot.includes(colorFor(85)), '≥80 红');
+  assert.ok(hot.includes(colorFor(65)), '60-79 黄');
+  const cool = renderGlmLine(WINDOWS, {user: 'u', host: 'h', cwd: '/w'});
+  assert.ok(cool.includes(colorFor(57)), '其余暗灰（DIM，非绿）');
 });
 
-test('renderGlmLine 无数据 / stale 降级', () => {
-  const unknown = renderGlmLine(null, {model: 'glm-5.3[1m]'});
-  assert.equal(stripAnsi(unknown), '5h ?% | 7d ?% | glm-5.3[1m]');
-  const stale = renderGlmLine(WINDOWS, {stale: true, now: 0});
-  assert.ok(stripAnsi(stale).includes('57%?'), 'stale 标记');
+test('renderGlmLine ≥90% 追加重置时刻（同日 HH:MM / 跨日 MM-DD HH:MM）', () => {
+  const now = Date.now();
+  const sameDay = now + 1000 * 60 * 90; // 90 分钟后，几乎必然同日
+  const hot = renderGlmLine(
+    [{unit: 3, number: 5, percentage: 92, nextResetTimeMs: sameDay}],
+    {user: 'u', host: 'h', cwd: '/w', now},
+  );
+  assert.ok(stripAnsi(hot).includes('5h:92%'), '百分比存在');
+  assert.ok(/\(\d{2}:\d{2}\)$/.test(stripAnsi(hot)), '同日 HH:MM 括号');
+  // 跨日：now 固定为某日 23:50，重置在次日 01:30 → MM-DD HH:MM
+  const base = new Date(2026, 7, 16, 23, 50).getTime();
+  const next = new Date(2026, 7, 17, 1, 30).getTime();
+  const cross = renderGlmLine(
+    [{unit: 3, number: 5, percentage: 95, nextResetTimeMs: next}],
+    {user: 'u', host: 'h', cwd: '/w', now: base},
+  );
+  assert.ok(stripAnsi(cross).includes('5h:95%(08-17 01:30)'), '跨日 MM-DD HH:MM');
 });
 
-test('renderGlmLine 字段缺失逐级降级', () => {
-  assert.equal(stripAnsi(renderGlmLine(WINDOWS, {now: 0})), '5h 57% (10h0m) | 7d 11%');
+test('renderGlmLine 无数据跳过限额段（官方「字段缺失即跳过」语义）', () => {
+  const line = renderGlmLine(null, {user: 'u', host: 'h', cwd: '/w', model: 'glm-5.3[1m]', ctxPct: 11});
+  assert.equal(stripAnsi(line), 'u@h:/w [glm-5.3[1m]] ctx:11%');
 });
 
-test('renderBasicLine 兜底行', () => {
-  assert.equal(renderBasicLine({model: 'glm-5.3[1m]', cwd: '/home/jjj201200/w'}), 'glm-5.3[1m] | ~/w');
+test('renderGlmLine 字段逐级缺失降级', () => {
+  assert.equal(stripAnsi(renderGlmLine(WINDOWS, {})), ' 5h:57% 7d:11%');
+});
+
+test('formatResetAt 同日/跨日/无效', () => {
+  const now = new Date(2026, 7, 16, 10, 0).getTime();
+  assert.equal(formatResetAt(new Date(2026, 7, 16, 22, 5).getTime(), now), '22:05');
+  assert.equal(formatResetAt(new Date(2026, 7, 18, 8, 0).getTime(), now), '08-18 08:00');
+  assert.equal(formatResetAt(NaN, now), null);
+});
+
+test('renderBasicLine 兜底行（同官方前缀格式）', () => {
+  assert.equal(
+    stripAnsi(renderBasicLine({user: 'u', host: 'h', cwd: '/home/x/w', model: 'glm-5.3[1m]'})),
+    'u@h:/home/x/w [glm-5.3[1m]]',
+  );
   assert.equal(renderBasicLine({}), 'glm statusline');
 });
 
@@ -143,6 +167,67 @@ test('writeCache / readCache 往返与损坏容错', () => {
 
 test('CACHE_TTL_MS 为 5 分钟', () => {
   assert.equal(CACHE_TTL_MS, 300000);
+});
+
+test('REFRESH_INTERVAL_MS 为 60 秒', () => {
+  assert.equal(REFRESH_INTERVAL_MS, 60000);
+});
+
+// ---------- hooks/refresh-cache.js（子进程 + 临时 CLAUDE_CONFIG_DIR，不发真实请求） ----------
+const HOOK = path.join(ROOT, 'hooks', 'refresh-cache.js');
+
+test('hook：新鲜缓存直接跳过（不更新 fetchedAt）', () => {
+  const cfg = fs.mkdtempSync(path.join(os.tmpdir(), 'glm-hook-'));
+  const cachePath = path.join(cfg, 'glm', 'cache.json');
+  fs.mkdirSync(path.join(cfg, 'glm'), {recursive: true});
+  fs.writeFileSync(cachePath, JSON.stringify({windows: [], level: null, fetchedAt: Date.now()}));
+  const r = spawnSync(process.execPath, [HOOK], {
+    encoding: 'utf8',
+    env: {
+      PATH: process.env.PATH,
+      CLAUDE_CONFIG_DIR: cfg,
+      ANTHROPIC_BASE_URL: 'https://open.bigmodel.cn/api/anthropic',
+      ANTHROPIC_AUTH_TOKEN: 'invalid-token-for-test',
+    },
+  });
+  assert.equal(r.status, 0);
+  assert.equal(r.stdout, '', 'hook 零输出');
+  assert.equal(JSON.parse(fs.readFileSync(cachePath, 'utf8')).fetchedAt >= Date.now() - 1000 ? 'fresh-kept' : 'updated', 'fresh-kept');
+  fs.rmSync(cfg, {recursive: true, force: true});
+});
+
+test('hook：过期缓存 + 无效 token → 静默失败，缓存不动', () => {
+  const cfg = fs.mkdtempSync(path.join(os.tmpdir(), 'glm-hook-'));
+  const cachePath = path.join(cfg, 'glm', 'cache.json');
+  fs.mkdirSync(path.join(cfg, 'glm'), {recursive: true});
+  fs.writeFileSync(cachePath, JSON.stringify({windows: [], level: null, fetchedAt: 1}));
+  const r = spawnSync(process.execPath, [HOOK], {
+    encoding: 'utf8',
+    timeout: 20000,
+    env: {
+      PATH: process.env.PATH,
+      CLAUDE_CONFIG_DIR: cfg,
+      ANTHROPIC_BASE_URL: 'https://open.bigmodel.cn/api/anthropic',
+      ANTHROPIC_AUTH_TOKEN: 'invalid-token-for-test',
+    },
+  });
+  assert.equal(r.status, 0, '静默退出');
+  assert.equal(r.stderr, '', '零 stderr');
+  assert.equal(JSON.parse(fs.readFileSync(cachePath, 'utf8')).fetchedAt, 1, '缓存未被改动');
+  fs.rmSync(cfg, {recursive: true, force: true});
+});
+
+test('hook：非智谱 BASE_URL 直接退出', () => {
+  const r = spawnSync(process.execPath, [HOOK], {
+    encoding: 'utf8',
+    env: {
+      PATH: process.env.PATH,
+      ANTHROPIC_BASE_URL: 'https://api.anthropic.com',
+      ANTHROPIC_AUTH_TOKEN: 'whatever',
+    },
+  });
+  assert.equal(r.status, 0);
+  assert.equal(r.stdout, '');
 });
 
 // ---------- installer（on / off / status，临时目录） ----------
@@ -332,7 +417,9 @@ test('端到端：智谱后端 + 坏 token → ?% 降级（不崩、不空）', 
     },
   });
   assert.equal(r.status, 0);
-  assert.ok(r.stdout.includes('5h'), '输出含 5h 段');
+  // 官方「字段缺失即跳过」语义：限额段不显示，但前缀/模型/ctx 段照常，状态栏非空
+  assert.ok(r.stdout.includes('ctx:'), '基础段照常输出');
+  assert.ok(r.stdout.trim().length > 0, '状态栏永不空白');
   fs.rmSync(home, {recursive: true, force: true});
 });
 

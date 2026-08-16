@@ -6,6 +6,9 @@ import path from 'node:path';
 
 export const CACHE_TTL_MS = 5 * 60 * 1000;
 
+/** hook 校准间隔：活跃会话中每分钟至多拉一次（纯查询接口，零 token 消耗） */
+export const REFRESH_INTERVAL_MS = 60 * 1000;
+
 /**
  * 解析当前 Claude Code 的配置目录：zclaude 场景通过 CLAUDE_CONFIG_DIR 使用独立
  * 配置目录（settings.json / plugins 均在其中）；未设置时为官方默认 ~/.claude。
@@ -50,67 +53,66 @@ export function shortenPath(dir, home = process.env.HOME) {
   return dir;
 }
 
-/** 紧凑倒计时：<1h → 52m；<1d → 3h24m；≥1d → 5d4h */
-export function remainingShort(ms) {
-  if (!Number.isFinite(ms) || ms <= 0) return null;
-  const min = Math.floor(ms / 60000);
-  if (min < 60) return `${Math.max(1, min)}m`;
-  const h = Math.floor(min / 60);
-  if (h < 24) return `${h}h${min % 60}m`;
-  return `${Math.floor(h / 24)}d${h % 24}h`;
-}
-
-const GREEN = '\x1b[32m';
-const YELLOW = '\x1b[33m';
-const RED = '\x1b[31m';
+const GREEN = '\x1b[01;32m';
+const BLUE = '\x1b[01;34m';
+const RESET = '\x1b[00m';
 const DIM = '\x1b[2m';
-const RESET = '\x1b[0m';
+const YELLOW = '\x1b[01;33m';
+const RED = '\x1b[01;31m';
 
-/** 百分比着色档位：<60 绿、60-79 黄、≥80 红；着色范围含 % 号 */
+/** 限额百分比着色（与原 statusline-command.sh 一致）：≥80 红、≥60 黄、其余暗灰 */
 export function colorFor(pct) {
   if (pct >= 80) return RED;
   if (pct >= 60) return YELLOW;
-  return GREEN;
+  return DIM;
 }
 
-function pctText(pct, {unknown = '?%', stale = false} = {}) {
-  if (pct === null || pct === undefined || !Number.isFinite(pct)) return unknown;
-  const mark = stale ? '?' : '';
-  return `${colorFor(pct)}${Math.round(pct)}%${mark}${RESET}`;
+/** 重置时刻：同日 HH:MM，跨日 MM-DD HH:MM（与原 fmt_reset 一致）；无效返回 null */
+export function formatResetAt(tsMs, now = Date.now()) {
+  if (!Number.isFinite(tsMs)) return null;
+  const d = new Date(tsMs);
+  const pad = (n) => String(n).padStart(2, '0');
+  const sameDay = d.toDateString() === new Date(now).toDateString();
+  const hm = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return sameDay ? hm : `${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${hm}`;
 }
 
-function shortTag(unit, number) {
+function limitLabel(unit, number) {
   if (unit === 3) return `${number}h`;
   if (unit === 6) return '7d';
   return `u${unit}`;
 }
 
 /**
- * 智谱模式单行渲染（ASCII | 分隔，无 emoji）。
- * windows: parseQuotaResponse 产物（可能为 null → 全 ?%）；
- * opts.stale: 数据来自过期缓存；opts.model/cwd/ctxPct: stdin 提取值。
+ * 智谱模式单行渲染——完全对齐原 statusline-command.sh 的格式：
+ * user@host:dir [model] ctx:NN% 5h:NN% 7d:NN%(≥90% 追加 (HH:MM) 重置时刻)。
+ * windows: parseQuotaResponse 产物（null/缺窗口 → 跳过对应段，与官方「字段缺失即跳过」一致）。
  */
-export function renderGlmLine(windows, {model, cwd, ctxPct, stale = false, now = Date.now()} = {}) {
-  const parts = [];
-  const w5 = windows?.find((w) => w.unit === 3);
-  const w7 = windows?.find((w) => w.unit === 6);
-  const rest = w5 && remainingShort(w5.nextResetTimeMs - now);
-  parts.push(`${shortTag(w5?.unit ?? 3, w5?.number ?? 5)} ${pctText(w5?.percentage ?? null, {stale})}${rest ? ` (${rest})` : ''}`);
-  parts.push(`${shortTag(w7?.unit ?? 6, w7?.number ?? 1)} ${pctText(w7?.percentage ?? null, {stale})}`);
-  if (ctxPct !== null && ctxPct !== undefined) parts.push(`ctx ${pctText(ctxPct)}`);
-  if (model) parts.push(model);
+export function renderGlmLine(windows, {user, host, cwd, model, ctxPct, now = Date.now()} = {}) {
+  let out = '';
   const dir = shortenPath(cwd);
-  if (dir) parts.push(dir);
-  return parts.join(' | ');
+  if (user && host && dir) {
+    out += `${GREEN}${user}@${host}${RESET}:${BLUE}${dir}${RESET}`;
+  } else if (dir) {
+    out += `${BLUE}${dir}${RESET}`;
+  }
+  if (model) out += ` ${DIM}[${model}]${RESET}`;
+  if (ctxPct !== null && ctxPct !== undefined) out += ` ${DIM}ctx:${Math.round(ctxPct)}%${RESET}`;
+  for (const w of windows ?? []) {
+    const label = limitLabel(w.unit, w.number);
+    const pct = Math.round(w.percentage);
+    out += ` ${colorFor(pct)}${label}:${pct}%${RESET}`;
+    if (pct >= 90) {
+      const at = formatResetAt(w.nextResetTimeMs, now);
+      if (at) out += `${DIM}(${at})${RESET}`;
+    }
+  }
+  return out || 'glm statusline';
 }
 
 /** 兜底基础行（非智谱且无原配置时），保证状态栏永不空白 */
-export function renderBasicLine({model, cwd} = {}) {
-  const parts = [];
-  if (model) parts.push(model);
-  const dir = shortenPath(cwd);
-  if (dir) parts.push(dir);
-  return parts.join(' | ') || 'glm statusline';
+export function renderBasicLine({user, host, cwd, model} = {}) {
+  return renderGlmLine(null, {user, host, cwd, model});
 }
 
 /** 读缓存：文件不存在/损坏返回 null；过期数据照常返回（由调用方标记 stale） */

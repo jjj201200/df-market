@@ -10,7 +10,6 @@ import {spawn} from 'node:child_process';
 
 import {buildEndpoints, fetchQuota, parseQuotaResponse} from './lib/core.mjs';
 import {
-  CACHE_TTL_MS,
   isGlmBackend,
   parseStatuslineInput,
   readCache,
@@ -58,12 +57,15 @@ function runCommand(command, inputText, timeoutMs) {
 }
 
 async function glmMode(input) {
-  const now = Date.now();
+  const host = os.hostname().replace(/\.local$/, ''); // 对齐 hostname -s 的短名行为
+  const who = {user: os.userInfo().username, host, ...input};
   const cache = readCache(CACHE_PATH, fs);
-  if (cache && now - cache.fetchedAt < CACHE_TTL_MS) {
-    console.log(renderGlmLine(cache.windows, {...input, now}));
+  if (cache) {
+    // 常态路径：纯本地渲染（零网络）。缓存新鲜度由 hooks/refresh-cache.js 维护
+    console.log(renderGlmLine(cache.windows, who));
     return;
   }
+  // 首次引导（缓存不存在）：拉一次建立缓存；失败则跳过限额段
   const token = process.env.ANTHROPIC_AUTH_TOKEN;
   try {
     if (!token) throw new Error('ANTHROPIC_AUTH_TOKEN not set');
@@ -71,10 +73,9 @@ async function glmMode(input) {
     const json = await fetchQuota(fetch, endpoints.urls, token, {timeoutMs: FETCH_TIMEOUT_MS});
     const parsed = parseQuotaResponse(json);
     writeCache(CACHE_PATH, {windows: parsed.windows, level: parsed.level, fetchedAt: Date.now()}, fs);
-    console.log(renderGlmLine(parsed.windows, {...input, now: Date.now()}));
+    console.log(renderGlmLine(parsed.windows, who));
   } catch {
-    // 拉新失败：有过期缓存则原值 + stale 标记，否则 ?%
-    console.log(renderGlmLine(cache ? cache.windows : null, {...input, stale: Boolean(cache), now: Date.now()}));
+    console.log(renderGlmLine(null, who));
   }
 }
 

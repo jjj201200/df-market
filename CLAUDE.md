@@ -220,7 +220,8 @@ command 通用约束：所有格式化在脚本内完成，模型只原样转述
 - **配置目录跟随 `CLAUDE_CONFIG_DIR`**（`resolveClaudeDir`，statusline-core.mjs）：zclaude 用独立配置目录时只改那套 `settings.json`，官方 `~/.claude` 绝不受影响，反之亦然。数据（备份/缓存/stub）集中在 `<配置目录>/glm/`。
 - **双模式**（每次刷新按 `ANTHROPIC_BASE_URL` 动态判定）：智谱后端渲染用量单行（5h/7d 百分比 + 着色 + ctx% + 模型 + 目录）；非智谱后端 spawn 原命令透传 stdin/stdout。任何失败都降级输出，状态栏永不空白。
 - **stub 动态发现**：settings 指向 `<配置目录>/glm/statusline.mjs`（stub），stub 每次刷新扫描 `CLAUDE_CONFIG_DIR` 与 `~/.claude` 两处 `plugins/cache/*/glm/<version>/` 选最新版转发——插件升级换版本目录后无需重新接管。改 stub 生成逻辑在 `scripts/install-statusline.mjs` 的 `STUB_SOURCE`。
-- **缓存**：`<配置目录>/glm/cache.json`，TTL 5 分钟；拉新失败沿用旧值加 `?` 标记。缓存只存解析后的窗口数据，不含 token。
+- **缓存与刷新**：`<配置目录>/glm/cache.json`。渲染路径零网络（纯读缓存）；`hooks/refresh-cache.js`（PostToolUse）在活跃会话中每 60s 校准一次（`REFRESH_INTERVAL_MS`），纯查询零 token 消耗，失败静默。缓存只存解析后的窗口数据，不含 token。
+- **渲染格式（强约束）**：完全对齐用户原 statusline-command.sh——`user@host:dir [model] ctx:NN% 5h:NN% 7d:NN%`，着色 ≥80 红 / 60-79 黄 / 其余 DIM，≥90% 追加 `(HH:MM)` 重置时刻；字段缺失即跳过该段。禁止自造分隔符/倒计时/emoji。
 - **测试**：`test/test-statusline.js`（临时目录 + HOME/CLAUDE_CONFIG_DIR 重定向端到端，不碰真实配置目录）。
 
 ## Plugin: skill-keeper

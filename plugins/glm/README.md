@@ -74,6 +74,13 @@ GLM Coding Plan 用量 · Pro 档
 
 实现细节：接管写入的是 `<配置目录>/glm/statusline.mjs`（stub），stub 每次刷新时在 `CLAUDE_CONFIG_DIR` 与 `~/.claude` 两处插件缓存中动态发现最新版入口——插件升级换版本目录后**无需重新接管**。多套 `CLAUDE_CONFIG_DIR` 配置各自独立，每套跑一次 `glm-statusline-on` 即可。
 
+### 数据刷新机制（本地渲染 + 活跃时校准）
+
+- **渲染路径零网络**：statusline 每次刷新纯读本地缓存（`<配置目录>/glm/cache.json`），瞬时渲染、永不卡顿
+- **PostToolUse hook 校准**：活跃会话中每次工具调用后检查缓存，距上次拉取超过 60s 才调一次 monitor 接口（纯查询，**零 token / 零积分消耗**）；闲时零请求
+- 数值始终来自服务端真值（无本地估算误差），新鲜度最多滞后 1 分钟；缓存首次建立前 statusline 会同步拉一次引导
+- 背景：智谱兼容端点的响应头/响应体均无配额字段（实测确认），官方 statusline 的 `rate_limits` 机制在智谱后端下拿不到数据，monitor 接口是目前唯一配额来源
+
 ## 数据来源
 
 `{ANTHROPIC_BASE_URL origin}/api/monitor/usage/quota/limit`（国内端点；`api.z.ai` 国际端点为 `/api/monitor/usage/quota`，脚本自动回退）。该接口为智谱**非正式公开接口**（Web 控制台同源），结构变化时脚本降级展示原始响应，不会崩溃。
