@@ -1,8 +1,11 @@
 // glm-statusline-on / -off / -status 的实现模块。
-// 通过 createInstaller({claudeDir}) 参数化路径，bin 薄壳传真实路径，测试传临时目录。
+// 通过 createInstaller({claudeDir}) 参数化路径：默认跟随 CLAUDE_CONFIG_DIR（zclaude
+// 场景的独立配置目录），未设置时回落官方 ~/.claude——只改当前场景的 settings.json，
+// 绝不触碰另一套配置。测试传临时目录。
 
 import fs from 'node:fs';
 import path from 'node:path';
+import {resolveClaudeDir} from './lib/statusline-core.mjs';
 
 /** stub 文件内容：动态发现最新版 glm 插件缓存并转发（插件升级换版本目录后无需重装） */
 const STUB_SOURCE = `#!/usr/bin/env node
@@ -11,7 +14,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-const cacheRoot = path.join(os.homedir(), '.claude', 'plugins', 'cache');
+const roots = [...new Set([process.env.CLAUDE_CONFIG_DIR, path.join(os.homedir(), '.claude')].filter(Boolean))];
 function cmp(a, b) {
   const pa = a.split('.').map(Number);
   const pb = b.split('.').map(Number);
@@ -23,8 +26,15 @@ function cmp(a, b) {
 }
 let entry = null;
 let bestVersion = null;
-try {
-  for (const market of fs.readdirSync(cacheRoot)) {
+for (const root of roots) {
+  const cacheRoot = path.join(root, 'plugins', 'cache');
+  let markets;
+  try {
+    markets = fs.readdirSync(cacheRoot);
+  } catch {
+    continue;
+  }
+  for (const market of markets) {
     const pluginDir = path.join(cacheRoot, market, 'glm');
     let versions;
     try {
@@ -40,7 +50,7 @@ try {
       }
     }
   }
-} catch {}
+}
 if (entry) {
   await import(entry);
 } else {
@@ -48,7 +58,7 @@ if (entry) {
 }
 `;
 
-export function createInstaller({claudeDir}) {
+export function createInstaller({claudeDir = resolveClaudeDir()} = {}) {
   const glmDir = path.join(claudeDir, 'glm');
   const settingsPath = path.join(claudeDir, 'settings.json');
   const stubPath = path.join(glmDir, 'statusline.mjs');

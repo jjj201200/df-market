@@ -12,6 +12,7 @@ import {
   CACHE_TTL_MS,
   isGlmBackend,
   parseStatuslineInput,
+  resolveClaudeDir,
   shortenPath,
   remainingShort,
   colorFor,
@@ -30,6 +31,12 @@ const tests = [];
 const test = (name, fn) => tests.push({name, fn});
 
 const stripAnsi = (s) => s.replace(/\x1b\[\d+m/g, '');
+
+// ---------- resolveClaudeDir ----------
+test('resolveClaudeDir：CLAUDE_CONFIG_DIR 优先，未设置回落 ~/.claude', () => {
+  assert.equal(resolveClaudeDir({CLAUDE_CONFIG_DIR: '/custom/cfg'}), '/custom/cfg');
+  assert.equal(resolveClaudeDir({}), path.join(os.homedir(), '.claude'));
+});
 
 // ---------- isGlmBackend ----------
 test('isGlmBackend 判定', () => {
@@ -227,6 +234,30 @@ test('stub 发现最新版插件缓存并转发', () => {
   assert.equal(r.status, 0, `stderr: ${r.stderr}`);
   assert.equal(r.stdout.trim(), 'FROM other-market@0.10.0');
   fs.rmSync(home, {recursive: true, force: true});
+  fs.rmSync(claudeDir, {recursive: true, force: true});
+});
+
+test('stub 双根发现：CLAUDE_CONFIG_DIR 下的更高版本优先于 ~/.claude', () => {
+  const {claudeDir, installer} = makeInstallerCtx();
+  fs.writeFileSync(path.join(claudeDir, 'settings.json'), JSON.stringify({}));
+  installer.on();
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'glm-stub-home-'));
+  const cfgDir = fs.mkdtempSync(path.join(os.tmpdir(), 'glm-stub-cfg-'));
+  const mk = (base, market, version) => {
+    const dir = path.join(base, 'plugins/cache', market, 'glm', version, 'scripts');
+    fs.mkdirSync(dir, {recursive: true});
+    fs.writeFileSync(path.join(dir, 'statusline.mjs'), `console.log('FROM ${market}@${version}');\n`);
+  };
+  mk(home, 'df-market', '0.9.0'); // 官方默认根下旧版本
+  mk(cfgDir, 'df-market', '0.10.0'); // CLAUDE_CONFIG_DIR 根下新版本
+  const r = spawnSync(process.execPath, [installer.paths.stubPath], {
+    encoding: 'utf8',
+    env: {PATH: process.env.PATH, HOME: home, CLAUDE_CONFIG_DIR: cfgDir},
+  });
+  assert.equal(r.status, 0, `stderr: ${r.stderr}`);
+  assert.equal(r.stdout.trim(), 'FROM df-market@0.10.0');
+  fs.rmSync(home, {recursive: true, force: true});
+  fs.rmSync(cfgDir, {recursive: true, force: true});
   fs.rmSync(claudeDir, {recursive: true, force: true});
 });
 

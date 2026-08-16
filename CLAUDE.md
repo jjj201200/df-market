@@ -198,6 +198,13 @@ export function generateRecommendations(input: Input, t: TFunction): Result[] {
 
 `plugins/glm/` 是 GLM Coding Plan 工具箱。插件名 `glm` 是命名空间——后续 GLM 相关功能都以 `/glm:<name>` 命令挂在本插件下。
 
+### 斜杠命令（`commands/`）
+
+- **`/glm:usage`** —— 查询用量面板（`scripts/usage.mjs`）
+- **`/glm:statusline-on` / `-status` / `-off`** —— 状态栏接管 / 查看 / 还原，command 是薄壳：执行 `bin/glm-statusline-*` 同名脚本并要求模型逐字转述输出
+
+command 通用约束：所有格式化在脚本内完成，模型只原样转述 stdout；frontmatter `allowed-tools: Bash(node:*)`；不得读取/传递 `ANTHROPIC_AUTH_TOKEN`。
+
 ### /glm:usage（`commands/usage.md` + `scripts/usage.mjs`）
 
 调智谱官方 monitor 接口，输出官方 `/usage` 风格的中文限额面板（5 小时窗口 + 7 天用量）。command 只做一件事：执行脚本并要求模型**逐字转述 stdout**——所有格式化都在脚本内完成，杜绝模型自由发挥。
@@ -208,12 +215,13 @@ export function generateRecommendations(input: Input, t: TFunction): Result[] {
 
 ### StatusBar 包装（`scripts/statusline.mjs` + `bin/glm-statusline-*`）
 
-官方 statusline 在智谱后端下拿不到 GLM 限额（stdin JSON 无 `rate_limits` 字段）。`glm-statusline-on` 备份 `settings.json` 原 `statusLine` 配置到 `~/.claude/glm/statusline-backup.json` 并写入接管命令；`glm-statusline-off` 完整还原（备份为 `null` 时删除该键）；重复 `on` 幂等。
+官方 statusline 在智谱后端下拿不到 GLM 限额（stdin JSON 无 `rate_limits` 字段）。`glm-statusline-on` 备份当前配置目录 `settings.json` 的原 `statusLine` 配置并写入接管命令；`glm-statusline-off` 完整还原（备份为 `null` 时删除该键）；重复 `on` 幂等。
 
+- **配置目录跟随 `CLAUDE_CONFIG_DIR`**（`resolveClaudeDir`，statusline-core.mjs）：zclaude 用独立配置目录时只改那套 `settings.json`，官方 `~/.claude` 绝不受影响，反之亦然。数据（备份/缓存/stub）集中在 `<配置目录>/glm/`。
 - **双模式**（每次刷新按 `ANTHROPIC_BASE_URL` 动态判定）：智谱后端渲染用量单行（5h/7d 百分比 + 着色 + ctx% + 模型 + 目录）；非智谱后端 spawn 原命令透传 stdin/stdout。任何失败都降级输出，状态栏永不空白。
-- **stub 动态发现**：settings 指向 `~/.claude/glm/statusline.mjs`（stub），stub 每次刷新扫描 `~/.claude/plugins/cache/*/glm/<version>/` 选最新版转发——插件升级换版本目录后无需重新接管。改 stub 生成逻辑在 `scripts/install-statusline.mjs` 的 `STUB_SOURCE`。
-- **缓存**：`~/.claude/glm/cache.json`，TTL 5 分钟；拉新失败沿用旧值加 `?` 标记。缓存只存解析后的窗口数据，不含 token。
-- **测试**：`test/test-statusline.js`（临时目录 + HOME 重定向端到端，不碰真实 `~/.claude`）。
+- **stub 动态发现**：settings 指向 `<配置目录>/glm/statusline.mjs`（stub），stub 每次刷新扫描 `CLAUDE_CONFIG_DIR` 与 `~/.claude` 两处 `plugins/cache/*/glm/<version>/` 选最新版转发——插件升级换版本目录后无需重新接管。改 stub 生成逻辑在 `scripts/install-statusline.mjs` 的 `STUB_SOURCE`。
+- **缓存**：`<配置目录>/glm/cache.json`，TTL 5 分钟；拉新失败沿用旧值加 `?` 标记。缓存只存解析后的窗口数据，不含 token。
+- **测试**：`test/test-statusline.js`（临时目录 + HOME/CLAUDE_CONFIG_DIR 重定向端到端，不碰真实配置目录）。
 
 ## Plugin: skill-keeper
 

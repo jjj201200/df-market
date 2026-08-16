@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 // 接管 Claude Code statusline：备份原配置 → 安装 glm 包装（智谱显示用量 / 非智谱透传）
-import os from 'node:os';
-import path from 'node:path';
+// 目标 settings.json 跟随 CLAUDE_CONFIG_DIR（zclaude 场景），未设置时为 ~/.claude
 import {createInstaller} from '../scripts/install-statusline.mjs';
 
-const installer = createInstaller({claudeDir: path.join(os.homedir(), '.claude')});
+const installer = createInstaller();
 const result = installer.on();
 console.log(`${result.success ? '✓' : '✗'} ${result.message}`);
 if (result.originalStatusLine !== undefined) {

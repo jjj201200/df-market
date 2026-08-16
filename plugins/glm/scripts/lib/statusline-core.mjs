@@ -1,7 +1,20 @@
-// glm 插件 statusline 核心逻辑：输入解析 / 单行渲染 / 缓存 / 后端判定。
+// glm 插件 statusline 核心逻辑：输入解析 / 单行渲染 / 缓存 / 后端判定 / 配置目录解析。
 // 与 core.mjs 同样坚持纯函数 + 依赖注入，供 scripts/statusline.mjs 与 test/ 复用。
 
+import os from 'node:os';
+import path from 'node:path';
+
 export const CACHE_TTL_MS = 5 * 60 * 1000;
+
+/**
+ * 解析当前 Claude Code 的配置目录：zclaude 场景通过 CLAUDE_CONFIG_DIR 使用独立
+ * 配置目录（settings.json / plugins 均在其中）；未设置时为官方默认 ~/.claude。
+ * glm 的所有落盘（备份 / 缓存 / stub / settings 改写）都跟随此目录，
+ * 确保只影响当前场景、绝不触碰另一套配置。
+ */
+export function resolveClaudeDir(env = process.env) {
+  return env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude');
+}
 
 /** 智谱后端判定：statusline 由 Claude Code spawn，继承其 env（含 ANTHROPIC_BASE_URL） */
 export function isGlmBackend(baseUrl) {

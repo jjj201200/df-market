@@ -128,12 +128,21 @@ export function formatDuration(ms) {
   if (!Number.isFinite(ms)) return '重置时间未知';
   if (ms <= 0) return '即将重置';
   const min = Math.floor(ms / 60000);
-  if (min < 60) return `${Math.max(1, min)} 分后重置`;
+  if (min < 60) return `${Math.max(1, min)} 分后`;
   const h = Math.floor(min / 60);
   const m = min % 60;
-  if (h < 24) return `${h} 小时 ${m} 分后重置`;
+  if (h < 24) return `${h} 小时 ${m} 分后`;
   const d = Math.floor(h / 24);
-  return `${d} 天 ${h % 24} 小时后重置`;
+  return `${d} 天 ${h % 24} 小时后`;
+}
+
+/** 重置时刻的本地日期时间：M月D日 HH:MM（跨年时带年份） */
+export function formatResetTime(ts, now = Date.now()) {
+  if (!Number.isFinite(ts)) return null;
+  const d = new Date(ts);
+  const pad = (n) => String(n).padStart(2, '0');
+  const year = d.getFullYear() !== new Date(now).getFullYear() ? `${d.getFullYear()}年` : '';
+  return `${year}${d.getMonth() + 1}月${d.getDate()}日 ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 export function formatNumber(n) {
@@ -161,7 +170,8 @@ export function renderPanel(parsed, {now = Date.now(), manageUrl} = {}) {
     lines.push(win.label);
     lines.push(`  ${renderBar(win.percentage)}  ${String(win.percentage).padStart(3)}%`);
     lines.push(`  已用  ${formatNumber(win.used)} / ${formatNumber(win.total)}`);
-    lines.push(`  重置  ${formatDuration(win.nextResetTimeMs - now)}`);
+    const resetAt = formatResetTime(win.nextResetTimeMs, now);
+    lines.push(`  重置  ${formatDuration(win.nextResetTimeMs - now)}${resetAt ? ` · ${resetAt}` : ''}`);
   }
   if (manageUrl) {
     lines.push('');

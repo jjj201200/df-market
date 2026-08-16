@@ -13,6 +13,7 @@ import {
   windowLabel,
   parseQuotaResponse,
   formatDuration,
+  formatResetTime,
   formatNumber,
   renderBar,
   renderPanel,
@@ -23,24 +24,35 @@ let failed = 0;
 const tests = [];
 const test = (name, fn) => tests.push({name, fn});
 
-// ---------- formatDuration ----------
+// ---------- formatDuration / formatResetTime ----------
 test('formatDuration 分钟档', () => {
-  assert.equal(formatDuration(5 * 60000), '5 分后重置');
-  assert.equal(formatDuration(30 * 1000), '1 分后重置'); // 不足 1 分向上取 1
+  assert.equal(formatDuration(5 * 60000), '5 分后');
+  assert.equal(formatDuration(30 * 1000), '1 分后'); // 不足 1 分向上取 1
 });
 
 test('formatDuration 小时档', () => {
-  assert.equal(formatDuration(((3 * 60 + 24) * 60) * 1000), '3 小时 24 分后重置');
+  assert.equal(formatDuration(((3 * 60 + 24) * 60) * 1000), '3 小时 24 分后');
 });
 
 test('formatDuration 天档', () => {
-  assert.equal(formatDuration((((5 * 24 + 4) * 60) * 60) * 1000), '5 天 4 小时后重置');
+  assert.equal(formatDuration((((5 * 24 + 4) * 60) * 60) * 1000), '5 天 4 小时后');
 });
 
 test('formatDuration 边界', () => {
   assert.equal(formatDuration(0), '即将重置');
   assert.equal(formatDuration(-1000), '即将重置');
   assert.equal(formatDuration(NaN), '重置时间未知');
+});
+
+test('formatResetTime 本地日期时间（时区无关锚定）', () => {
+  // 用本地时区构造 → 本地时区格式化，断言不依赖跑测试的机器时区
+  const ts = new Date(2026, 7, 16, 21, 30).getTime();
+  assert.equal(formatResetTime(ts, ts), '8月16日 21:30');
+  // 跨年带年份
+  const tsNextYear = new Date(2027, 0, 2, 3, 5).getTime();
+  const now = new Date(2026, 11, 30).getTime();
+  assert.equal(formatResetTime(tsNextYear, now), '2027年1月2日 03:05');
+  assert.equal(formatResetTime(NaN), null);
 });
 
 // ---------- formatNumber / displayWidth ----------
@@ -121,11 +133,12 @@ test('renderPanel 快照（学官方 /usage：无框键值列布局）', () => {
   assert.equal(lines[2], '5 小时窗口用量');
   assert.equal(lines[3], `  ${renderBar(57)}   57%`);
   assert.equal(lines[4], '  已用  6,866 / 12,000');
-  // 5h 重置点 1786858288851 - now 1786848000000 = 10288851ms ≈ 171 分 = 2 小时 51 分
-  assert.equal(lines[5], '  重置  2 小时 51 分后重置');
+  // 5h 重置点 1786858288851 - now 1786848000000 = 10288851ms ≈ 171 分 = 2 小时 51 分；日期时间由 formatResetTime 生成（独立测试锚定）
+  assert.equal(lines[5], `  重置  2 小时 51 分后 · ${formatResetTime(1786858288851, now)}`);
+  assert.ok(/\d+月\d+日 \d{2}:\d{2}$/.test(lines[5]), '重置行含具体日期时间');
   assert.equal(lines[7], '7 天用量');
   // 7d 重置点 1787308186998 - now 1786848000000 = 460186998ms ≈ 127.8h = 5 天 7 小时
-  assert.equal(lines[10], '  重置  5 天 7 小时后重置');
+  assert.equal(lines[10], `  重置  5 天 7 小时后 · ${formatResetTime(1787308186998, now)}`);
   assert.equal(lines[12], '管理套餐: https://open.bigmodel.cn/coding-plan');
 });
 

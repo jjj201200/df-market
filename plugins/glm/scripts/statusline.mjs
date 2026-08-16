@@ -16,10 +16,11 @@ import {
   readCache,
   renderBasicLine,
   renderGlmLine,
+  resolveClaudeDir,
   writeCache,
 } from './lib/statusline-core.mjs';
 
-const GLM_DIR = path.join(os.homedir(), '.claude', 'glm');
+const GLM_DIR = path.join(resolveClaudeDir(), 'glm');
 const CACHE_PATH = path.join(GLM_DIR, 'cache.json');
 const BACKUP_PATH = path.join(GLM_DIR, 'statusline-backup.json');
 const FETCH_TIMEOUT_MS = 2500; // statusline 同步渲染，预算紧

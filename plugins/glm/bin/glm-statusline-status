@@ -1,10 +1,8 @@
 #!/usr/bin/env node
-// 查看 glm statusline 接管状态
-import os from 'node:os';
-import path from 'node:path';
+// 查看 glm statusline 接管状态（与 on 操作同一配置目录）
 import {createInstaller} from '../scripts/install-statusline.mjs';
 
-const installer = createInstaller({claudeDir: path.join(os.homedir(), '.claude')});
+const installer = createInstaller();
 const s = installer.status();
 console.log(`接管状态: ${s.integrated ? '已接管' : '未接管'}`);
 console.log(`当前 statusLine: ${s.currentCommand ?? '（未配置）'}`);
