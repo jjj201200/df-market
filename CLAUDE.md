@@ -198,14 +198,16 @@ export function generateRecommendations(input: Input, t: TFunction): Result[] {
 
 `plugins/glm/` 是 GLM Coding Plan 工具箱。插件名 `glm` 是命名空间——后续 GLM 相关功能都以 `/glm:<name>` 命令挂在本插件下。
 
-### 斜杠命令（`commands/`）
+### 斜杠命令（`skills/`，官方 skill 形态）
 
 - **`/glm:usage`** —— 查询用量面板（`scripts/usage.mjs`）
-- **`/glm:statusline-on` / `-status` / `-off`** —— 状态栏接管 / 查看 / 还原，command 是薄壳：执行 `bin/glm-statusline-*` 同名脚本并要求模型逐字转述输出
+- **`/glm:statusline-on` / `-status` / `-off`** —— 状态栏接管 / 查看 / 还原，skill 是薄壳：执行 `bin/glm-statusline-*` 同名脚本并要求模型逐字转述输出
 
-command 通用约束：所有格式化在脚本内完成，模型只原样转述 stdout；frontmatter `allowed-tools: Bash(node:*)`；不得读取/传递 `ANTHROPIC_AUTH_TOKEN`。
+skill 通用约束：所有格式化在脚本内完成，模型只原样转述 stdout；frontmatter `allowed-tools: Bash(node:*)` + `disable-model-invocation: true`（仅显式斜杠/明确请求触发）；不得读取/传递 `ANTHROPIC_AUTH_TOKEN`。
 
-### /glm:usage（`commands/usage.md` + `scripts/usage.mjs`）
+**为什么用 skill 而非 command**：`${CLAUDE_PLUGIN_ROOT}` 变量替换**仅在插件 skill 中生效**（官方文档明确），command 正文不替换、模型 Bash 环境也无此变量（v0.3.0–0.5.0 的 command 形态因此在其他项目报 `Cannot find module '/scripts/usage.mjs'`，0.5.1 迁移为 skill 修复）。脚本调用一律写 `node "${CLAUDE_PLUGIN_ROOT}/..."`。
+
+### /glm:usage（`skills/usage/SKILL.md` + `scripts/usage.mjs`）
 
 调智谱官方 monitor 接口，输出官方 `/usage` 风格的中文限额面板（5 小时窗口 + 7 天用量）。command 只做一件事：执行脚本并要求模型**逐字转述 stdout**——所有格式化都在脚本内完成，杜绝模型自由发挥。
 

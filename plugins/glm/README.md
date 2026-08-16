@@ -21,6 +21,8 @@ export CLAUDE_CONFIG_DIR=<你的独立配置目录>   # 可选：zclaude 与官�
 
 完成。`/glm:usage` 查用量，状态栏显示 5h/7d 限额。全程无需离开对话、无需手工编辑任何文件。
 
+> 斜杠命令以 skill 形态实现（官方推荐）：`${CLAUDE_PLUGIN_ROOT}` 变量替换仅在插件 skill 中生效，command 正文不替换——v0.5.1 起全部命令迁移为 skill。终端 CLI（`glm-usage` / `glm-statusline-*`）同样可用（插件启用时进 Bash PATH）。
+
 ## /glm:usage —— 用量查询
 
 调智谱官方 monitor 接口，输出官方 `/usage` 风格的中文限额面板（5 小时窗口 + 7 天用量）：

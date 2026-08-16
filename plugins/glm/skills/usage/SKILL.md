@@ -1,6 +1,8 @@
 ---
+name: usage
 description: 查询 GLM Coding Plan 用量（5 小时窗口 + 7 天限额面板）
 allowed-tools: Bash(node:*)
+disable-model-invocation: true
 ---
 
 # GLM 用量查询
@@ -8,7 +10,7 @@ allowed-tools: Bash(node:*)
 执行以下命令（恰好一次，无论成败）：
 
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/scripts/usage.mjs"
+node "${CLAUDE_PLUGIN_ROOT}/scripts/usage.mjs"
 ```
 
 ## 输出要求（严格遵守）

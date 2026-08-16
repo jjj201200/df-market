@@ -1,14 +1,16 @@
 ---
-description: 查看状态栏接管状态：是否已接管、当前命令、备份内容
+name: statusline-off
+description: 还原状态栏：撤销 glm 接管，恢复原 statusLine 配置
 allowed-tools: Bash(node:*)
+disable-model-invocation: true
 ---
 
-# 查看 StatusBar 接管状态
+# 还原 StatusBar
 
 执行以下命令（恰好一次）：
 
 ```bash
-node "$CLAUDE_PLUGIN_ROOT/bin/glm-statusline-status"
+node "${CLAUDE_PLUGIN_ROOT}/bin/glm-statusline-off"
 ```
 
 ## 输出要求（严格遵守）

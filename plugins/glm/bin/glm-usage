@@ -1,0 +1,5 @@
+#!/usr/bin/env node
+// /glm:usage 的 CLI 入口（插件启用时进 PATH）。
+// command 不依赖 $CLAUDE_PLUGIN_ROOT（该变量仅在 hooks 环境注入，
+// 模型 Bash 调用中为空）；bin 与 scripts 同插件目录，相对导入恒成立。
+await import('../scripts/usage.mjs');
