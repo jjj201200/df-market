@@ -1,8 +1,12 @@
 # glm 插件设计：/glm:usage 用量查询 + StatusBar 用量显示
 
 - 日期：2026-08-16
-- 状态：待审阅
+- 状态：已实现（M1 → commit `4dafc4d`，M2 → commit `b52ed07`，版本 0.2.0）
 - 里程碑：M1 `/glm:usage` 命令（先行）→ M2 StatusBar 包装脚本
+
+> 实现与原设计的偏差（2026-08-16 记录）：
+> 1. M2 statusline 行额外加了 `ctx N%` 段（session 上下文水位，来自 stdin `context_window.used_percentage`）——用户原 statusline 显示该值，接管后不退步。
+> 2. settings.json 不直接引用插件缓存路径（升级换版本目录会失效），改为固定 stub `~/.claude/glm/statusline.mjs` 动态发现最新版缓存——接管一次，升级免重装。
 
 ## 背景与目标
 
