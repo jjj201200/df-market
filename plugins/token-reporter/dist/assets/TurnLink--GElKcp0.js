@@ -1,0 +1,1 @@
+import{k as l,j as i,s as r}from"./index-C1ZpHbAQ.js";const a="_link_16oca_1",k={link:a};function m({turnId:s,prefix:t="#",children:n}){const e=l(c=>c.setSelected),o=()=>{r(s),e(s)};return i.jsx("button",{className:k.link,onClick:o,type:"button",children:n??`${t}${s}`})}export{m as T};
