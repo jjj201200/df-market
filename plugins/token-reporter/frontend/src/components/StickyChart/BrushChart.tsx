@@ -2,7 +2,7 @@ import {useRef, useEffect, useCallback} from 'react';
 import {useChartStore} from '../../stores/chartStore';
 import {useSessionStore} from '../../stores/sessionStore';
 import {DPR, getSegs, setupCanvas} from '../../utils/canvas';
-import {scrollToTurnIndex} from '../../utils/scroll';
+import {scrollToChartTurn} from '../../utils/scroll';
 import {lockBrushDriving, deferScrollToTurn} from '../../hooks/useScrollSync';
 import {pixelToBrushPct, brushToFirstIdx, brushToLastIdx} from '../../utils/brushCoords';
 import styles from './BrushChart.module.scss';
@@ -23,7 +23,7 @@ export default function BrushChart() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const lastWheelTime = useRef<number>(0);
-  const turns = useSessionStore((s) => s.turns);
+  const turns = useSessionStore((s) => s.chartTurns);
   const brushL = useChartStore((s) => s.brushL);
   const brushR = useChartStore((s) => s.brushR);
   const dims = useChartStore((s) => s.dims);
@@ -211,7 +211,7 @@ export default function BrushChart() {
       let newL = ratio - span / 2;
       newL = Math.max(0, Math.min(newL, 1 - span));
       setBrush(newL, newL + span);
-      scrollToTurnIndex(turns, brushToFirstIdx(newL, N));
+      scrollToChartTurn(brushToFirstIdx(newL, N));
     },
     [turns, brushL, brushR, setBrush],
   );
@@ -289,9 +289,9 @@ export default function BrushChart() {
         deferScrollToTurn(() => {
           const {brushL: bL, brushR: bR, viewLoPct: vL, viewHiPct: vR} = useChartStore.getState();
           if (vL < bL) {
-            scrollToTurnIndex(turns, brushToFirstIdx(bL, N));
+            scrollToChartTurn(brushToFirstIdx(bL, N));
           } else if (vR > bR) {
-            scrollToTurnIndex(turns, brushToLastIdx(bR, N), 'bottom');
+            scrollToChartTurn(brushToLastIdx(bR, N), 'bottom');
           }
         });
       }

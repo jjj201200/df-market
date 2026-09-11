@@ -13,6 +13,7 @@ import SessionSelector from './SessionSelector';
 import MainChart from './MainChart';
 import BrushChart from './BrushChart';
 import BrushOverlay from './BrushOverlay';
+import RangeBar from './RangeBar';
 import {brushToFirstIdx, brushToLastIdx} from '../../utils/brushCoords';
 // import ChartLegend from './ChartLegend';
 import LimitsDisplay from './LimitsDisplay';
@@ -22,7 +23,9 @@ import {IconExternalLink} from '@tabler/icons-react';
 export default function StickyChart() {
   const {t, locale} = useI18n();
   const setLocale = useI18nStore((s) => s.setLocale);
-  const turns = useSessionStore((s) => s.turns);
+  const turns = useSessionStore((s) => s.chartTurns);
+  const chartWindow = useSessionStore((s) => s.chartWindow);
+  const totalTurns = useSessionStore((s) => s.turns.length);
   const sessionLoading = useSessionStore((s) => s.sessionLoading);
   const sessionsLoading = useSessionStore((s) => s.sessionsLoading);
   const isLoading = sessionsLoading || sessionLoading;
@@ -115,6 +118,11 @@ export default function StickyChart() {
         <>
           <div className={styles.chartHeader}>
             <span className={styles.chartTitleText}>{t('chart.tokenUsage')}</span>
+            {chartWindow && turns.length > 0 && (
+              <span className={styles.rangeLabel}>
+                {t('chart.windowed', {first: turns[0]!.id, last: turns[turns.length - 1]!.id, total: totalTurns})}
+              </span>
+            )}
             {rangeLabel && <span className={styles.rangeLabel}>{rangeLabel}</span>}
           </div>
 
@@ -127,6 +135,8 @@ export default function StickyChart() {
               <BrushChart />
               <BrushOverlay />
             </div>
+
+            {chartWindow && <RangeBar />}
           </div>
 
           {/* <ChartLegend /> */}

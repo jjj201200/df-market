@@ -3,3 +3,46 @@
 .convScroll {
   padding: 12px 16px;
 }
+
+// Virtualized list scaffolding: .spacer holds the total height, .vrow rows are
+// absolutely positioned inside it. Row spacing (12px) lives here instead of the
+// row components' own margin-bottom — offsetHeight ignores margins, so the
+// virtualizer would under-measure rows that still set them.
+.spacer {
+  position: relative;
+  width: 100%;
+}
+
+.vrow {
+  padding-bottom: 12px;
+}
+
+// Parse-progress loading state (large sessions can take 20s+ to parse)
+.loadProgress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 25vh 16px 0;
+}
+
+.loadProgressText {
+  font-size: 12px;
+  color: var(--fg-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.loadProgressBar {
+  width: min(320px, 60%);
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border-muted);
+  overflow: hidden;
+}
+
+.loadProgressFill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--accent);
+  transition: width 0.25s ease;
+}

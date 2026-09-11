@@ -2,9 +2,10 @@
 @use '../../styles/mixins' as *;
 
 // --- Turn wrapper ---
+// Row spacing is set by .vrow in ConversationList.module.scss (virtualized
+// absolute positioning ignores margins, so rows must not set their own).
 .turnWrap {
   position: relative;
-  margin-bottom: 12px;
 
   .highlightRing {
     position: absolute;

@@ -10,7 +10,6 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     gap: 8,
     padding: '6px 12px',
-    marginBottom: 10,
     background: 'var(--purple-3)',
     border: '1px solid var(--purple-a6)',
     borderLeft: '3px solid var(--purple-9)',

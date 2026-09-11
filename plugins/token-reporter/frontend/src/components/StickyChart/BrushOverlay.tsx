@@ -1,7 +1,7 @@
 import {useRef, useCallback, useMemo, useEffect, useState} from 'react';
 import {useChartStore} from '../../stores/chartStore';
 import {useSessionStore} from '../../stores/sessionStore';
-import {scrollToTurnIndex} from '../../utils/scroll';
+import {scrollToChartTurn} from '../../utils/scroll';
 import {lockBrushDriving, deferScrollToTurn} from '../../hooks/useScrollSync';
 import {brushToPixelPct, pixelToBrushPct, brushToFirstIdx, brushToLastIdx} from '../../utils/brushCoords';
 import styles from './BrushOverlay.module.scss';
@@ -18,7 +18,7 @@ export default function BrushOverlay() {
   const viewHiIdx = useChartStore((s) => s.viewHiIdx);
   const viewLoPct = useChartStore((s) => s.viewLoPct);
   const viewHiPct = useChartStore((s) => s.viewHiPct);
-  const turns = useSessionStore((s) => s.turns);
+  const turns = useSessionStore((s) => s.chartTurns);
 
   const resizeTick = useChartStore((s) => s.resizeTick);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -42,7 +42,7 @@ export default function BrushOverlay() {
       window.removeEventListener('resize', measure);
       clearTimeout(timer);
     };
-  }, [resizeTick]);
+  }, [resizeTick, turns.length]);
 
   // Zoom towards mouse position (like map zoom, throttled)
   // When already at min span, pans towards mouse instead
@@ -119,9 +119,9 @@ export default function BrushOverlay() {
         deferScrollToTurn(() => {
           const {brushL: bL, brushR: bR, viewLoPct: vL, viewHiPct: vR} = useChartStore.getState();
           if (vL < bL) {
-            scrollToTurnIndex(turns, brushToFirstIdx(bL, N));
+            scrollToChartTurn(brushToFirstIdx(bL, N));
           } else if (vR > bR) {
-            scrollToTurnIndex(turns, brushToLastIdx(bR, N), 'bottom');
+            scrollToChartTurn(brushToLastIdx(bR, N), 'bottom');
           }
         });
       }
@@ -141,7 +141,13 @@ export default function BrushOverlay() {
       const startR = brushR;
       const N = turns.length;
 
+      // Measure LIVE: the overlayWidth state only refreshes on mount/resize/
+      // resizeTick — after a slow first load it can still hold 0 (measured
+      // before the canvas existed), and the 400px fallback then makes the
+      // drag ~3x too sensitive on a ~1200px bar.
       const getOverlayWidth = (): number => {
+        const live = overlayRef.current?.clientWidth ?? 0;
+        if (live > 0) return live;
         return overlayWidth > 0 ? overlayWidth : 400;
       };
 
@@ -170,9 +176,9 @@ export default function BrushOverlay() {
         deferScrollToTurn(() => {
           const {brushL: bL, brushR: bR, viewLoPct: vL, viewHiPct: vR} = useChartStore.getState();
           if (vR > bR) {
-            scrollToTurnIndex(turns, brushToLastIdx(bR, N), 'bottom');
+            scrollToChartTurn(brushToLastIdx(bR, N), 'bottom');
           } else if (vL < bL) {
-            scrollToTurnIndex(turns, brushToFirstIdx(bL, N));
+            scrollToChartTurn(brushToFirstIdx(bL, N));
           }
         });
       };
@@ -181,9 +187,9 @@ export default function BrushOverlay() {
         if (styles.dragging) overlayRef.current?.classList.remove(styles.dragging);
         const {brushL: bL, brushR: bR, viewLoPct: vL, viewHiPct: vR} = useChartStore.getState();
         if (vR > bR) {
-          scrollToTurnIndex(turns, brushToLastIdx(bR, N), 'bottom');
+          scrollToChartTurn(brushToLastIdx(bR, N), 'bottom');
         } else if (vL < bL) {
-          scrollToTurnIndex(turns, brushToFirstIdx(bL, N));
+          scrollToChartTurn(brushToFirstIdx(bL, N));
         }
         window.removeEventListener('mousemove', onMove);
         window.removeEventListener('mouseup', onUp);
@@ -224,9 +230,12 @@ export default function BrushOverlay() {
       style={{width: overlayWidth > 0 ? overlayWidth : '100%'}}
       onWheel={handleWheel}
     >
-      {/* Viewport indicator (visible turns) */}
+      {/* Viewport indicator (visible turns) — TRUE width, no percent floor
+          (a 0.5% floor exceeds a narrow viewport's real span and would paint
+          it past the brush selection's boundary); CSS min-width keeps it
+          legible, the label floats centered above regardless */}
       {showViewport && (
-        <div className={styles.viewportIndicator} style={{left: `${viewLPct}%`, width: `${Math.max(viewWidth, 0.5)}%`}}>
+        <div className={styles.viewportIndicator} style={{left: `${viewLPct}%`, width: `${viewWidth}%`}}>
           {viewLabel && <span className={styles.viewportLabel}>{viewLabel}</span>}
         </div>
       )}

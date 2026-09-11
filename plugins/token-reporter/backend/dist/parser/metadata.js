@@ -1,13 +1,40 @@
 import fs from 'fs';
 import path from 'path';
+/** Block size read from each end of the file when extracting meta (64KB) */
+const BLOCK = 64 * 1024;
+function readBlock(fd, size, fromEnd) {
+    const len = Math.min(BLOCK, size);
+    const buf = Buffer.alloc(len);
+    if (fromEnd) {
+        fs.readSync(fd, buf, 0, len, size - len);
+    }
+    else {
+        fs.readSync(fd, buf, 0, len, 0);
+    }
+    return buf.toString('utf8');
+}
+/**
+ * Extract session meta (slug / gitBranch / customTitle) by reading only the
+ * HEAD and TAIL of the file — O(1) regardless of file size. The old
+ * implementation read the whole file and JSON.parsed every line, costing
+ * seconds per multi-hundred-MB session.
+ *
+ * - slug/gitBranch come from the first record, which sits at the head.
+ * - custom-title records are appended by Claude Code when the user renames a
+ *   session, so the latest one lives near the tail; the tail block is scanned
+ *   backwards and the newest match wins.
+ */
 export function readFirstLineMeta(filePath) {
+    let fd;
     try {
-        const content = fs.readFileSync(filePath, 'utf8');
-        const lines = content.split('\n');
+        fd = fs.openSync(filePath, 'r');
+        const size = fs.fstatSync(fd).size;
         let slug = '';
         let gitBranch = '';
         let customTitle = '';
-        for (const line of lines) {
+        // Head block: scan forward until all three fields are found
+        const head = readBlock(fd, size, false);
+        for (const line of head.split('\n')) {
             if (!line.trim())
                 continue;
             try {
@@ -21,11 +48,39 @@ export function readFirstLineMeta(filePath) {
                 }
             }
             catch { }
+            if (slug && gitBranch && customTitle)
+                break;
+        }
+        // Tail block: newest custom-title wins — scan backwards
+        if (!customTitle && size > BLOCK) {
+            const tail = readBlock(fd, size, true);
+            const lines = tail.split('\n');
+            for (let i = lines.length - 1; i >= 0; i--) {
+                const line = lines[i];
+                if (!line.trim())
+                    continue;
+                try {
+                    const obj = JSON.parse(line);
+                    if (obj.type === 'custom-title' && obj.customTitle) {
+                        customTitle = String(obj.customTitle);
+                        break;
+                    }
+                }
+                catch { }
+            }
         }
         return { slug, gitBranch, customTitle };
     }
     catch {
         return {};
+    }
+    finally {
+        if (fd !== undefined) {
+            try {
+                fs.closeSync(fd);
+            }
+            catch { }
+        }
     }
 }
 export function loadSubagentMeta(sessionDir, agentId) {
@@ -35,6 +90,8 @@ export function loadSubagentMeta(sessionDir, agentId) {
             return JSON.parse(fs.readFileSync(metaPath, 'utf8'));
         }
     }
-    catch { }
+    catch {
+        return null;
+    }
     return null;
 }

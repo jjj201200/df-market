@@ -50,9 +50,11 @@ export const en = {
   chart: {
     tokenUsage: 'Token Usage',
     requestRange: 'Request #{first} \u2013 #{last}',
+    windowed: '#{first}–#{last} of {total} turns',
   },
 
   session: {
+    loadingProgress: 'Parsing session… {pct}%',
     copyId: 'Copy ID',
     copySessionId: 'Copy session ID',
     copiedId: 'Copied!',

@@ -10,6 +10,7 @@ import { spawn, execSync } from "child_process";
 import fs from "fs";
 import path from "path";
 import os from "os";
+import { isTokenReporterProcess } from "../plugins/token-reporter/bin/lib/proc.js";
 
 const DEFAULT_DEV_PORT = 13737;
 const MAX_PORT_ATTEMPTS = 10;
@@ -81,20 +82,13 @@ function getProcessOnPort(port) {
   }
 }
 
-function isTokenReporterProcess(pid) {
-  try {
-    const cmdline = execSync(`ps -p ${pid} -o comm= 2>/dev/null`, { encoding: 'utf8' });
-    return cmdline.includes('node') || cmdline.includes('token');
-  } catch {
-    return false;
-  }
-}
-
 function findTokenReporterProcess() {
   try {
-    // Search for node processes running token-reporter's server.js
+    // Search for node processes running token-reporter's server.js, EXCLUDING
+    // the production instance (marketplace cache path) — `stop` must never
+    // target the user's production server just because it sorts first in ps.
     const output = execSync(
-      `ps aux 2>/dev/null | grep -E 'node.*token-reporter.*server\\.js' | grep -v grep || true`,
+      `ps aux 2>/dev/null | grep -E 'node.*token-reporter.*server\\.js' | grep -v grep | grep -v '\\.claude/plugins' || true`,
       { encoding: 'utf8' }
     );
     const lines = output.trim().split('\n').filter(line => line.trim());
@@ -284,9 +278,10 @@ function killProcess(pid, label) {
 function stop() {
   let apiPid = null;
 
-  // Find API server process
-  apiPid = findTokenReporterProcess();
-  if (!apiPid) apiPid = getPid();
+  // Find API server process. PID file first — it is authoritative for THIS
+  // dev instance; the process search is only a fallback for a lost PID file.
+  apiPid = getPid();
+  if (!apiPid) apiPid = findTokenReporterProcess();
   if (!apiPid) {
     const config = readJSON(CONFIG_PATH, {});
     const port = config.apiPort || DEFAULT_DEV_PORT + 1;

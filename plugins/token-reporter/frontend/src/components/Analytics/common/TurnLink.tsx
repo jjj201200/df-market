@@ -1,6 +1,5 @@
-import {useSessionStore} from '../../../stores/sessionStore';
 import {useChartStore} from '../../../stores/chartStore';
-import {scrollToTurnIndex} from '../../../utils/scroll';
+import {scrollToTurnById} from '../../../utils/scroll';
 import s from './TurnLink.module.scss';
 
 interface TurnLinkProps {
@@ -10,15 +9,11 @@ interface TurnLinkProps {
 }
 
 export default function TurnLink({turnId, prefix = '#', children}: TurnLinkProps) {
-  const turns = useSessionStore((st) => st.turns);
   const setSelected = useChartStore((st) => st.setSelected);
 
   const handleClick = () => {
-    const idx = turns.findIndex((t) => t.id === turnId);
-    if (idx >= 0) {
-      scrollToTurnIndex(turns, idx, 'top');
-      setSelected(turnId);
-    }
+    scrollToTurnById(turnId);
+    setSelected(turnId);
   };
 
   return (

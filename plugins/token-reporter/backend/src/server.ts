@@ -4,6 +4,7 @@ import path from 'path';
 import os from 'os';
 import { fileURLToPath } from 'url';
 import { getComposition } from './composition-service.js';
+import type {ParseProgress} from './parser/core.js';
 import {
   loadAuditConfig,
   writeAuditConfig,
@@ -268,13 +269,21 @@ async function handleRequest(req: http.IncomingMessage, res: http.ServerResponse
 
   const sessionMatch = url.pathname.match(/^\/api\/sessions\/([^/]+)$/);
   if (sessionMatch) {
-    const meta = listSessions().find((s: { sessionId: string }) => s.sessionId === sessionMatch[1]);
+    const sessionId = sessionMatch[1]!;
+    const meta = listSessions().find((s: { sessionId: string }) => s.sessionId === sessionId);
     if (!meta) {
       res.writeHead(404).end('session not found');
       return;
     }
     try {
-      const data = await parseSession(meta.filePath);
+      // Parse progress is PUSHED over the /events SSE channel — the parse
+      // loop awaits readline between lines, so broadcasts interleave fine.
+      // No polling endpoint: polling raced the response transfer and 404'd
+      // once the parse entry was cleaned while the body was still in flight.
+      const data = await parseSession(meta.filePath, (p: ParseProgress) => {
+        broadcast({type: 'parse-progress', sessionId, bytes: p.bytes, total: p.total, done: false});
+      });
+      broadcast({type: 'parse-progress', sessionId, bytes: 1, total: 1, done: true});
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(data));
     } catch (e: unknown) {

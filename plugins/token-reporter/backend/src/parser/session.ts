@@ -3,6 +3,7 @@ import os from 'os';
 import path from 'path';
 import type { SessionInfo } from './types.js';
 import { readFirstLineMeta } from './metadata.js';
+import type { FirstLineMeta } from './metadata.js';
 
 export function findJSONLPath(sessionId: string): string | null {
   const projectsDir = path.join(os.homedir(), '.claude', 'projects');
@@ -25,6 +26,25 @@ export function findJSONLPath(sessionId: string): string | null {
   return null;
 }
 
+/**
+ * mtime cache for per-file meta extraction. listSessions runs on every
+ * /api/sessions call — including the SSE-triggered quiet refresh after each
+ * tool call — so an unchanged file must not be re-parsed (its positional
+ * head/tail read is cheap, but 80 files still add up; more importantly this
+ * keeps behavior O(changed files), not O(all files)).
+ */
+const metaCache = new Map<string, {mtimeMs: number; size: number; meta: FirstLineMeta}>();
+
+function cachedFirstLineMeta(fp: string, stat: fs.Stats) {
+  const hit = metaCache.get(fp);
+  if (hit && hit.mtimeMs === stat.mtimeMs && hit.size === stat.size) {
+    return hit.meta;
+  }
+  const meta = readFirstLineMeta(fp);
+  metaCache.set(fp, {mtimeMs: stat.mtimeMs, size: stat.size, meta});
+  return meta;
+}
+
 export function listSessions(): SessionInfo[] {
   const projectsDir = path.join(os.homedir(), '.claude', 'projects');
   if (!fs.existsSync(projectsDir)) return [];
@@ -45,7 +65,7 @@ export function listSessions(): SessionInfo[] {
       } else if (f.endsWith('.jsonl')) {
         const sessionId = f.replace('.jsonl', '');
         if (!sessions.has(sessionId)) {
-          const meta = readFirstLineMeta(fp);
+          const meta = cachedFirstLineMeta(fp, stat);
           sessions.set(sessionId, {
             sessionId,
             slug: meta.slug || sessionId,

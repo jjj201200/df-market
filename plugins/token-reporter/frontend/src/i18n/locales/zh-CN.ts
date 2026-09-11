@@ -51,10 +51,12 @@ export const zhCN: Translation = {
 
   chart: {
     tokenUsage: 'Token 用量',
+    windowed: '#{first}–#{last} / 共 {total} 轮',
     requestRange: 'Request #{first} \u2013 #{last}',
   },
 
   session: {
+    loadingProgress: '正在解析会话… {pct}%',
     copyId: '复制 ID',
     copySessionId: '复制会话 ID',
     copiedId: '已复制!',

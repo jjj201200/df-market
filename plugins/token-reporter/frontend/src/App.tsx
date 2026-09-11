@@ -5,8 +5,9 @@ import AnalyticsDrawer from './components/Analytics/AnalyticsDrawer';
 import {useSessionStore} from './stores/sessionStore';
 import {useChartStore} from './stores/chartStore';
 import {useAnalyticsStore, getInitialSplitWidth, persistSplitWidth} from './stores/analyticsStore';
+import {scrollToTurnById} from './utils/scroll';
 import {useSSE} from './hooks/useSSE';
-import {useScrollSync, getScrollContainer} from './hooks/useScrollSync';
+import {useScrollSync} from './hooks/useScrollSync';
 import s from './App.module.scss';
 
 const MIN_PANEL_WIDTH = 700;
@@ -51,23 +52,15 @@ export default function App() {
   useLayoutEffect(() => {
     if (prevSplitView.current !== splitView) {
       const {viewLoIdx} = useChartStore.getState();
-      const turns = useSessionStore.getState().turns;
+      const {chartTurns} = useSessionStore.getState();
       prevSplitView.current = splitView;
 
-      // After layout, scroll to the saved turn
+      // After layout, scroll to the saved turn (virtualized: via measured
+      // positions, not DOM anchors — the row may not be mounted)
       requestAnimationFrame(() => {
-        if (viewLoIdx >= 0 && turns.length > 0) {
-          const turn = turns[viewLoIdx];
-          if (turn) {
-            const el = document.getElementById('turn-' + turn.id);
-            if (el) {
-              const container = getScrollContainer();
-              const stickyEl = document.getElementById('stickyChart');
-              const stickyH = stickyEl?.offsetHeight || 0;
-              const elTop = el.offsetTop;
-              container.scrollTop = elTop - stickyH;
-            }
-          }
+        if (viewLoIdx >= 0 && chartTurns.length > 0) {
+          const turn = chartTurns[viewLoIdx];
+          if (turn) scrollToTurnById(turn.id);
         }
         triggerResize();
       });

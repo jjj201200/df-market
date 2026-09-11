@@ -13,7 +13,31 @@ import { toolNameToCls, parseMcpToolName, buildInputArgs, buildParamsSummary } f
 import { findParentUser } from './parent.js';
 import { collectSubagentStats } from './subagent.js';
 
-export async function parseSession(filePath: string): Promise<SessionData | null> {
+export interface ParseProgress {
+  /** bytes consumed so far */
+  bytes: number;
+  /** total file size in bytes */
+  total: number;
+}
+
+/**
+ * Parse a session JSONL file.
+ * onProgress fires during the streaming line-read phase (roughly the whole
+ * parse for large files), throttled to ~2% steps; heavy single lines may
+ * delay it slightly. The post-read assembly phase is synchronous and emits
+ * no progress.
+ */
+export async function parseSession(
+  filePath: string,
+  onProgress?: (p: ParseProgress) => void,
+): Promise<SessionData | null> {
+  let total = 0;
+  try {
+    total = fs.statSync(filePath).size;
+  } catch {}
+  let bytesRead = 0;
+  let nextTick = 0.02;
+
   const lines: JSONLRecord[] = [];
   const rl = readline.createInterface({
     input: fs.createReadStream(filePath),
@@ -25,6 +49,19 @@ export async function parseSession(filePath: string): Promise<SessionData | null
         lines.push(JSON.parse(line) as JSONLRecord);
       } catch {}
     }
+    if (onProgress && total > 0) {
+      // +1 for the LF readline strips from each line
+      bytesRead += line.length + 1;
+      const ratio = bytesRead / total;
+      if (ratio >= nextTick || ratio >= 1) {
+        nextTick = Math.min(ratio + 0.02, 1);
+        onProgress({bytes: Math.min(bytesRead, total), total});
+      }
+    }
+  }
+
+  if (onProgress && total > 0) {
+    onProgress({bytes: total, total});
   }
 
   if (!lines.length) return null;

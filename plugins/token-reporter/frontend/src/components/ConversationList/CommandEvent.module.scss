@@ -2,7 +2,7 @@
 @use '../../styles/mixins' as *;
 
 .eventCommand {
-  margin-bottom: 10px;
+  // Row spacing is set by .vrow in ConversationList.module.scss
   border: 1px solid var(--accent-hover-shadow);
   border-left: 3px solid var(--accent);
   border-radius: $radius-sm;

@@ -4,6 +4,7 @@ import { execFile, execSync } from "child_process";
 import path from "path";
 import os from "os";
 import fs from "fs";
+import { isTokenReporterProcess } from "../bin/lib/proc.js";
 
 const HOOKS_DIR = path.join(process.cwd(), "hooks");
 
@@ -165,13 +166,6 @@ async function main() {
       const output = execSync(`lsof -i :${port} -sTCP:LISTEN -t 2>/dev/null`, { encoding: "utf8" });
       return parseInt(output.trim().split("\n")[0]) || null;
     } catch { return null; }
-  }
-
-  function isTokenReporterProcess(pid) {
-    try {
-      const cmdline = execSync(`ps -p ${pid} -o comm= 2>/dev/null`, { encoding: "utf8" });
-      return cmdline.includes("node") || cmdline.includes("token");
-    } catch { return false; }
   }
 
   function findDevServerProcess() {

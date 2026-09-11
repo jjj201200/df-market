@@ -6,7 +6,7 @@ import {DPR, getSegs, setupCanvas} from '../../utils/canvas';
 import type {TurnItem, BarRect} from '../../types/state';
 import {lockBrushDriving, deferScrollToTurn} from '../../hooks/useScrollSync';
 import {brushToFirstIdx, brushToLastIdx} from '../../utils/brushCoords';
-import {scrollToTurnIndex} from '../../utils/scroll';
+import {scrollToChartTurn, scrollToTurnById} from '../../utils/scroll';
 import styles from './MainChart.module.scss';
 
 const ANIM_DURATION = 250; // ms
@@ -49,7 +49,7 @@ export default function MainChart() {
     startR: 0,
   });
 
-  const turns = useSessionStore((s) => s.turns);
+  const turns = useSessionStore((s) => s.chartTurns);
   const brushL = useChartStore((s) => s.brushL);
   const brushR = useChartStore((s) => s.brushR);
   const hoveredId = useChartStore((s) => s.hoveredId);
@@ -316,9 +316,9 @@ export default function MainChart() {
         deferScrollToTurn(() => {
           const {brushL: bL, brushR: bR, viewLoPct: vL, viewHiPct: vR} = useChartStore.getState();
           if (vL < bL) {
-            scrollToTurnIndex(turns, brushToFirstIdx(bL, N));
+            scrollToChartTurn(brushToFirstIdx(bL, N));
           } else if (vR > bR) {
-            scrollToTurnIndex(turns, brushToLastIdx(bR, N), 'bottom');
+            scrollToChartTurn(brushToLastIdx(bR, N), 'bottom');
           }
         });
       };
@@ -329,9 +329,9 @@ export default function MainChart() {
         const N = turns.length;
         const {brushL: bL, brushR: bR, viewLoPct: vL, viewHiPct: vR} = useChartStore.getState();
         if (vL < bL) {
-          scrollToTurnIndex(turns, brushToFirstIdx(bL, N));
+          scrollToChartTurn(brushToFirstIdx(bL, N));
         } else if (vR > bR) {
-          scrollToTurnIndex(turns, brushToLastIdx(bR, N), 'bottom');
+          scrollToChartTurn(brushToLastIdx(bR, N), 'bottom');
         }
         window.removeEventListener('mousemove', onMove);
         window.removeEventListener('mouseup', onUp);
@@ -352,13 +352,12 @@ export default function MainChart() {
       const barRects = useChartStore.getState().barRects;
       for (const br of barRects) {
         if (mx >= br.x && mx <= br.x + br.w && my >= br.y && my <= br.y + br.h) {
-          const idx = turns.findIndex((t) => t.id === br.id);
-          scrollToTurnIndex(turns, idx);
+          scrollToTurnById(br.id);
           break;
         }
       }
     },
-    [turns],
+    [],
   );
 
   const handleMouseMove = useCallback(

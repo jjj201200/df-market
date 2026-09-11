@@ -12,6 +12,7 @@ export function useSSE() {
   const setLimits = useLimitsStore((s) => s.setLimits);
   const fetchSessionsQuietly = useSessionStore((s) => s.fetchSessionsQuietly);
   const addNewSessionId = useSessionStore((s) => s.addNewSessionId);
+  const applyParseProgress = useSessionStore((s) => s.applyParseProgress);
   const connRef = useRef<EventSource | null>(null);
   const attemptsRef = useRef(0);
   const delayRef = useRef(3000);
@@ -62,6 +63,9 @@ export function useSSE() {
               type: string;
               sessionId?: string;
               payload?: Record<string, unknown>;
+              bytes?: number;
+              total?: number;
+              done?: boolean;
             };
             if (msg.type === 'update' || msg.type === 'tool_use') {
               await refreshCurrentSession();
@@ -72,6 +76,8 @@ export function useSSE() {
               if (msg.sessionId) {
                 addNewSessionId(msg.sessionId);
               }
+            } else if (msg.type === 'parse-progress' && msg.sessionId) {
+              applyParseProgress(msg.sessionId, msg.bytes ?? 0, msg.total ?? 0, msg.done === true);
             }
           } catch {
             /* ignore parse errors */
@@ -137,5 +143,5 @@ export function useSSE() {
         connRef.current = null;
       }
     };
-  }, [refreshCurrentSession, setLimits, fetchSessionsQuietly, addNewSessionId]);
+  }, [refreshCurrentSession, setLimits, fetchSessionsQuietly, addNewSessionId, applyParseProgress]);
 }
